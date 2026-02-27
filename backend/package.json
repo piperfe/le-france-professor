@@ -1,0 +1,47 @@
+{
+  "name": "le-france-professor-backend",
+  "version": "1.0.0",
+  "description": "Backend for French learning application",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/api-logs": "^0.212.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.212.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.212.0",
+    "@opentelemetry/instrumentation-express": "^0.60.0",
+    "@opentelemetry/instrumentation-http": "^0.212.0",
+    "@opentelemetry/instrumentation-openai": "^0.10.0",
+    "@opentelemetry/resources": "^2.5.1",
+    "@opentelemetry/sdk-logs": "^0.212.0",
+    "@opentelemetry/sdk-node": "^0.212.0",
+    "@opentelemetry/sdk-trace-node": "^2.5.1",
+    "@opentelemetry/semantic-conventions": "^1.40.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "openai": "^4.20.1"
+  },
+  "devDependencies": {
+    "@jest/test-sequencer": "^29.7.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.8",
+    "@types/nock": "^10.0.3",
+    "@types/node": "^20.10.0",
+    "@types/supertest": "^2.0.16",
+    "jest": "^29.7.0",
+    "nock": "^14.0.11",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.2"
+  }
+}
