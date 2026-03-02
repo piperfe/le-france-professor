@@ -32,6 +32,16 @@ frontend/
   - French culture
   - French language in the world
 
+## API Documentation
+
+The backend serves interactive API documentation via [Scalar](https://scalar.com) at:
+
+```
+http://localhost:3001/docs
+```
+
+The spec covers all endpoints with request/response schemas, examples, and a built-in HTTP client to try requests directly from the browser. The OpenAPI spec is defined in `backend/src/adapters/http/openapi-spec.ts`.
+
 ## Observability
 
 The backend emits OpenTelemetry traces covering HTTP requests, use-case executions, and LLM calls (with `gen_ai.*` semantic conventions). See [OBSERVABILITY.md](./OBSERVABILITY.md) for the full trace hierarchy, how to read console output, and how to run the local Grafana stack.

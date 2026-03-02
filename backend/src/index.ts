@@ -2,7 +2,9 @@ import 'dotenv/config'; // must be first — loads .env before telemetry reads e
 import './infrastructure/telemetry/setup'; // must be second — patches openai before it loads
 import express from 'express';
 import cors from 'cors';
+import { apiReference } from '@scalar/express-api-reference';
 import { createRoutes } from './adapters/http/routes';
+import { openApiSpec } from './adapters/http/openapi-spec';
 import { CreateConversationUseCase } from './application/use-cases/create-conversation-use-case';
 import { SendMessageUseCase } from './application/use-cases/send-message-use-case';
 import { GetConversationUseCase } from './application/use-cases/get-conversation-use-case';
@@ -55,6 +57,8 @@ function createApp(): express.Application {
       getConversationUseCase,
     ),
   );
+
+  app.use('/docs', apiReference({ spec: { content: openApiSpec } }));
 
   return app;
 }

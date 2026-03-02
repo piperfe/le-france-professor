@@ -71,8 +71,20 @@ Then open `http://localhost:3000` — no login required.
 
 See [OBSERVABILITY.md](./OBSERVABILITY.md) for the full trace hierarchy, exporter options, and how to add spans to new classes.
 
-## API Endpoints
+## API Documentation
 
-- `POST /api/conversations` — Create a new conversation
-- `POST /api/conversations/:conversationId/messages` — Send a message
-- `GET /api/conversations/:conversationId` — Get conversation details
+Interactive API docs are served by the backend via [Scalar](https://scalar.com):
+
+```
+http://localhost:3001/docs
+```
+
+The UI includes request/response schemas, examples, and a built-in HTTP client to test endpoints directly in the browser. The OpenAPI spec source is at `backend/src/adapters/http/openapi-spec.ts`.
+
+### Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/conversations` | Create a new conversation |
+| `POST` | `/api/conversations/:conversationId/messages` | Send a message to the tutor |
+| `GET`  | `/api/conversations/:conversationId` | Get conversation details |
