@@ -1,6 +1,7 @@
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { InMemorySpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { SpanStatusCode } from '@opentelemetry/api';
+import { okAsync, errAsync } from 'neverthrow';
 import { Span } from './decorators';
 
 const exporter = new InMemorySpanExporter();
@@ -22,6 +23,16 @@ class TestService {
   @Span()
   async fail(): Promise<never> {
     throw new Error('boom');
+  }
+
+  @Span()
+  async computeResult() {
+    return okAsync('ok');
+  }
+
+  @Span()
+  async failResult() {
+    return errAsync(new Error('result error'));
   }
 }
 
@@ -100,5 +111,49 @@ describe('@Span() decorator', () => {
 
   it('re-throws the original error', async () => {
     await expect(service.fail()).rejects.toThrow('boom');
+  });
+
+  describe('neverthrow Result support', () => {
+    it('does not set error status when result is Ok', async () => {
+      await service.computeResult();
+
+      const [span] = exporter.getFinishedSpans();
+      expect(span.status.code).not.toBe(SpanStatusCode.ERROR);
+    });
+
+    it('ends the span when result is Ok', async () => {
+      await service.computeResult();
+
+      expect(exporter.getFinishedSpans()).toHaveLength(1);
+    });
+
+    it('sets span status to ERROR when result is Err', async () => {
+      await service.failResult();
+
+      const [span] = exporter.getFinishedSpans();
+      expect(span.status.code).toBe(SpanStatusCode.ERROR);
+      expect(span.status.message).toBe('result error');
+    });
+
+    it('records the exception as a span event when result is Err', async () => {
+      await service.failResult();
+
+      const [span] = exporter.getFinishedSpans();
+      const exceptionEvent = span.events.find((e) => e.name === 'exception');
+      expect(exceptionEvent).toBeDefined();
+      expect(exceptionEvent?.attributes?.['exception.message']).toBe('result error');
+    });
+
+    it('ends the span when result is Err', async () => {
+      await service.failResult();
+
+      expect(exporter.getFinishedSpans()).toHaveLength(1);
+    });
+
+    it('returns the Result unchanged so callers can still match on it', async () => {
+      const result = await service.failResult();
+
+      expect(result.isErr()).toBe(true);
+    });
   });
 });

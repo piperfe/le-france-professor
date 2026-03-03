@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import { CreateConversationUseCase } from '../../../application/use-cases/create-conversation-use-case';
-import { handleError } from './handle-error';
+import { HTTP_STATUS } from '../../../domain/errors';
 
 export function createCreateConversationHandler(
   createConversationUseCase: CreateConversationUseCase,
 ) {
   return async (req: Request, res: Response): Promise<void> => {
-    try {
-      const result = await createConversationUseCase.execute();
-      res.status(201).json(result);
-    } catch (error) {
-      handleError(error, res);
-    }
+    const result = await createConversationUseCase.execute();
+
+    result.match(
+      (conversation) => res.status(201).json(conversation),
+      (error) => res.status(HTTP_STATUS[error.code] ?? 500).json({ error: error.message }),
+    );
   };
 }

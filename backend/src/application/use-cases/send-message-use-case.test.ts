@@ -3,6 +3,7 @@ import { ConversationRepository } from '../../domain/repositories/conversation-r
 import { TutorService } from '../../domain/services/tutor-service';
 import { Conversation } from '../../domain/entities/conversation';
 import { Message, MessageSender } from '../../domain/entities/message';
+import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
 describe('SendMessageUseCase', () => {
   let mockRepository: jest.Mocked<ConversationRepository>;
@@ -22,26 +23,63 @@ describe('SendMessageUseCase', () => {
     useCase = new SendMessageUseCase(mockRepository, mockTutorService);
   });
 
-  it('should send a message and get tutor response', async () => {
+  it('should return ok with message and tutor response', async () => {
     const conversation = Conversation.create();
-    const initialMessage = Message.create('Hello', MessageSender.TUTOR);
-    conversation.addMessage(initialMessage);
+    conversation.addMessage(Message.create('Bonjour !', MessageSender.TUTOR));
     mockRepository.findById.mockResolvedValue(conversation);
     mockRepository.save.mockResolvedValue();
-    mockTutorService.generateResponse.mockResolvedValue('Bonjour !');
+    mockTutorService.generateResponse.mockResolvedValue('Très bien, merci !');
 
-    const result = await useCase.execute('conv-1', 'Hello');
+    const result = await useCase.execute('conv-1', 'Je vais bien');
 
-    expect(result.message).toBe('Hello');
-    expect(result.tutorResponse).toBe('Bonjour !');
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value.message).toBe('Je vais bien');
+      expect(result.value.tutorResponse).toBe('Très bien, merci !');
+    }
     expect(mockRepository.save).toHaveBeenCalledTimes(1);
   });
 
-  it('should throw error if conversation not found', async () => {
+  it('should pass full conversation history to tutor service', async () => {
+    const conversation = Conversation.create();
+    conversation.addMessage(Message.create('Bonjour ! Comment allez-vous ?', MessageSender.TUTOR));
+    mockRepository.findById.mockResolvedValue(conversation);
+    mockRepository.save.mockResolvedValue();
+    mockTutorService.generateResponse.mockResolvedValue('Très bien, merci !');
+
+    await useCase.execute('conv-1', 'Je vais bien');
+
+    expect(mockTutorService.generateResponse).toHaveBeenCalledWith(
+      ['Bonjour ! Comment allez-vous ?', 'Je vais bien'],
+      'Je vais bien',
+    );
+  });
+
+  it('should return err with NotFoundError when conversation does not exist', async () => {
     mockRepository.findById.mockResolvedValue(null);
 
-    await expect(useCase.execute('conv-1', 'Hello')).rejects.toThrow(
-      'Conversation not found',
-    );
+    const result = await useCase.execute('conv-1', 'Hello');
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toBeInstanceOf(NotFoundError);
+      expect(result.error.code).toBe('NOT_FOUND');
+    }
+  });
+
+  it('should return err with ServiceUnavailableError when tutor service fails', async () => {
+    const conversation = Conversation.create();
+    conversation.addMessage(Message.create('Bonjour !', MessageSender.TUTOR));
+    mockRepository.findById.mockResolvedValue(conversation);
+    mockTutorService.generateResponse.mockRejectedValue(new Error('LLM timeout'));
+
+    const result = await useCase.execute('conv-1', 'Hello');
+
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toBeInstanceOf(ServiceUnavailableError);
+      expect(result.error.code).toBe('SERVICE_UNAVAILABLE');
+      expect(result.error.message).toBe('LLM timeout');
+    }
   });
 });

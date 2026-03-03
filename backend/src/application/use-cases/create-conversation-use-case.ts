@@ -1,10 +1,15 @@
-import { SpanStatusCode } from '@opentelemetry/api';
+import { ResultAsync } from 'neverthrow';
 import { Span } from '../../infrastructure/telemetry/decorators';
 import { Conversation } from '../../domain/entities/conversation';
 import { Message, MessageSender } from '../../domain/entities/message';
 import { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import { TutorService } from '../../domain/services/tutor-service';
-import { tracer } from '../../infrastructure/telemetry/tracer';
+import { ServiceUnavailableError } from '../../domain/errors';
+
+type CreateConversationDTO = {
+  conversationId: string;
+  initialMessage: string;
+};
 
 export class CreateConversationUseCase {
   constructor(
@@ -13,15 +18,29 @@ export class CreateConversationUseCase {
   ) {}
 
   @Span()
-  async execute(): Promise<{ conversationId: string; initialMessage: string }> {
+  execute(): ResultAsync<CreateConversationDTO, ServiceUnavailableError> {
     const conversation = Conversation.create();
-    const initialMessage = await this.tutorService.initiateConversation();
-    const tutorMessage = Message.create(initialMessage, MessageSender.TUTOR);
-    conversation.addMessage(tutorMessage);
-    await this.conversationRepository.save(conversation);
-    return {
-      conversationId: conversation.id,
-      initialMessage: initialMessage,
-    };
+
+    return ResultAsync.fromPromise(
+      this.tutorService.initiateConversation(),
+      (error) =>
+        new ServiceUnavailableError(
+          error instanceof Error ? error.message : 'Tutor service unavailable',
+        ),
+    ).andThen((initialMessage) => {
+      const tutorMessage = Message.create(initialMessage, MessageSender.TUTOR);
+      conversation.addMessage(tutorMessage);
+
+      return ResultAsync.fromPromise(
+        this.conversationRepository.save(conversation),
+        (error) =>
+          new ServiceUnavailableError(
+            error instanceof Error ? error.message : 'Repository unavailable',
+          ),
+      ).map(() => ({
+        conversationId: conversation.id,
+        initialMessage,
+      }));
+    });
   }
 }

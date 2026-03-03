@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { CreateConversationUseCase } from '../../../application/use-cases/create-conversation-use-case';
 import { createCreateConversationHandler } from './create-conversation';
+import { okAsync, errAsync } from 'neverthrow';
+import { ServiceUnavailableError } from '../../../domain/errors';
 
 describe('createCreateConversationHandler', () => {
   let mockUseCase: jest.Mocked<CreateConversationUseCase>;
@@ -18,34 +20,23 @@ describe('createCreateConversationHandler', () => {
     handler = createCreateConversationHandler(mockUseCase);
   });
 
-  it('returns 201 and result when use case succeeds', async () => {
-    const result = {
-      conversationId: 'conv-123',
-      initialMessage: 'Bonjour !',
-    };
-    mockUseCase.execute.mockResolvedValue(result);
+  it('returns 201 and result when conversation is created', async () => {
+    const result = { conversationId: 'conv-123', initialMessage: 'Bonjour !' };
+    mockUseCase.execute.mockReturnValue(okAsync(result));
 
-    await handler(
-      mockRequest as Request,
-      mockResponse as Response,
-    );
+    await handler(mockRequest as Request, mockResponse as Response);
 
     expect(mockUseCase.execute).toHaveBeenCalled();
     expect(mockResponse.status).toHaveBeenCalledWith(201);
     expect(mockResponse.json).toHaveBeenCalledWith(result);
   });
 
-  it('returns 500 and error message when use case throws', async () => {
-    mockUseCase.execute.mockRejectedValue(new Error('Something failed'));
+  it('returns 503 when tutor service is unavailable', async () => {
+    mockUseCase.execute.mockReturnValue(errAsync(new ServiceUnavailableError('LLM unavailable')));
 
-    await handler(
-      mockRequest as Request,
-      mockResponse as Response,
-    );
+    await handler(mockRequest as Request, mockResponse as Response);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(500);
-    expect(mockResponse.json).toHaveBeenCalledWith({
-      error: 'Something failed',
-    });
+    expect(mockResponse.status).toHaveBeenCalledWith(503);
+    expect(mockResponse.json).toHaveBeenCalledWith({ error: 'LLM unavailable' });
   });
 });

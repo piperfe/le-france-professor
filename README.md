@@ -42,6 +42,10 @@ http://localhost:3001/docs
 
 The spec covers all endpoints with request/response schemas, examples, and a built-in HTTP client to try requests directly from the browser. The OpenAPI spec is defined in `backend/src/adapters/http/openapi-spec.ts`.
 
+## Testing
+
+The backend uses a two-layer strategy: unit tests per layer (mocked dependencies) and integration tests that run the full HTTP stack with only the LLM mocked via `nock`. See [TESTING.md](./TESTING.md) for the full strategy, how to run each layer, and known setup details (Scalar ESM mock, neverthrow migration).
+
 ## Observability
 
 The backend emits OpenTelemetry traces covering HTTP requests, use-case executions, and LLM calls (with `gen_ai.*` semantic conventions). See [OBSERVABILITY.md](./OBSERVABILITY.md) for the full trace hierarchy, how to read console output, and how to run the local Grafana stack.

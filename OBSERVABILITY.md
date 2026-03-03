@@ -18,7 +18,7 @@ HTTP POST /api/conversations/:id/messages       ← auto (Express)
                     gen_ai.usage.output_tokens  = …
 ```
 
-Errors are automatically captured as span **exception events** with a full stack trace and the span status is set to `ERROR` — no extra code needed in error handlers.
+Errors are automatically captured as span **exception events** with a full stack trace and the span status is set to `ERROR`. The `@Span()` decorator handles both thrown exceptions and neverthrow `Result.Err` returns — no extra code needed in error handlers.
 
 ## Selecting an exporter
 
@@ -102,16 +102,36 @@ Data is not persisted — traces and logs are lost on shutdown.
 
 ## Adding spans to new classes
 
-Use the `@Span()` decorator — it creates a named span, records any thrown exception, and sets the span status to `ERROR` automatically:
+Use the `@Span()` decorator — it creates a named span and sets the span status to `ERROR` automatically. It handles both error patterns used in this codebase:
 
+**Classic async (throws):**
 ```ts
 import { Span } from '../infrastructure/telemetry/decorators';
 
 class MyUseCase {
-  @Span()                        // name defaults to "MyUseCase.execute"
-  async execute(...) { ... }
-
-  @Span('my.custom.span.name')   // explicit name
-  async helper(...) { ... }
+  @Span()
+  async execute(): Promise<Result> {
+    if (!found) throw new NotFoundError('...');  // ← span marked ERROR + exception recorded
+    return result;
+  }
 }
 ```
+
+**neverthrow (returns `ResultAsync`):**
+```ts
+import { Span } from '../infrastructure/telemetry/decorators';
+
+class MyUseCase {
+  @Span()
+  execute(): ResultAsync<Result, NotFoundError | ServiceUnavailableError> {
+    return ResultAsync.fromPromise(...).andThen((value) => {
+      if (!value) return errAsync(new NotFoundError('...'));  // ← span marked ERROR + exception recorded
+      return okAsync(value);
+    });
+  }
+}
+```
+
+The decorator duck-types the return value via `isErr()` — if the method returns a `Result.Err`, the error is recorded as a span exception and the status is set to `ERROR`, exactly as if the method had thrown. A `Result.Ok` leaves the span status as `OK`.
+
+> Always add `@Span()` to use case `execute()` methods and service methods that call external I/O (LLM, repository). This keeps the trace tree complete for every request.

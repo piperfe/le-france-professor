@@ -1,7 +1,9 @@
+import { ResultAsync, errAsync } from 'neverthrow';
 import { Span } from '../../infrastructure/telemetry/decorators';
 import { Message, MessageSender } from '../../domain/entities/message';
 import { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import { TutorService } from '../../domain/services/tutor-service';
+import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
 export class SendMessageUseCase {
   constructor(
@@ -10,30 +12,48 @@ export class SendMessageUseCase {
   ) {}
 
   @Span()
-  async execute(
+  execute(
     conversationId: string,
     userMessage: string,
-  ): Promise<{ message: string; tutorResponse: string }> {
-    const conversation = await this.conversationRepository.findById(
-      conversationId,
-    );
-    if (!conversation) {
-      throw new Error('Conversation not found');
-    }
-    const userMsg = Message.create(userMessage, MessageSender.USER);
-    conversation.addMessage(userMsg);
-    const conversationHistory = this.buildConversationHistory(conversation);
-    const tutorResponse = await this.tutorService.generateResponse(
-      conversationHistory,
-      userMessage,
-    );
-    const tutorMsg = Message.create(tutorResponse, MessageSender.TUTOR);
-    conversation.addMessage(tutorMsg);
-    await this.conversationRepository.save(conversation);
-    return {
-      message: userMessage,
-      tutorResponse: tutorResponse,
-    };
+  ): ResultAsync<{ message: string; tutorResponse: string }, NotFoundError | ServiceUnavailableError> {
+    return ResultAsync.fromPromise(
+      this.conversationRepository.findById(conversationId),
+      (error) =>
+        new ServiceUnavailableError(
+          error instanceof Error ? error.message : 'Repository unavailable',
+        ),
+    ).andThen((conversation) => {
+      if (!conversation) {
+        return errAsync(new NotFoundError('Conversation not found'));
+      }
+
+      const userMsg = Message.create(userMessage, MessageSender.USER);
+      conversation.addMessage(userMsg);
+
+      const conversationHistory = this.buildConversationHistory(conversation);
+
+      return ResultAsync.fromPromise(
+        this.tutorService.generateResponse(conversationHistory, userMessage),
+        (error) =>
+          new ServiceUnavailableError(
+            error instanceof Error ? error.message : 'Tutor service unavailable',
+          ),
+      ).andThen((tutorResponse) => {
+        const tutorMsg = Message.create(tutorResponse, MessageSender.TUTOR);
+        conversation.addMessage(tutorMsg);
+
+        return ResultAsync.fromPromise(
+          this.conversationRepository.save(conversation),
+          (error) =>
+            new ServiceUnavailableError(
+              error instanceof Error ? error.message : 'Repository unavailable',
+            ),
+        ).map(() => ({
+          message: userMessage,
+          tutorResponse,
+        }));
+      });
+    });
   }
 
   private buildConversationHistory(conversation: any): string[] {

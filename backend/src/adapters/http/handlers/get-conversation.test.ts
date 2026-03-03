@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { GetConversationUseCase } from '../../../application/use-cases/get-conversation-use-case';
 import { createGetConversationHandler } from './get-conversation';
+import { okAsync, errAsync } from 'neverthrow';
+import { NotFoundError, ServiceUnavailableError } from '../../../domain/errors';
 
 describe('createGetConversationHandler', () => {
   let mockUseCase: jest.Mocked<GetConversationUseCase>;
@@ -20,35 +22,33 @@ describe('createGetConversationHandler', () => {
 
   it('returns 200 and conversation when found', async () => {
     mockRequest.params = { conversationId: 'conv-123' };
-    const conversation = {
-      id: 'conv-123',
-      messages: [],
-      createdAt: new Date(),
-    };
-    mockUseCase.execute.mockResolvedValue(conversation);
+    const conversation = { id: 'conv-123', messages: [], createdAt: new Date() };
+    mockUseCase.execute.mockReturnValue(okAsync(conversation));
 
-    await handler(
-      mockRequest as Request,
-      mockResponse as Response,
-    );
+    await handler(mockRequest as Request, mockResponse as Response);
 
     expect(mockUseCase.execute).toHaveBeenCalledWith('conv-123');
     expect(mockResponse.status).toHaveBeenCalledWith(200);
     expect(mockResponse.json).toHaveBeenCalledWith(conversation);
   });
 
-  it('returns 500 when use case throws', async () => {
+  it('returns 404 when conversation is not found', async () => {
     mockRequest.params = { conversationId: 'conv-123' };
-    mockUseCase.execute.mockRejectedValue(new Error('Conversation not found'));
+    mockUseCase.execute.mockReturnValue(errAsync(new NotFoundError('Conversation not found')));
 
-    await handler(
-      mockRequest as Request,
-      mockResponse as Response,
-    );
+    await handler(mockRequest as Request, mockResponse as Response);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(500);
-    expect(mockResponse.json).toHaveBeenCalledWith({
-      error: 'Conversation not found',
-    });
+    expect(mockResponse.status).toHaveBeenCalledWith(404);
+    expect(mockResponse.json).toHaveBeenCalledWith({ error: 'Conversation not found' });
+  });
+
+  it('returns 503 when repository is unavailable', async () => {
+    mockRequest.params = { conversationId: 'conv-123' };
+    mockUseCase.execute.mockReturnValue(errAsync(new ServiceUnavailableError('DB connection failed')));
+
+    await handler(mockRequest as Request, mockResponse as Response);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(503);
+    expect(mockResponse.json).toHaveBeenCalledWith({ error: 'DB connection failed' });
   });
 });
