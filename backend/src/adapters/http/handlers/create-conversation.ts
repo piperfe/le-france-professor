@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { CreateConversationUseCase } from '../../../application/use-cases/create-conversation-use-case';
+import type { Request, Response } from 'express';
+import type { CreateConversationUseCase } from '../../../application/use-cases/create-conversation-use-case';
 import { HTTP_STATUS } from '../../../domain/errors';
 
 export function createCreateConversationHandler(

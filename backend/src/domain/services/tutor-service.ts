@@ -1,4 +1,4 @@
-import { Topic } from '../value-objects/topic';
+import type { Topic } from '../value-objects/topic';
 
 export interface TutorService {
   initiateConversation(): Promise<string>;

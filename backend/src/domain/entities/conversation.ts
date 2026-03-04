@@ -1,4 +1,4 @@
-import { Message, MessageSender } from './message';
+import type { Message } from './message';
 
 export class Conversation {
   constructor(

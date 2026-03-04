@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { SendMessageUseCase } from '../../../application/use-cases/send-message-use-case';
+import type { Request, Response } from 'express';
+import type { SendMessageUseCase } from '../../../application/use-cases/send-message-use-case';
 import { HTTP_STATUS } from '../../../domain/errors';
 
 export function createSendMessageHandler(sendMessageUseCase: SendMessageUseCase) {

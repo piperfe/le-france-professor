@@ -30,6 +30,12 @@ npm run test:coverage
 
 # Watch mode for development
 npm run test:watch
+
+# Lint (ESLint 9 flat config — consistent-type-imports, no-explicit-any)
+npm run lint
+
+# Type check without emitting
+npm run typecheck
 ```
 
 ---

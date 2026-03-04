@@ -70,6 +70,9 @@ npm run dev:frontend
 # Run all tests
 npm run test:all
 
+# Lint + typecheck (backend)
+cd backend && npm run lint && npm run typecheck
+
 # Lint + typecheck (frontend)
 cd frontend && npm run lint && npm run typecheck
 ```

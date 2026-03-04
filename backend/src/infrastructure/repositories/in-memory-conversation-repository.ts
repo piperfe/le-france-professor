@@ -1,5 +1,5 @@
-import { Conversation } from '../../domain/entities/conversation';
-import { ConversationRepository } from '../../domain/repositories/conversation-repository';
+import type { Conversation } from '../../domain/entities/conversation';
+import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 
 export class InMemoryConversationRepository
   implements ConversationRepository

@@ -2,8 +2,8 @@ import { ResultAsync } from 'neverthrow';
 import { Span } from '../../infrastructure/telemetry/decorators';
 import { Conversation } from '../../domain/entities/conversation';
 import { Message, MessageSender } from '../../domain/entities/message';
-import { ConversationRepository } from '../../domain/repositories/conversation-repository';
-import { TutorService } from '../../domain/services/tutor-service';
+import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
+import type { TutorService } from '../../domain/services/tutor-service';
 import { ServiceUnavailableError } from '../../domain/errors';
 
 type CreateConversationDTO = {

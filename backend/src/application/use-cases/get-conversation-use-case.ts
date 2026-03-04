@@ -1,6 +1,6 @@
 import { ResultAsync, errAsync, okAsync } from 'neverthrow';
 import { Span } from '../../infrastructure/telemetry/decorators';
-import { ConversationRepository } from '../../domain/repositories/conversation-repository';
+import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
 type ConversationDTO = {

@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { Topic } from '../../domain/value-objects/topic';
-import { TutorService } from '../../domain/services/tutor-service';
+import type { TutorService } from '../../domain/services/tutor-service';
 import { Span } from '../telemetry/decorators';
 
 export interface OllamaConfig {
@@ -51,14 +51,14 @@ export class OllamaTutorService implements TutorService {
     userMessage: string,
   ): Promise<string> {
     const systemPrompt = this.buildGeneralSystemPrompt();
-    const messages = [
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
       { role: 'system', content: systemPrompt },
       ...this.buildMessageHistory(conversationHistory),
       { role: 'user', content: userMessage },
     ];
     const response = await this.client.chat.completions.create({
       model: this.model,
-      messages: messages as any,
+      messages,
       temperature: 0.7,
       max_tokens: 300,
     });
@@ -90,7 +90,7 @@ Règles importantes:
 - Utilisez un langage naturel et conversationnel`;
   }
 
-  private buildMessageHistory(history: string[]): Array<{ role: string; content: string }> {
+  private buildMessageHistory(history: string[]): Array<{ role: 'user' | 'assistant'; content: string }> {
     return history.map((content, index) => ({
       role: index % 2 === 0 ? 'assistant' : 'user',
       content,
