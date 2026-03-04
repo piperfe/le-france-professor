@@ -24,7 +24,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "3100:3000"
     volumes:
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
     environment:

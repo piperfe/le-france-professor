@@ -25,9 +25,9 @@
    ```
    Ensure Ollama is running and the model is pulled: `ollama run hf.co/QuantFactory/EuroLLM-9B-Instruct-GGUF`
 
-   Create `frontend/.env` (optional):
+   Create `frontend/.env.local` (optional — defaults to `http://localhost:3001/api`):
    ```
-   VITE_API_BASE_URL=http://localhost:3001/api
+   BACKEND_URL=http://localhost:3001/api
    ```
 
 3. **Run the application:**
@@ -67,7 +67,7 @@ cd observability
 docker compose up -d
 ```
 
-Then open `http://localhost:3000` — no login required.
+Then open `http://localhost:3100` — no login required.
 
 See [OBSERVABILITY.md](./OBSERVABILITY.md) for the full trace hierarchy, exporter options, and how to add spans to new classes.
 

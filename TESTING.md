@@ -146,17 +146,16 @@ but simply calls `next()` and moves on. The docs UI is irrelevant to API behavio
 
 ---
 
-## neverthrow (Experiment in Progress)
+## neverthrow
 
-`GET /api/conversations/:id` has been migrated to [neverthrow](https://github.com/supermacro/neverthrow)
-as a proof of concept. Instead of throwing errors, the use case returns a typed `ResultAsync`:
+All use cases in both the backend and frontend return typed `ResultAsync` via [neverthrow](https://github.com/supermacro/neverthrow). Errors are part of the function signature — callers cannot ignore them:
 
 ```ts
 // errors are part of the function signature — visible to every caller
 execute(id: string): ResultAsync<ConversationDTO, NotFoundError | ServiceUnavailableError>
 ```
 
-The handler uses `result.match()` instead of `try/catch`:
+Backend handlers use `result.match()` instead of `try/catch`:
 
 ```ts
 const result = await getConversationUseCase.execute(conversationId);
@@ -166,5 +165,4 @@ result.match(
 );
 ```
 
-The goal is to migrate all use cases and handlers to this pattern. See the
-[neverthrow docs](https://github.com/supermacro/neverthrow) for the full API.
+Frontend use cases follow the same pattern — Server Components and Route Handlers call `result.isOk()` / `result.isErr()` and branch accordingly. See the [neverthrow docs](https://github.com/supermacro/neverthrow) for the full API.

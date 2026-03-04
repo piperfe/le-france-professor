@@ -18,11 +18,16 @@ backend/
 ### Frontend Structure
 ```
 frontend/
-├── domain/          # Domain models, repositories (interfaces)
-├── application/     # Use cases
-├── infrastructure/  # API client
-└── adapters/        # UI components, hooks
+├── src/
+│   ├── app/             # Next.js App Router (pages, layouts, API route handlers)
+│   ├── components/      # React Client Components (interactive UI)
+│   ├── domain/          # Domain models, errors, repository interfaces
+│   ├── application/     # Use cases (neverthrow ResultAsync)
+│   ├── infrastructure/  # HTTP repository adapter
+│   └── lib/             # Server-side DI container
 ```
+
+The frontend uses Next.js as a BFF (Backend for Frontend). Server Components fetch conversations directly from the Express backend before rendering — no loading states, no flash. Client Components send messages through Next.js Route Handlers, which proxy to the backend. The browser never calls the Express backend directly.
 
 ## Features
 
@@ -56,14 +61,17 @@ The backend emits OpenTelemetry traces covering HTTP requests, use-case executio
 # Install dependencies
 npm install
 
-# Run backend
+# Run backend (port 3001)
 npm run dev:backend
 
-# Run frontend
+# Run frontend (port 3000)
 npm run dev:frontend
 
 # Run all tests
 npm run test:all
+
+# Lint + typecheck (frontend)
+cd frontend && npm run lint && npm run typecheck
 ```
 
 See [QUICKSTART.md](./QUICKSTART.md) for full setup instructions.

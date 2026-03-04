@@ -73,7 +73,7 @@ This starts four services:
 | `otel-collector` | Receives OTLP from the backend, routes to Tempo and Loki | `4318` (exposed to host) |
 | `tempo` | Stores and serves traces | internal only |
 | `loki` | Stores and serves logs | internal only |
-| `grafana` | UI for traces and logs | `3000` (exposed to host) |
+| `grafana` | UI for traces and logs | `3100` (exposed to host) |
 
 ### Configure the backend
 
@@ -85,7 +85,7 @@ OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
 
 ### View traces and logs
 
-Open `http://localhost:3000` (no login required).
+Open `http://localhost:3100` (no login required).
 
 - **Traces** → Explore → Tempo → search by service `le-france-professor`
 - **Logs** → Explore → Loki → query `{service_name="le-france-professor"}`

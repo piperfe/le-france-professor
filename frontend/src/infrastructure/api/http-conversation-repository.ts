@@ -1,6 +1,7 @@
-import { Conversation, ConversationApiResponse } from '../../domain/entities/conversation';
-import { Message, MessageSender } from '../../domain/entities/message';
-import { ConversationRepository } from '../../domain/repositories/conversation-repository';
+import type { ConversationApiResponse } from '../../domain/entities/conversation';
+import { Conversation } from '../../domain/entities/conversation'
+import type { ConversationRepository } from '../../domain/repositories/conversation-repository'
+import { NotFoundError, ServiceUnavailableError } from '../../domain/errors'
 
 export class HttpConversationRepository implements ConversationRepository {
   constructor(private baseUrl: string) {}
@@ -9,11 +10,11 @@ export class HttpConversationRepository implements ConversationRepository {
     const response = await fetch(`${this.baseUrl}/conversations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-    });
+    })
     if (!response.ok) {
-      throw new Error('Failed to create conversation');
+      throw new ServiceUnavailableError('Failed to create conversation')
     }
-    return await response.json();
+    return await response.json()
   }
 
   async sendMessage(
@@ -27,21 +28,24 @@ export class HttpConversationRepository implements ConversationRepository {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message }),
       },
-    );
+    )
     if (!response.ok) {
-      throw new Error('Failed to send message');
+      throw new ServiceUnavailableError('Failed to send message')
     }
-    return await response.json();
+    return await response.json()
   }
 
   async getById(conversationId: string): Promise<Conversation> {
     const response = await fetch(
       `${this.baseUrl}/conversations/${conversationId}`,
-    );
-    if (!response.ok) {
-      throw new Error('Failed to get conversation');
+    )
+    if (response.status === 404) {
+      throw new NotFoundError('Conversation not found')
     }
-    const data: ConversationApiResponse = await response.json();
-    return Conversation.fromApi(data);
+    if (!response.ok) {
+      throw new ServiceUnavailableError('Failed to get conversation')
+    }
+    const data: ConversationApiResponse = await response.json()
+    return Conversation.fromApi(data)
   }
 }

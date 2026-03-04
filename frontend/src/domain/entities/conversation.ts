@@ -1,3 +1,4 @@
+import type { MessageSender } from './message';
 import { Message } from './message';
 
 export class Conversation {
@@ -25,7 +26,7 @@ export interface ConversationApiResponse {
   messages: Array<{
     id: string;
     content: string;
-    sender: string;
+    sender: MessageSender;
     timestamp: string;
   }>;
   createdAt: string;

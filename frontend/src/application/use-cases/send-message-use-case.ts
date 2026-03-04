@@ -1,12 +1,17 @@
-import { ConversationRepository } from '../../domain/repositories/conversation-repository';
+import { ResultAsync } from 'neverthrow'
+import type { ConversationRepository } from '../../domain/repositories/conversation-repository'
+import { ServiceUnavailableError } from '../../domain/errors'
 
 export class SendMessageUseCase {
   constructor(private repository: ConversationRepository) {}
 
-  async execute(
+  execute(
     conversationId: string,
     message: string,
-  ): Promise<{ message: string; tutorResponse: string }> {
-    return await this.repository.sendMessage(conversationId, message);
+  ): ResultAsync<{ tutorResponse: string }, ServiceUnavailableError> {
+    return ResultAsync.fromPromise(
+      this.repository.sendMessage(conversationId, message).then((r) => ({ tutorResponse: r.tutorResponse })),
+      (e) => e instanceof ServiceUnavailableError ? e : new ServiceUnavailableError((e as Error).message),
+    )
   }
 }
