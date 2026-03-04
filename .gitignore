@@ -8,3 +8,7 @@ build/
 coverage/
 .nyc_output/
 .claude/
+
+# Next.js
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
