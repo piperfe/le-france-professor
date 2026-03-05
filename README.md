@@ -49,7 +49,17 @@ The spec covers all endpoints with request/response schemas, examples, and a bui
 
 ## Testing
 
-The backend uses a two-layer strategy: unit tests per layer (mocked dependencies) and integration tests that run the full HTTP stack with only the LLM mocked via `nock`. See [TESTING.md](./TESTING.md) for the full strategy, how to run each layer, and known setup details (Scalar ESM mock, neverthrow migration).
+Both backend and frontend follow the **Testing Trophy** — integration tests are the primary confidence signal, unit tests cover error branches, static analysis is the free bottom layer. The layers manifest differently per stack but the philosophy is unified:
+
+| Layer | Backend | Frontend |
+|---|---|---|
+| Static analysis | TypeScript + ESLint | TypeScript + ESLint |
+| Unit | Jest — per-layer isolation | Vitest — domain entities and use cases |
+| Integration | Jest + Supertest + Nock — full HTTP stack, LLM mocked | Vitest — Route Handlers with mocked use cases |
+| Component | — | Vitest + RTL + MSW — Client Components in jsdom |
+| E2E | — | Playwright — full browser flow, stub backend (no Ollama) |
+
+See [TESTING.md](./TESTING.md) for the full strategy, conventions, and how to run each layer.
 
 ## Observability
 

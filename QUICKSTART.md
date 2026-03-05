@@ -43,10 +43,20 @@
 
 4. **Run tests:**
    ```bash
+   # Backend (unit + integration)
    npm run test:backend
+
+   # Frontend (unit + integration + component)
    npm run test:frontend
+
+   # All at once
    npm run test:all
+
+   # Frontend E2E (Playwright — no Ollama required)
+   cd frontend && npm run test:e2e
    ```
+
+   The E2E suite starts a stub backend on port 3001 and a production Next.js server on port 3000 automatically. If those ports are already in use it will reuse the running servers.
 
 ## Observability
 

@@ -7,6 +7,6 @@ const repository = new HttpConversationRepository(
   process.env.BACKEND_URL ?? 'http://localhost:3001/api',
 )
 
-export const createUseCase = new CreateConversationUseCase(repository)
-export const sendUseCase = new SendMessageUseCase(repository)
-export const getUseCase = new GetConversationUseCase(repository)
+export const createConversationUseCase = new CreateConversationUseCase(repository)
+export const sendMessageUseCase = new SendMessageUseCase(repository)
+export const getConversationUseCase = new GetConversationUseCase(repository)

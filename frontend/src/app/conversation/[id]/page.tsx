@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getUseCase } from '../../../lib/container'
+import { getConversationUseCase } from '../../../lib/container'
 import { ChatClient } from '../../../components/chat-client'
 
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 
 export default async function ConversationPage({ params }: Props) {
   const { id } = await params
-  const result = await getUseCase.execute(id)
+  const result = await getConversationUseCase.execute(id)
 
   if (result.isErr() && result.error.code === 'NOT_FOUND') redirect('/')
   if (result.isErr()) throw result.error

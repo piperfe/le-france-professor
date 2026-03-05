@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createUseCase } from '../../../lib/container'
+import { createConversationUseCase } from '../../../lib/container'
 
 export async function POST() {
-  const result = await createUseCase.execute()
+  const result = await createConversationUseCase.execute()
 
   if (result.isErr()) return NextResponse.json({ error: result.error.message }, { status: 503 })
 

@@ -12,3 +12,5 @@ coverage/
 # Next.js
 frontend/.next/
 frontend/tsconfig.tsbuildinfo
+
+backend/test-results/

@@ -2,24 +2,45 @@
 
 ## Strategy
 
-The backend follows a two-layer test strategy that mirrors the hexagonal architecture:
+Both backend and frontend follow a **Testing Trophy** approach — the philosophy is stack-agnostic even though Kent C. Dodds popularised it in a React context. The core idea is the same: tests that resemble how the software is actually used give more confidence per dollar than pure unit tests with aggressive mocking. Integration tests carry the most weight; unit tests fill in error branches and edge cases that are hard to trigger through a real HTTP or browser interaction; static analysis (TypeScript + ESLint) is the free bottom layer.
 
-| Layer | Pattern | Purpose |
+The layers manifest differently depending on what the code does, not because of a different philosophy:
+
+### Backend
+
+| Layer | Tool | What is mocked |
 |---|---|---|
-| **Unit** | Each file tested in isolation with mocked dependencies | Validates specific paths, error branches, and contracts per layer |
-| **Integration** | Full HTTP stack, only the external LLM mocked | Validates that all layers execute together correctly (happy path) |
+| **Static analysis** | TypeScript + ESLint | — |
+| **Unit** | Jest | All dependencies — validates error branches and per-layer contracts |
+| **Integration** | Jest + Supertest + Nock | Only the external LLM call — full Express stack exercised as a real HTTP client would |
+
+The integration layer is the **primary confidence signal**. Unit tests exist to cover paths that are difficult to trigger through the HTTP layer.
+
+### Frontend
+
+| Layer | Tool | What is mocked |
+|---|---|---|
+| **Static analysis** | TypeScript + ESLint | — |
+| **Unit** | Vitest (node) | Repository — validates domain entities and use case logic |
+| **Integration** | Vitest (node) | Use cases via `vi.mock` — validates Route Handler request parsing and response shaping |
+| **Component** | Vitest + RTL + MSW | Network — validates Client Component interactions and async state in jsdom |
+| **E2E** | Playwright | Nothing — production Next.js build + stub backend, no Ollama required |
+
+Async RSC Server Components (`/conversation/[id]/page.tsx`) are not unit-tested — Vitest does not support async RSC. They are covered end-to-end by the Playwright layer.
 
 ---
 
 ## Running Tests
 
-All commands run from `backend/`:
+### Backend
+
+All commands from `backend/`:
 
 ```bash
 # All tests (unit + integration)
 npm test
 
-# Unit tests only — fast, no I/O, safe to run on every save
+# Unit tests only — fast, no I/O
 npm run test:unit
 
 # Integration tests only — hits the full Express app via HTTP
@@ -28,21 +49,40 @@ npm run test:integration
 # With coverage report (80% threshold enforced)
 npm run test:coverage
 
-# Watch mode for development
+# Watch mode
 npm run test:watch
-
-# Lint (ESLint 9 flat config — consistent-type-imports, no-explicit-any)
-npm run lint
-
-# Type check without emitting
-npm run typecheck
 ```
+
+### Frontend
+
+All commands from `frontend/`:
+
+```bash
+# Unit + integration + component tests (Vitest)
+npm test
+
+# Watch mode
+npm run test -- --watch
+
+# With coverage
+npm run test:coverage
+
+# E2E tests (Playwright — requires a prior build)
+npm run test:e2e
+
+# E2E with interactive UI
+npx playwright test --ui
+```
+
+> **Note:** `npm run test:e2e` starts a stub backend on port 3001 and a production Next.js server on port 3000 automatically via Playwright's `webServer`. No manual setup needed. If those ports are already in use, Playwright will reuse the existing servers (local dev mode).
 
 ---
 
-## Unit Tests
+## Backend Tests
 
-Unit tests live alongside the source files they test (`*.test.ts`). Each test file covers one layer in isolation:
+### Unit tests
+
+Unit tests live alongside source files (`*.test.ts`). Each file covers one layer in isolation:
 
 ```
 domain/entities/           → pure logic, zero mocks
@@ -52,7 +92,7 @@ adapters/http/handlers/    → mock UseCase, mock Express Request/Response
 infrastructure/            → mock external clients (OpenAI, telemetry)
 ```
 
-### Error path coverage
+#### Error path coverage
 
 HTTP error status codes are verified at the handler layer by injecting typed domain errors:
 
@@ -72,19 +112,7 @@ export const HTTP_STATUS: Record<string, number> = {
 };
 ```
 
-Handler tests mock the use case to throw each typed error and assert the correct HTTP status:
-
-```ts
-it('returns 404 when conversation is not found', async () => {
-  mockUseCase.execute.mockReturnValue(errAsync(new NotFoundError('Conversation not found')));
-  await handler(mockRequest as Request, mockResponse as Response);
-  expect(mockResponse.status).toHaveBeenCalledWith(404);
-});
-```
-
----
-
-## Integration Tests
+### Integration tests
 
 Integration tests live in `adapters/http/integration/` and are named `*.integration.test.ts`.
 
@@ -96,11 +124,7 @@ integration/
 └── llmMock.ts
 ```
 
-Each test:
-1. Spins up the real Express app via `createApp()`
-2. Sends HTTP requests using `supertest`
-3. Mocks only the external LLM HTTP call using `nock`
-4. Asserts on the full HTTP response (status + body)
+Each test spins up the real Express app via `createApp()`, sends HTTP requests using `supertest`, and mocks only the external LLM call using `nock`.
 
 ```ts
 it('returns 200 with conversation when it exists', async () => {
@@ -113,27 +137,11 @@ it('returns 200 with conversation when it exists', async () => {
 });
 ```
 
-This pattern mirrors how the backend integration tests work in the backend: `supertest` replaces the HTTP client, `nock` replaces the LLM.
+### Known setup: Scalar ESM mock
 
----
-
-## Known Setup: Scalar ESM Mock
-
-**Why it exists:** `@scalar/express-api-reference` is an ESM-only package. Jest runs in
-CommonJS mode by default and cannot parse ESM `import` statements inside `node_modules`.
-Since `index.ts` statically imports Scalar at the top level, every integration test that
-imports `createApp` would crash at module load time — before any test runs:
-
-```
-SyntaxError: Cannot use import statement outside a module
-  at node_modules/@scalar/express-api-reference/dist/index.js:1
-```
-
-**The fix:** `jest.config.js` uses `moduleNameMapper` to intercept the import and redirect
-it to a lightweight stub before Jest ever opens the real package:
+`@scalar/express-api-reference` is ESM-only. Jest runs in CommonJS mode and cannot parse ESM `import` statements inside `node_modules`. `jest.config.js` intercepts the import with a lightweight stub:
 
 ```js
-// jest.config.js
 moduleNameMapper: {
   '@scalar/express-api-reference': '<rootDir>/src/__mocks__/scalar.ts',
 },
@@ -144,11 +152,96 @@ moduleNameMapper: {
 export const apiReference = () => (_req, _res, next) => next();
 ```
 
-The stub has the same signature as the real middleware — `(options) => expressMiddleware` —
-but simply calls `next()` and moves on. The docs UI is irrelevant to API behaviour tests.
+> If you upgrade `@scalar/express-api-reference` and integration tests fail with an ESM error, this mock is the first place to check.
 
-> If you upgrade `@scalar/express-api-reference` and the integration tests start failing
-> with an ESM error again, this mock is the first place to check.
+---
+
+## Frontend Tests
+
+### Unit and integration tests (Vitest)
+
+Vitest uses `environmentMatchGlobs` to run server-side files (`src/app/api/**`, `src/application/**`, `src/domain/**`, `src/infrastructure/**`, `src/lib/**`) in a Node environment and UI files in jsdom.
+
+**Domain / use cases** (`src/domain/`, `src/application/`) — pure logic, mocked repository:
+
+```ts
+it('returns a ServiceUnavailableError when the repository throws', async () => {
+  mockRepository.create.mockRejectedValue(new Error('LLM down'))
+  const result = await useCase.execute()
+  expect(result.isErr()).toBe(true)
+})
+```
+
+**Route Handlers** (`src/app/api/**/route.test.ts`) — `NextRequest` constructed directly, use case mocked via `vi.mock`:
+
+```ts
+vi.mock('../../../lib/container', () => ({
+  createConversationUseCase: { execute: vi.fn() },
+}))
+
+it('returns 201 with conversationId on success', async () => {
+  vi.mocked(createConversationUseCase.execute).mockResolvedValue(
+    ok({ conversationId: 'conv-1', initialMessage: 'Bonjour !' }),
+  )
+  const req = new NextRequest('http://localhost/api/conversations', { method: 'POST' })
+  const res = await POST(req)
+  expect(res.status).toBe(201)
+})
+```
+
+### Component tests (Vitest + RTL + MSW)
+
+Client Components are rendered in jsdom with [`@testing-library/react`](https://testing-library.com/react) v16 and network calls intercepted by [MSW v2](https://mswjs.io) (`msw/node`).
+
+Key conventions:
+- MSW server is instantiated **inline in each test file** — no shared `handlers.ts` or `server.ts`
+- Components call `fetch('/api/...')` with relative URLs — MSW handlers must use the same relative paths (e.g. `'/api/conversations'`, not `'http://localhost/api/conversations'`)
+- Use `delay()` from MSW only when asserting an **in-flight loading state** (the delay keeps the response pending past `await user.click()` so the loading indicator is observable)
+- Queries follow RTL priority: `getByRole` first, then `getByText`
+
+```ts
+const server = setupServer()
+beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
+afterEach(() => { server.resetHandlers(); vi.clearAllMocks() })
+afterAll(() => server.close())
+
+it('shows loading indicator while in flight, then the tutor response', async () => {
+  server.use(
+    http.post(MESSAGES_PATH, async () => {
+      await delay(50) // keeps response pending so loading state is assertable
+      return HttpResponse.json({ tutorResponse: 'Très bien !' })
+    }),
+  )
+  await user.click(submitButton)
+  expect(screen.getByText('Le tuteur écrit...')).toBeInTheDocument()
+  await waitFor(() => expect(screen.getByText('Très bien !')).toBeInTheDocument())
+})
+```
+
+### E2E tests (Playwright)
+
+E2E tests live in `frontend/e2e/` and run against a **production Next.js build** with a **stub backend** — no Ollama required.
+
+```
+frontend/
+├── e2e/
+│   ├── conversation.spec.ts   # Full user journey
+│   └── stub-backend.mjs       # Minimal HTTP server replacing the real backend
+└── playwright.config.ts
+```
+
+The stub backend (`stub-backend.mjs`) is a plain Node.js HTTP server that returns deterministic responses for all three API endpoints the frontend depends on. Playwright's `webServer` starts it automatically on port 3001 before running tests.
+
+The single E2E test covers the entire user journey:
+
+1. Land on home page — see "Le France Professor" heading
+2. Click "Commencer" — navigate to `/conversation/[id]`
+3. See the tutor's initial greeting (rendered server-side by the RSC page)
+4. Type a message and click "Envoyer"
+5. User message appears optimistically
+6. Tutor reply arrives
+
+Only Chromium is used in E2E — cross-browser coverage is deferred until the product stabilises.
 
 ---
 
@@ -157,18 +250,26 @@ but simply calls `next()` and moves on. The docs UI is irrelevant to API behavio
 All use cases in both the backend and frontend return typed `ResultAsync` via [neverthrow](https://github.com/supermacro/neverthrow). Errors are part of the function signature — callers cannot ignore them:
 
 ```ts
-// errors are part of the function signature — visible to every caller
 execute(id: string): ResultAsync<ConversationDTO, NotFoundError | ServiceUnavailableError>
 ```
 
-Backend handlers use `result.match()` instead of `try/catch`:
+Backend handlers use `result.match()`:
 
 ```ts
-const result = await getConversationUseCase.execute(conversationId);
 result.match(
   (conversation) => res.status(200).json(conversation),
   (error) => res.status(HTTP_STATUS[error.code] ?? 500).json({ error: error.message }),
-);
+)
 ```
 
-Frontend use cases follow the same pattern — Server Components and Route Handlers call `result.isOk()` / `result.isErr()` and branch accordingly. See the [neverthrow docs](https://github.com/supermacro/neverthrow) for the full API.
+Frontend Route Handlers use `result.isOk()` / `result.isErr()`. Tests use `ok()` / `err()` from neverthrow to build mock return values and assert on `result.isOk()` / `result.isErr()`.
+
+---
+
+## CI Pipeline
+
+Both test suites run on every push and pull request to `main` via GitHub Actions (`.github/workflows/ci.yml`).
+
+**Backend job:** typecheck → lint → unit tests → integration tests
+
+**Frontend job:** typecheck → lint → Vitest (unit + integration + component) → build → install Playwright browsers → E2E tests
