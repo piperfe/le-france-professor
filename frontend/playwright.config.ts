@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:5100',
     trace: 'on-first-retry',
   },
   projects: [
@@ -20,12 +20,12 @@ export default defineConfig({
   webServer: [
     {
       command: 'node e2e/stub-backend.mjs',
-      url: 'http://localhost:3001/health',
+      url: 'http://localhost:5101/health',
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'BACKEND_URL=http://localhost:3001/api npm run build && BACKEND_URL=http://localhost:3001/api npm run start',
-      url: 'http://localhost:3000',
+      command: 'BACKEND_URL=http://localhost:5101/api npm run build && BACKEND_URL=http://localhost:5101/api PORT=5100 npm run start',
+      url: 'http://localhost:5100',
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },

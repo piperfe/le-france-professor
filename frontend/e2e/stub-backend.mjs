@@ -47,6 +47,6 @@ const server = createServer((req, res) => {
   res.end(JSON.stringify(body))
 })
 
-server.listen(3001, () => {
-  console.log('E2E stub backend listening on http://localhost:3001')
+server.listen(5101, () => {
+  console.log('E2E stub backend listening on http://localhost:5101')
 })
