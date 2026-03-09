@@ -46,6 +46,7 @@ export function useVoiceInput(onTranscription: (text: string) => void): UseVoice
       recorder.onstop = async () => {
         streamRef.current?.getTracks().forEach((t) => t.stop())
         const blob = new Blob(chunksRef.current, { type: mimeType || 'audio/webm' })
+        chunksRef.current = []
         setVoiceState('transcribing')
 
         const form = new FormData()

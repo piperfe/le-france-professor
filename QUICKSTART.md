@@ -55,6 +55,9 @@
    npm run dev:frontend
    ```
 
+   > **Why `--webpack` instead of Turbopack?**
+   > Next.js 16 enables Turbopack by default for `next dev`. We intentionally use `--webpack` because Turbopack has a confirmed memory leak in dev mode (Vercel issues [#66326](https://github.com/vercel/next.js/issues/66326), [#75142](https://github.com/vercel/next.js/issues/75142), [#82512](https://github.com/vercel/next.js/discussions/82512)) where it accumulates its full module graph in the V8 heap, growing to 6+ GB and eventually crashing with an OOM error. With Webpack the dev server stabilises at ~500 MB. Re-evaluate when Vercel ships a fix.
+
 4. **Run tests:**
    ```bash
    # Backend (unit + integration)
