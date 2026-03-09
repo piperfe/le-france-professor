@@ -198,6 +198,8 @@ Key conventions:
 - Components call `fetch('/api/...')` with relative URLs — MSW handlers must use the same relative paths (e.g. `'/api/conversations'`, not `'http://localhost/api/conversations'`)
 - Use `delay()` from MSW only when asserting an **in-flight loading state** (the delay keeps the response pending past `await user.click()` so the loading indicator is observable)
 - Queries follow RTL priority: `getByRole` first, then `getByText`
+- Browser APIs not available in jsdom (`MediaRecorder`, `getUserMedia`) are mocked via `vi.stubGlobal()` — co-located in the test file of the single component that uses them, not in `setup.ts`
+- `window.matchMedia` is mocked with `Object.defineProperty(window, 'matchMedia', ...)` — avoid `vi.stubGlobal('window', ...)` as spreading `window` breaks React's concurrent internals
 
 ```ts
 const server = setupServer()
@@ -232,14 +234,40 @@ frontend/
 
 The stub backend (`stub-backend.mjs`) is a plain Node.js HTTP server that returns deterministic responses for all three API endpoints the frontend depends on. Playwright's `webServer` starts it automatically on port 3001 before running tests.
 
-The single E2E test covers the entire user journey:
+E2E tests cover three user journeys:
 
+**Text conversation flow:**
 1. Land on home page — see "Le France Professor" heading
 2. Click "Commencer" — navigate to `/conversation/[id]`
 3. See the tutor's initial greeting (rendered server-side by the RSC page)
 4. Type a message and click "Envoyer"
 5. User message appears optimistically
 6. Tutor reply arrives
+
+**Voice input — desktop (click-to-toggle):**
+1. Navigate to the conversation page
+2. Click the mic button — recording state activates
+3. Click again to stop — transcription appears in the input box
+4. Send the transcribed message
+
+**Voice input — mobile (press-and-hold):**
+1. Navigate to the conversation page (`matchMedia` overridden to simulate `pointer: coarse`)
+2. `touchstart` on the mic button — recording state activates
+3. `touchend` — transcription appears in the input box
+4. Send the transcribed message
+
+Browser APIs (`MediaRecorder`, `getUserMedia`) are injected as fakes via `page.addInitScript()` before the page loads. The `/api/transcribe` BFF route is mocked via `page.route()` — no real whisper.cpp server required.
+
+```ts
+await page.addInitScript(() => {
+  class FakeMediaRecorder { /* stops immediately with a fake blob */ }
+  window.MediaRecorder = FakeMediaRecorder
+  navigator.mediaDevices.getUserMedia = () => Promise.resolve(fakeStream)
+})
+await page.route('/api/transcribe', (route) =>
+  route.fulfill({ json: { text: 'Je voudrais un café' } }),
+)
+```
 
 Only Chromium is used in E2E — cross-browser coverage is deferred until the product stabilises.
 

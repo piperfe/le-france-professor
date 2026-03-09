@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useState } from 'react'
 import { Message, MessageSender } from '../domain/entities/message'
 import { ChatMessage } from './chat-message'
+import { VoiceInputButton } from './voice-input-button'
 
 interface MessageDTO {
   id: string
@@ -77,6 +78,10 @@ export function ChatClient({ initialMessages, conversationId }: Props) {
           placeholder="Tapez votre message en français..."
           disabled={loading}
           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500 disabled:bg-gray-50"
+        />
+        <VoiceInputButton
+          onTranscription={(text) => setInput((prev) => prev ? `${prev} ${text}` : text)}
+          disabled={loading}
         />
         <button
           type="submit"

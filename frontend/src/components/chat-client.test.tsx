@@ -1,10 +1,24 @@
-import { describe, it, expect, vi, beforeAll, afterEach, afterAll } from 'vitest'
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { setupServer } from 'msw/node'
 import { http, HttpResponse, delay } from 'msw'
 import { ChatClient } from './chat-client'
 import { MessageSender } from '../domain/entities/message'
+
+// Minimal MediaRecorder stub so VoiceInputButton renders without errors
+class MockMediaRecorder {
+  static isTypeSupported = vi.fn().mockReturnValue(true)
+  ondataavailable: ((e: { data: Blob }) => void) | null = null
+  onstop: (() => void) | null = null
+  state = 'inactive'
+  start() { this.state = 'recording' }
+  stop() {
+    this.state = 'inactive'
+    this.ondataavailable?.({ data: new Blob(['audio']) })
+    this.onstop?.()
+  }
+}
 
 const CONVERSATION_ID = 'conv-1'
 const MESSAGES_PATH = `/api/conversations/${CONVERSATION_ID}/messages`
@@ -21,7 +35,17 @@ const initialMessages = [
 const server = setupServer()
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
-afterEach(() => { server.resetHandlers(); vi.clearAllMocks() })
+beforeEach(() => {
+  vi.stubGlobal('MediaRecorder', MockMediaRecorder)
+  vi.stubGlobal('navigator', {
+    mediaDevices: { getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] }) },
+  })
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockReturnValue({ matches: false }),
+  })
+})
+afterEach(() => { server.resetHandlers(); vi.clearAllMocks(); vi.unstubAllGlobals() })
 afterAll(() => server.close())
 
 describe('ChatClient', () => {
@@ -97,6 +121,24 @@ describe('ChatClient', () => {
         screen.getByText("Erreur lors de l'envoi du message. Réessayez."),
       ).toBeInTheDocument()
     })
+  })
+
+  it('renders the mic button alongside the input', () => {
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    expect(screen.getByRole('button', { name: /enregistrement vocal/i })).toBeInTheDocument()
+  })
+
+  it('populates the input with the transcription text', async () => {
+    server.use(
+      http.post('/api/transcribe', () => HttpResponse.json({ text: 'Bonjour !' })),
+    )
+    const user = userEvent.setup()
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+    await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
+    await user.click(screen.getByRole('button', { name: /arrêter/i }))
+
+    await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('Bonjour !'))
   })
 
   it('sends the message body to the correct conversation endpoint', async () => {

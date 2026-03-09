@@ -25,10 +25,24 @@
    ```
    Ensure Ollama is running and the model is pulled: `ollama run hf.co/QuantFactory/EuroLLM-9B-Instruct-GGUF`
 
-   Create `frontend/.env.local` (optional — defaults to `http://localhost:3001/api`):
+   Create `frontend/.env.local` (optional — defaults shown):
    ```
    BACKEND_URL=http://localhost:3001/api
+   WHISPER_URL=http://127.0.0.1:7600
    ```
+
+   `WHISPER_URL` points to a running [whisper.cpp server](https://github.com/ggml-org/whisper.cpp/tree/master/examples/server). Voice input is disabled gracefully in browsers that don't support `MediaRecorder`. If the whisper.cpp server is not running, transcription requests will return 503 and the UI will show a retry prompt.
+
+   **Starting whisper.cpp server (macOS):**
+   ```bash
+   # From your whisper.cpp directory — use a multilingual model (no .en suffix)
+   # Download if needed: bash models/download-ggml-model.sh small
+   ./build/bin/whisper-server --model models/ggml-small.bin --host 127.0.0.1 --port 7600
+   ```
+
+   > **Model must be multilingual** — models ending in `.en` (e.g. `ggml-small.en.bin`) ignore the `language=fr` parameter and always transcribe in English. Use the plain variant (`ggml-small.bin`, `ggml-base.bin`, etc.).
+   >
+   > Audio conversion is handled automatically: the BFF route converts WebM/Opus (Chrome), MP4/AAC (Safari), and OGG/Opus (Firefox) to 16kHz mono WAV using ffmpeg before sending to whisper.cpp.
 
 3. **Run the application:**
 

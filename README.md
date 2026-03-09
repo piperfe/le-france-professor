@@ -29,9 +29,12 @@ frontend/
 
 The frontend uses Next.js as a BFF (Backend for Frontend). Server Components fetch conversations directly from the Express backend before rendering — no loading states, no flash. Client Components send messages through Next.js Route Handlers, which proxy to the backend. The browser never calls the Express backend directly.
 
+Voice transcription follows the same BFF pattern: the browser POSTs audio to `/api/transcribe` (Next.js route), which calls `TranscribeAudioUseCase` → `HttpTranscriptionRepository` → whisper.cpp server. The whisper.cpp URL is configured via `WHISPER_URL`.
+
 ## Features
 
 - **Chat Interface**: Interactive French conversation with an AI tutor
+- **Voice Input**: Students can speak French directly into the chat — audio is transcribed via whisper.cpp and placed in the input box for review and editing before sending. Adaptive UX: click-to-toggle on desktop, press-and-hold on mobile.
 - **Topic Initiation**: Tutor initiates conversations on interesting topics:
   - AI adoption in France
   - French culture
