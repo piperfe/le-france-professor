@@ -20,10 +20,20 @@
    ```
    PORT=3001
    NODE_ENV=development
-   OLLAMA_MODEL=hf.co/QuantFactory/EuroLLM-9B-Instruct-GGUF
+   OLLAMA_MODEL=gemma3:4b
    OLLAMA_BASE_URL=http://localhost:11434/v1
    ```
-   Ensure Ollama is running and the model is pulled: `ollama run hf.co/QuantFactory/EuroLLM-9B-Instruct-GGUF`
+   Ensure Ollama is running and the model is pulled: `ollama pull gemma3:4b`
+
+   **Model recommendations by available RAM:**
+
+   | RAM | Recommended model | Pull command |
+   |-----|-------------------|--------------|
+   | 8 GB | `gemma3:4b` (default) | `ollama pull gemma3:4b` |
+   | 16 GB | `mistral-nemo` | `ollama pull mistral-nemo` |
+   | 32 GB | `mistral-small3.2` | `ollama pull mistral-small3.2` |
+
+   > **Why not EuroLLM?** EuroLLM-9B-Instruct was trained with SFT only (no RLHF/DPO alignment). It repeats itself, confuses roles, and ignores system prompt constraints — not suitable for conversational tutoring. `gemma3:4b` is RLHF-aligned and follows instructions reliably on 8 GB machines.
 
    Create `frontend/.env.local` (optional — defaults shown):
    ```

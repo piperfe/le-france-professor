@@ -74,9 +74,7 @@ describe('OllamaTutorService', () => {
 
       const result = await service.initiateConversation();
 
-      expect(result).toBe(
-        "Bonjour ! Je suis ravi de vous aider à apprendre le français. Comment allez-vous aujourd'hui ?",
-      );
+      expect(result).toBe("Bah salut ! Ça va ?");
     });
 
     it('returns default greeting when API returns null content', async () => {
@@ -89,9 +87,7 @@ describe('OllamaTutorService', () => {
 
       const result = await service.initiateConversation();
 
-      expect(result).toBe(
-        "Bonjour ! Je suis ravi de vous aider à apprendre le français. Comment allez-vous aujourd'hui ?",
-      );
+      expect(result).toBe("Bah salut ! Ça va ?");
     });
 
     it('calls the API with system and user messages for conversation start', async () => {
@@ -108,11 +104,11 @@ describe('OllamaTutorService', () => {
       expect(capturedBody).toMatchObject({
         model: 'llama2',
         messages: [
-          { role: 'system', content: expect.stringContaining('tuteur français') },
-          { role: 'user', content: 'Commencez la conversation en français sur ce sujet.' },
+          { role: 'system', content: expect.stringContaining('ami français') },
+          { role: 'user', content: "Salue l'étudiant comme un ami. Une seule phrase, décontractée." },
         ],
         temperature: 0.7,
-        max_tokens: 200,
+        max_tokens: 50,
       });
     });
   });
@@ -139,9 +135,7 @@ describe('OllamaTutorService', () => {
 
       const result = await service.generateResponse([], 'Question?');
 
-      expect(result).toBe(
-        "C'est une excellente question ! Pouvez-vous me dire un peu plus sur ce qui vous intéresse ?",
-      );
+      expect(result).toBe("Ah ouais ? Raconte !");
     });
 
     it('calls the API with conversation history and user message', async () => {
@@ -161,13 +155,13 @@ describe('OllamaTutorService', () => {
       expect(capturedBody).toMatchObject({
         model: 'llama2',
         messages: [
-          { role: 'system', content: expect.stringContaining('Répondez toujours en français') },
+          { role: 'system', content: expect.stringContaining('ami français') },
           { role: 'assistant', content: 'Premier message' },
           { role: 'user', content: 'Deuxième message' },
           { role: 'user', content: 'Troisième question' },
         ],
         temperature: 0.7,
-        max_tokens: 300,
+        max_tokens: 120,
       });
     });
   });
