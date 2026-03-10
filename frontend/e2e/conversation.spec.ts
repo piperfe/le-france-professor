@@ -66,8 +66,11 @@ test('voice input flow on desktop: click mic → transcription appears in input 
   await page.getByRole('button', { name: 'Commencer' }).click()
   await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
 
-  // Click mic to start, click again to stop
+  // Click mic to start — placeholder confirms recording is active
   await page.getByRole('button', { name: /enregistrement vocal/i }).click()
+  await expect(page.getByRole('textbox')).toHaveAttribute('placeholder', 'Enregistrement… 0s')
+
+  // Click again to stop
   await page.getByRole('button', { name: /arrêter/i }).click()
 
   // Transcription appears in the input box
@@ -129,6 +132,7 @@ test('voice input flow on mobile: touchstart/touchend (press-and-hold) → trans
   // so we re-query it by its new label before dispatching touchend.
   await page.getByRole('button', { name: /enregistrement vocal/i }).dispatchEvent('touchstart', { bubbles: true, cancelable: true })
   await expect(page.getByRole('button', { name: /arrêter/i })).toBeVisible()
+  await expect(page.getByRole('textbox')).toHaveAttribute('placeholder', 'Enregistrement… 0s')
 
   await page.getByRole('button', { name: /arrêter/i }).dispatchEvent('touchend', { bubbles: true })
 

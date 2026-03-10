@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { setupServer } from 'msw/node'
 import { http, HttpResponse, delay } from 'msw'
@@ -139,6 +139,62 @@ describe('ChatClient', () => {
     await user.click(screen.getByRole('button', { name: /arrêter/i }))
 
     await waitFor(() => expect(screen.getByRole('textbox')).toHaveValue('Bonjour !'))
+  })
+
+  describe('input placeholder during voice recording', () => {
+    it('shows recording placeholder with 0s when mic starts', async () => {
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
+
+      expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Enregistrement… 0s')
+    })
+
+    describe('timer ticking', () => {
+      beforeEach(() => { vi.useFakeTimers() })
+      afterEach(() => { vi.useRealTimers() })
+
+      it('increments the recording seconds in the placeholder', async () => {
+        render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+        fireEvent.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
+        await act(async () => {}) // flush getUserMedia microtask
+
+        act(() => { vi.advanceTimersByTime(2000) })
+
+        expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Enregistrement… 2s')
+      })
+    })
+
+    it('shows transcribing placeholder while waiting for whisper', async () => {
+      server.use(http.post('/api/transcribe', async () => {
+        await delay(100)
+        return HttpResponse.json({ text: 'Bonjour !' })
+      }))
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
+      await user.click(screen.getByRole('button', { name: /arrêter/i }))
+
+      await waitFor(() =>
+        expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Transcription en cours…')
+      )
+    })
+
+    it('restores the default placeholder after transcription completes', async () => {
+      server.use(http.post('/api/transcribe', () => HttpResponse.json({ text: 'Bonjour !' })))
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
+      await user.click(screen.getByRole('button', { name: /arrêter/i }))
+
+      await waitFor(() =>
+        expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Tapez votre message en français…')
+      )
+    })
   })
 
   it('sends the message body to the correct conversation endpoint', async () => {

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Message, MessageSender } from '../domain/entities/message'
 import { ChatMessage } from './chat-message'
 import { VoiceInputButton } from './voice-input-button'
+import type { VoiceState } from './use-voice-input'
 
 interface MessageDTO {
   id: string
@@ -27,6 +28,18 @@ export function ChatClient({ initialMessages, conversationId }: Props) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [voiceState, setVoiceState] = useState<VoiceState>('idle')
+  const [recordingSeconds, setRecordingSeconds] = useState(0)
+
+  function handleVoiceStateChange(state: VoiceState, seconds: number) {
+    setVoiceState(state)
+    setRecordingSeconds(seconds)
+  }
+
+  const inputPlaceholder =
+    voiceState === 'recording'    ? `Enregistrement… ${recordingSeconds}s` :
+    voiceState === 'transcribing' ? 'Transcription en cours…' :
+                                    'Tapez votre message en français…'
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -75,12 +88,13 @@ export function ChatClient({ initialMessages, conversationId }: Props) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Tapez votre message en français..."
+          placeholder={inputPlaceholder}
           disabled={loading}
           className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500 disabled:bg-gray-50"
         />
         <VoiceInputButton
           onTranscription={(text) => setInput((prev) => prev ? `${prev} ${text}` : text)}
+          onVoiceStateChange={handleVoiceStateChange}
           disabled={loading}
         />
         <button

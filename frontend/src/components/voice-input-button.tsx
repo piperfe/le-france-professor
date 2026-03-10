@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useVoiceInput } from './use-voice-input'
+import { useVoiceInput, VoiceState } from './use-voice-input'
 
 interface Props {
   onTranscription: (text: string) => void
+  onVoiceStateChange?: (state: VoiceState, seconds: number) => void
   disabled?: boolean
 }
 
-export function VoiceInputButton({ onTranscription, disabled = false }: Props) {
+export function VoiceInputButton({ onTranscription, onVoiceStateChange, disabled = false }: Props) {
   const [supported] = useState(
     () => typeof window !== 'undefined' && 'MediaRecorder' in window && 'mediaDevices' in navigator,
   )
@@ -17,7 +18,7 @@ export function VoiceInputButton({ onTranscription, disabled = false }: Props) {
   )
 
   const { voiceState, errorMessage, startRecording, stopRecording, clearError } =
-    useVoiceInput(onTranscription)
+    useVoiceInput(onTranscription, onVoiceStateChange)
 
   if (!supported) return null
 

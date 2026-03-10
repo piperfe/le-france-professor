@@ -34,7 +34,7 @@ Voice transcription follows the same BFF pattern: the browser POSTs audio to `/a
 ## Features
 
 - **Chat Interface**: Interactive French conversation with an AI tutor
-- **Voice Input**: Students can speak French directly into the chat — audio is transcribed via whisper.cpp and placed in the input box for review and editing before sending. Adaptive UX: click-to-toggle on desktop, press-and-hold on mobile.
+- **Voice Input**: Students can speak French directly into the chat — audio is transcribed via whisper.cpp and placed in the input box for review and editing before sending. Adaptive UX: click-to-toggle on desktop, press-and-hold on mobile. The input placeholder shows a live recording timer (`Enregistrement… Ns`) and a transcription status (`Transcription en cours…`) so students always know what is happening while they wait.
 - **Topic Initiation**: Tutor initiates conversations on interesting topics:
   - AI adoption in France
   - French culture
