@@ -166,26 +166,4 @@ describe('OllamaTutorService', () => {
     });
   });
 
-  describe('selectTopic', () => {
-    it('returns a topic with title and description', () => {
-      const topic = service.selectTopic();
-
-      expect(topic).toHaveProperty('title');
-      expect(topic).toHaveProperty('description');
-      expect(typeof topic.title).toBe('string');
-      expect(typeof topic.description).toBe('string');
-      expect(topic.title.length).toBeGreaterThan(0);
-      expect(topic.description.length).toBeGreaterThan(0);
-    });
-
-    it('returns one of the predefined topics', () => {
-      const validTitles = [
-        "L'adoption de l'IA en France",
-        'La culture française',
-        'Le français dans le monde',
-      ];
-      const topic = service.selectTopic();
-      expect(validTitles).toContain(topic.title);
-    });
-  });
 });

@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { Topic } from '../../domain/value-objects/topic';
 import type { TutorService } from '../../domain/services/tutor-service';
 import { Span } from '../telemetry/decorators';
 
@@ -11,7 +10,6 @@ export interface OllamaConfig {
 export class OllamaTutorService implements TutorService {
   private client: OpenAI;
   private model: string;
-  private topics: Topic[];
 
   constructor(config: OllamaConfig) {
     this.client = new OpenAI({
@@ -19,17 +17,11 @@ export class OllamaTutorService implements TutorService {
       apiKey: 'ollama',
     });
     this.model = config.model;
-    this.topics = [
-      Topic.createAIAdoptionInFrance(),
-      Topic.createFrenchCulture(),
-      Topic.createFrenchLanguageWorldwide(),
-    ];
   }
 
   @Span()
   async initiateConversation(): Promise<string> {
-    const topic = this.selectTopic();
-    const systemPrompt = this.buildSystemPrompt(topic);
+    const systemPrompt = this.buildSystemPrompt();
     const response = await this.client.chat.completions.create({
       model: this.model,
       messages: [
@@ -71,12 +63,7 @@ export class OllamaTutorService implements TutorService {
     return response.choices[0]?.message?.content || this.getDefaultResponse();
   }
 
-  selectTopic(): Topic {
-    const randomIndex = Math.floor(Math.random() * this.topics.length);
-    return this.topics[randomIndex];
-  }
-
-  private buildSystemPrompt(_topic: Topic): string {
+  private buildSystemPrompt(): string {
     return `Tu es un ami français qui aide quelqu'un à apprendre le français en discutant.
 
 Règles :
