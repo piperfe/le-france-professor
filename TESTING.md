@@ -200,6 +200,9 @@ Key conventions:
 - Queries follow RTL priority: `getByRole` first, then `getByText`
 - Browser APIs not available in jsdom (`MediaRecorder`, `getUserMedia`) are mocked via `vi.stubGlobal()` — co-located in the test file of the single component that uses them, not in `setup.ts`
 - `window.matchMedia` is mocked with `Object.defineProperty(window, 'matchMedia', ...)` — avoid `vi.stubGlobal('window', ...)` as spreading `window` breaks React's concurrent internals
+- `HTMLAudioElement` (used by TTS) is mocked via `vi.stubGlobal('Audio', MockAudio)` — co-located in `tts-button.test.tsx`; `play()` returns `Promise.resolve()` immediately so the hook transitions to `playing` state synchronously in tests
+- `URL.createObjectURL` / `URL.revokeObjectURL` do not exist in jsdom — define them with `Object.defineProperty(URL, 'createObjectURL', { writable: true, value: vi.fn()... })` before each test; `vi.spyOn` will throw `createObjectURL does not exist`
+- Async click handlers that call `await audio.play()` trigger a state update outside the `userEvent` act boundary — use `fireEvent.click(btn)` + `await act(async () => {})` instead of `await userEvent.click()` when asserting the `playing` state
 
 ```ts
 const server = setupServer()
@@ -255,6 +258,13 @@ E2E tests cover three user journeys:
 2. `touchstart` on the mic button — recording state activates
 3. `touchend` — transcription appears in the input box
 4. Send the transcribed message
+
+**TTS — speaker and slow buttons:**
+1. Navigate to the conversation page — speaker (▶) and slow (🐢) buttons visible below tutor message
+2. Click speaker — stop button appears (audio playing)
+3. Click stop — speaker button returns
+4. Click slow — verifies `lengthScale: 1.5` is sent in the POST body to `/api/tts`
+5. Two messages: play message 1, click message 2's speaker — message 1's button resets, message 2 plays
 
 Browser APIs (`MediaRecorder`, `getUserMedia`) are injected as fakes via `page.addInitScript()` before the page loads. The `/api/transcribe` BFF route is mocked via `page.route()` — no real whisper.cpp server required.
 

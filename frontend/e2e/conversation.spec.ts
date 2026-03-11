@@ -81,6 +81,126 @@ test('voice input flow on desktop: click mic → transcription appears in input 
   await expect(page.getByText('Je voudrais un café', { exact: true })).toBeVisible()
 })
 
+test('tts: speaker and slow-play buttons appear below each tutor message', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Commencer' }).click()
+  await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
+
+  // The initial tutor greeting should have both audio buttons
+  await expect(page.getByRole('button', { name: /écouter en français/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /écouter lentement/i })).toBeVisible()
+})
+
+test('tts: clicking the speaker button plays the tutor response then stop returns to speaker', async ({ page }) => {
+  await page.addInitScript(() => {
+    // Mock URL blob APIs (not available in all contexts)
+    URL.createObjectURL = () => 'blob:mock-url'
+    URL.revokeObjectURL = () => {}
+
+    // Mock HTMLAudioElement — play() resolves immediately to move into playing state
+    class FakeAudio {
+      constructor(_url: string) {}
+      playbackRate = 1
+      onended: (() => void) | null = null
+      pause() {}
+      play() { return Promise.resolve() }
+    }
+    // @ts-ignore
+    window.Audio = FakeAudio
+  })
+
+  await page.route('/api/tts', (route) =>
+    route.fulfill({ status: 200, contentType: 'audio/wav', body: Buffer.alloc(44) }),
+  )
+
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Commencer' }).click()
+  await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
+
+  // Click speaker — stop button should appear
+  await page.getByRole('button', { name: /écouter en français/i }).click()
+  await expect(page.getByRole('button', { name: /arrêter la lecture/i })).toBeVisible()
+
+  // Click stop — speaker button returns
+  await page.getByRole('button', { name: /arrêter la lecture/i }).click()
+  await expect(page.getByRole('button', { name: /écouter en français/i })).toBeVisible()
+})
+
+test('tts: slow button sends lengthScale 1.5 to the BFF', async ({ page }) => {
+  await page.addInitScript(() => {
+    URL.createObjectURL = () => 'blob:mock-url'
+    URL.revokeObjectURL = () => {}
+
+    class FakeAudio {
+      constructor(_url: string) {}
+      playbackRate = 1
+      onended: (() => void) | null = null
+      pause() {}
+      play() { return Promise.resolve() }
+    }
+    // @ts-ignore
+    window.Audio = FakeAudio
+  })
+
+  let capturedBody: unknown = null
+  await page.route('/api/tts', async (route) => {
+    capturedBody = await route.request().postDataJSON()
+    await route.fulfill({ status: 200, contentType: 'audio/wav', body: Buffer.alloc(44) })
+  })
+
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Commencer' }).click()
+  await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
+
+  await page.getByRole('button', { name: /écouter lentement/i }).click()
+  await expect(page.getByRole('button', { name: /arrêter la lecture/i })).toBeVisible()
+
+  expect(capturedBody).toMatchObject({ lengthScale: 1.5 })
+})
+
+test('tts: clicking a second message stops the first', async ({ page }) => {
+  await page.addInitScript(() => {
+    URL.createObjectURL = () => 'blob:mock-url'
+    URL.revokeObjectURL = () => {}
+
+    class FakeAudio {
+      constructor(_url: string) {}
+      playbackRate = 1
+      onended: (() => void) | null = null
+      pause() {}
+      play() { return Promise.resolve() }
+    }
+    // @ts-ignore
+    window.Audio = FakeAudio
+  })
+
+  await page.route('/api/tts', (route) =>
+    route.fulfill({ status: 200, contentType: 'audio/wav', body: Buffer.alloc(44) }),
+  )
+
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Commencer' }).click()
+  await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
+
+  // Send a message so a second tutor reply appears
+  await page.getByRole('textbox').fill('Bonjour')
+  await page.getByRole('button', { name: 'Envoyer' }).click()
+  await expect(page.getByText(TUTOR_RESPONSE)).toBeVisible()
+
+  // Two tutor messages → two speaker buttons
+  const speakers = page.getByRole('button', { name: /écouter en français/i })
+  await expect(speakers).toHaveCount(2)
+
+  // Play first message
+  await speakers.first().click()
+  await expect(page.getByRole('button', { name: /arrêter la lecture/i })).toHaveCount(1)
+
+  // Play second message — first must revert to speaker
+  await speakers.last().click()
+  await expect(page.getByRole('button', { name: /arrêter la lecture/i })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: /écouter en français/i })).toHaveCount(1)
+})
+
 test('voice input flow on mobile: touchstart/touchend (press-and-hold) → transcription → send', async ({ page, context }) => {
   await context.grantPermissions(['microphone'])
 

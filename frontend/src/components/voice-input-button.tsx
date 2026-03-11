@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useVoiceInput, VoiceState } from './use-voice-input'
+import { useVoiceInput } from './use-voice-input'
+import type { VoiceState } from './use-voice-input'
 
 interface Props {
   onTranscription: (text: string) => void

@@ -31,10 +31,13 @@ The frontend uses Next.js as a BFF (Backend for Frontend). Server Components fet
 
 Voice transcription follows the same BFF pattern: the browser POSTs audio to `/api/transcribe` (Next.js route), which calls `TranscribeAudioUseCase` → `HttpTranscriptionRepository` → whisper.cpp server. The whisper.cpp URL is configured via `WHISPER_URL`.
 
+Text-to-speech follows the same pattern in reverse: the browser fetches `/api/tts` (Next.js route), which calls `SynthesizeSpeechUseCase` → `HttpTtsRepository` → piper1-gpl server. The piper URL is configured via `PIPER_URL`.
+
 ## Features
 
 - **Chat Interface**: Interactive French conversation with an AI tutor
 - **Voice Input**: Students can speak French directly into the chat — audio is transcribed via whisper.cpp and placed in the input box for review and editing before sending. Adaptive UX: click-to-toggle on desktop, press-and-hold on mobile. The input placeholder shows a live recording timer (`Enregistrement… Ns`) and a transcription status (`Transcription en cours…`) so students always know what is happening while they wait.
+- **Text-to-Speech**: Every tutor response has a speaker button (▶) and a slow-play button (🐢). Clicking either plays the French text via piper1-gpl — a local neural TTS engine running on port 7602. Speed is controlled server-side via `length_scale` (1.0 normal, 1.5 slow) so the slow mode produces genuinely slower phoneme duration rather than browser-stretched audio. Only one message plays at a time — starting a new one automatically stops the previous.
 - **Topic Initiation**: Tutor initiates conversations on interesting topics:
   - AI adoption in France
   - French culture

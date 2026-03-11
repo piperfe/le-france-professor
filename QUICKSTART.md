@@ -39,6 +39,7 @@
    ```
    BACKEND_URL=http://localhost:3001/api
    WHISPER_URL=http://127.0.0.1:7600
+   PIPER_URL=http://127.0.0.1:7602
    ```
 
    `WHISPER_URL` points to a running [whisper.cpp server](https://github.com/ggml-org/whisper.cpp/tree/master/examples/server). Voice input is disabled gracefully in browsers that don't support `MediaRecorder`. If the whisper.cpp server is not running, transcription requests will return 503 and the UI will show a retry prompt.
@@ -53,6 +54,32 @@
    > **Model must be multilingual** — models ending in `.en` (e.g. `ggml-small.en.bin`) ignore the `language=fr` parameter and always transcribe in English. Use the plain variant (`ggml-small.bin`, `ggml-base.bin`, etc.).
    >
    > Audio conversion is handled automatically: the BFF route converts WebM/Opus (Chrome), MP4/AAC (Safari), and OGG/Opus (Firefox) to 16kHz mono WAV using ffmpeg before sending to whisper.cpp.
+
+   `PIPER_URL` points to a running [piper1-gpl](https://github.com/OHF-Voice/piper1-gpl) TTS server. If the server is not running, TTS buttons are still shown but requests return 503 and the UI silently stays idle (TTS is a supplementary feature).
+
+   **Starting piper1-gpl server (macOS):**
+   ```bash
+   # First-time setup — from /Users/<you>/WorkSpace/piper-tts/
+   python3 -m venv venv
+   source venv/bin/activate
+   # Apple Silicon:
+   pip install "https://github.com/OHF-Voice/piper1-gpl/releases/download/v1.4.1/piper_tts-1.4.1-cp39-abi3-macosx_11_0_arm64.whl"
+   # Intel Mac:
+   pip install "https://github.com/OHF-Voice/piper1-gpl/releases/download/v1.4.1/piper_tts-1.4.1-cp39-abi3-macosx_10_9_x86_64.whl"
+   pip install flask
+   curl -L -o models/fr_FR-upmc-medium.onnx \
+     "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx"
+   curl -L -o models/fr_FR-upmc-medium.onnx.json \
+     "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx.json"
+
+   # Daily startup
+   cd /Users/<you>/WorkSpace/piper-tts && source venv/bin/activate
+   python3 -m piper.http_server -m fr_FR-upmc-medium --data-dir ./models --port 7602
+   ```
+
+   > **Voice:** `fr_FR-upmc-medium` (Jessica) — Parisian French female, UPMC corpus. Speed is controlled server-side via `length_scale` (1.0 = normal, 1.5 = slow) so the turtle button produces genuinely slower phoneme duration rather than browser-stretched audio.
+   >
+   > **Test the server:** `curl -s -X POST http://127.0.0.1:7602/ -H "Content-Type: application/json" -d '{"text":"Bonjour !"}' -o /tmp/test.wav && open /tmp/test.wav`
 
 3. **Run the application:**
 
