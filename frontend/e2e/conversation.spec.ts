@@ -201,6 +201,44 @@ test('tts: clicking a second message stops the first', async ({ page }) => {
   await expect(page.getByRole('button', { name: /écouter en français/i })).toHaveCount(1)
 })
 
+test('/vocabulary: autocomplete popup appears when typing /', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Commencer' }).click()
+  await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
+
+  await page.getByRole('textbox').type('/')
+
+  await expect(page.getByText('/vocabulary')).toBeVisible()
+  await expect(page.getByText('Expliquer un mot en contexte')).toBeVisible()
+})
+
+test('/vocabulary: full flow — bubble with word header and explanation appears', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Commencer' }).click()
+  await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
+
+  await page.getByRole('textbox').fill('/vocabulary passée')
+  await page.getByRole('button', { name: 'Envoyer' }).click()
+
+  // No user bubble — command is silent
+  await expect(page.getByText('/vocabulary passée', { exact: true })).not.toBeVisible()
+
+  // Vocabulary bubble appears with word header and explanation
+  await expect(page.getByText('📖 passée')).toBeVisible()
+  await expect(page.getByText('«Passée» est le participe passé féminin du verbe «se passer» (to happen). En anglais : "happened".')).toBeVisible()
+})
+
+test('/vocabulary: shows inline hint when submitted without a word', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Commencer' }).click()
+  await expect(page).toHaveURL(`/conversation/${CONVERSATION_ID}`)
+
+  await page.getByRole('textbox').fill('/vocabulary')
+  await page.getByRole('button', { name: 'Envoyer' }).click()
+
+  await expect(page.getByText('Usage : /vocabulary [mot]')).toBeVisible()
+})
+
 test('voice input flow on mobile: touchstart/touchend (press-and-hold) → transcription → send', async ({ page, context }) => {
   await context.grantPermissions(['microphone'])
 

@@ -35,6 +35,25 @@ export class HttpConversationRepository implements ConversationRepository {
     return await response.json()
   }
 
+  async explainVocabulary(
+    conversationId: string,
+    word: string,
+    context: string,
+  ): Promise<{ explanation: string }> {
+    const response = await fetch(
+      `${this.baseUrl}/conversations/${conversationId}/vocabulary`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word, context }),
+      },
+    )
+    if (!response.ok) {
+      throw new ServiceUnavailableError('Failed to explain vocabulary')
+    }
+    return await response.json()
+  }
+
   async getById(conversationId: string): Promise<Conversation> {
     const response = await fetch(
       `${this.baseUrl}/conversations/${conversationId}`,

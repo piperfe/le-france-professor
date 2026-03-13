@@ -1,79 +1,140 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import { setupServer } from 'msw/node'
+import { http, HttpResponse } from 'msw'
 import { HttpConversationRepository } from './http-conversation-repository'
 import { MessageSender } from '../../domain/entities/message'
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors'
 
+const BASE_URL = 'http://localhost:3001/api'
+
+const server = setupServer()
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
 describe('HttpConversationRepository', () => {
-  let repository: HttpConversationRepository
-  const baseUrl = 'http://localhost:3001/api'
+  const repository = new HttpConversationRepository(BASE_URL)
 
-  beforeEach(() => {
-    repository = new HttpConversationRepository(baseUrl)
-    global.fetch = vi.fn()
+  describe('create', () => {
+    it('returns conversationId and initialMessage on success', async () => {
+      server.use(
+        http.post(`${BASE_URL}/conversations`, () =>
+          HttpResponse.json({ conversationId: 'conv-1', initialMessage: 'Bonjour !' }),
+        ),
+      )
+
+      const result = await repository.create()
+
+      expect(result.conversationId).toBe('conv-1')
+      expect(result.initialMessage).toBe('Bonjour !')
+    })
+
+    it('throws ServiceUnavailableError on failure', async () => {
+      server.use(
+        http.post(`${BASE_URL}/conversations`, () => new HttpResponse(null, { status: 503 })),
+      )
+
+      await expect(repository.create()).rejects.toBeInstanceOf(ServiceUnavailableError)
+    })
   })
 
-  it('should create a conversation', async () => {
-    const mockResponse = { conversationId: 'conv-1', initialMessage: 'Bonjour !' }
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    } as Response)
+  describe('sendMessage', () => {
+    it('returns tutorResponse on success', async () => {
+      server.use(
+        http.post(`${BASE_URL}/conversations/conv-1/messages`, () =>
+          HttpResponse.json({ message: 'Hello', tutorResponse: 'Bonjour !' }),
+        ),
+      )
 
-    const result = await repository.create()
+      const result = await repository.sendMessage('conv-1', 'Hello')
 
-    expect(result.conversationId).toBe('conv-1')
-    expect(result.initialMessage).toBe('Bonjour !')
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${baseUrl}/conversations`,
-      expect.objectContaining({ method: 'POST' }),
-    )
+      expect(result.tutorResponse).toBe('Bonjour !')
+    })
+
+    it('throws ServiceUnavailableError on failure', async () => {
+      server.use(
+        http.post(`${BASE_URL}/conversations/conv-1/messages`, () =>
+          new HttpResponse(null, { status: 503 }),
+        ),
+      )
+
+      await expect(repository.sendMessage('conv-1', 'Hello')).rejects.toBeInstanceOf(ServiceUnavailableError)
+    })
   })
 
-  it('should throw ServiceUnavailableError when create fails', async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+  describe('getById', () => {
+    it('returns a Conversation with messages on success', async () => {
+      server.use(
+        http.get(`${BASE_URL}/conversations/conv-1`, () =>
+          HttpResponse.json({
+            id: 'conv-1',
+            messages: [
+              { id: 'msg-1', content: 'Bonjour', sender: MessageSender.TUTOR, timestamp: '2024-01-01T00:00:00Z' },
+            ],
+            createdAt: '2024-01-01T00:00:00Z',
+          }),
+        ),
+      )
 
-    await expect(repository.create()).rejects.toBeInstanceOf(ServiceUnavailableError)
+      const result = await repository.getById('conv-1')
+
+      expect(result.id).toBe('conv-1')
+      expect(result.messages).toHaveLength(1)
+    })
+
+    it('throws NotFoundError on 404', async () => {
+      server.use(
+        http.get(`${BASE_URL}/conversations/bad-id`, () => new HttpResponse(null, { status: 404 })),
+      )
+
+      await expect(repository.getById('bad-id')).rejects.toBeInstanceOf(NotFoundError)
+    })
+
+    it('throws ServiceUnavailableError on other errors', async () => {
+      server.use(
+        http.get(`${BASE_URL}/conversations/conv-1`, () => new HttpResponse(null, { status: 503 })),
+      )
+
+      await expect(repository.getById('conv-1')).rejects.toBeInstanceOf(ServiceUnavailableError)
+    })
   })
 
-  it('should send a message', async () => {
-    const mockResponse = { message: 'Hello', tutorResponse: 'Bonjour !' }
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    } as Response)
+  describe('explainVocabulary', () => {
+    it('returns explanation on success', async () => {
+      server.use(
+        http.post(`${BASE_URL}/conversations/conv-1/vocabulary`, () =>
+          HttpResponse.json({ explanation: '«Passée» est le participe passé féminin de «se passer».' }),
+        ),
+      )
 
-    const result = await repository.sendMessage('conv-1', 'Hello')
+      const result = await repository.explainVocabulary('conv-1', 'passée', "Comment s'est passée ta journée ?")
 
-    expect(result.tutorResponse).toBe('Bonjour !')
-  })
+      expect(result.explanation).toBe('«Passée» est le participe passé féminin de «se passer».')
+    })
 
-  it('should get a conversation by id', async () => {
-    const mockResponse = {
-      id: 'conv-1',
-      messages: [{ id: 'msg-1', content: 'Bonjour', sender: MessageSender.TUTOR, timestamp: '2024-01-01T00:00:00Z' }],
-      createdAt: '2024-01-01T00:00:00Z',
-    }
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => mockResponse,
-    } as Response)
+    it('sends word and context in the request body', async () => {
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.post(`${BASE_URL}/conversations/conv-1/vocabulary`, async ({ request }) => {
+          capturedBody = await request.json() as Record<string, unknown>
+          return HttpResponse.json({ explanation: 'test' })
+        }),
+      )
 
-    const result = await repository.getById('conv-1')
+      await repository.explainVocabulary('conv-1', 'passée', "Comment s'est passée ta journée ?")
 
-    expect(result.id).toBe('conv-1')
-    expect(result.messages).toHaveLength(1)
-  })
+      expect(capturedBody).toEqual({ word: 'passée', context: "Comment s'est passée ta journée ?" })
+    })
 
-  it('should throw NotFoundError when getById returns 404', async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({ ok: false, status: 404 } as Response)
+    it('throws ServiceUnavailableError on failure', async () => {
+      server.use(
+        http.post(`${BASE_URL}/conversations/conv-1/vocabulary`, () =>
+          new HttpResponse(null, { status: 503 }),
+        ),
+      )
 
-    await expect(repository.getById('bad-id')).rejects.toBeInstanceOf(NotFoundError)
-  })
-
-  it('should throw ServiceUnavailableError when getById returns other error', async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({ ok: false, status: 503 } as Response)
-
-    await expect(repository.getById('conv-1')).rejects.toBeInstanceOf(ServiceUnavailableError)
+      await expect(repository.explainVocabulary('conv-1', 'passée', '')).rejects.toBeInstanceOf(ServiceUnavailableError)
+    })
   })
 })

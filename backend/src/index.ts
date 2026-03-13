@@ -8,8 +8,10 @@ import { openApiSpec } from './adapters/http/openapi-spec';
 import { CreateConversationUseCase } from './application/use-cases/create-conversation-use-case';
 import { SendMessageUseCase } from './application/use-cases/send-message-use-case';
 import { GetConversationUseCase } from './application/use-cases/get-conversation-use-case';
+import { ExplainVocabularyUseCase } from './application/use-cases/explain-vocabulary-use-case';
 import { InMemoryConversationRepository } from './infrastructure/repositories/in-memory-conversation-repository';
 import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
+import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 
 function ensureOllamaConfig(): void {
   const model = process.env.OLLAMA_MODEL?.trim();
@@ -32,10 +34,13 @@ function createApp(): express.Application {
 
   const conversationRepository = new InMemoryConversationRepository();
 
-  const tutorService = new OllamaTutorService({
+  const ollamaConfig = {
     baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1',
     model: process.env.OLLAMA_MODEL!,
-  });
+  };
+
+  const tutorService = new OllamaTutorService(ollamaConfig);
+  const vocabularyService = new OllamaVocabularyService(ollamaConfig);
 
   const createConversationUseCase = new CreateConversationUseCase(
     conversationRepository,
@@ -48,6 +53,7 @@ function createApp(): express.Application {
   const getConversationUseCase = new GetConversationUseCase(
     conversationRepository,
   );
+  const explainVocabularyUseCase = new ExplainVocabularyUseCase(vocabularyService);
 
   app.use(
     '/api',
@@ -55,6 +61,7 @@ function createApp(): express.Application {
       createConversationUseCase,
       sendMessageUseCase,
       getConversationUseCase,
+      explainVocabularyUseCase,
     ),
   );
 

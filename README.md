@@ -33,11 +33,14 @@ Voice transcription follows the same BFF pattern: the browser POSTs audio to `/a
 
 Text-to-speech follows the same pattern in reverse: the browser fetches `/api/tts` (Next.js route), which calls `SynthesizeSpeechUseCase` → `HttpTtsRepository` → piper1-gpl server. The piper URL is configured via `PIPER_URL`.
 
+Vocabulary explanations follow the same BFF pattern: the browser POSTs `{ word, context }` to `/api/conversations/:id/vocabulary` (Next.js route), which calls `ExplainVocabularyUseCase` → `HttpConversationRepository` → Express backend → `OllamaVocabularyService`. Context (the last tutor message) is resolved client-side and sent in the request body — the use case stays stateless.
+
 ## Features
 
 - **Chat Interface**: Interactive French conversation with an AI tutor
 - **Voice Input**: Students can speak French directly into the chat — audio is transcribed via whisper.cpp and placed in the input box for review and editing before sending. Adaptive UX: click-to-toggle on desktop, press-and-hold on mobile. The input placeholder shows a live recording timer (`Enregistrement… Ns`) and a transcription status (`Transcription en cours…`) so students always know what is happening while they wait.
 - **Text-to-Speech**: Every tutor response has a speaker button (▶) and a slow-play button (🐢). Clicking either plays the French text via piper1-gpl — a local neural TTS engine running on port 7602. Speed is controlled server-side via `length_scale` (1.0 normal, 1.5 slow) so the slow mode produces genuinely slower phoneme duration rather than browser-stretched audio. Only one message plays at a time — starting a new one automatically stops the previous.
+- **Slash Commands**: The input box supports `/vocabulary [word]` to get a contextual explanation of any French word. Typing `/` shows an autocomplete popup. The command is silent — no user bubble appears, only the vocabulary response rendered with a `📖 word` header in an indigo bubble with TTS buttons. Vocabulary lookups are not saved to conversation history.
 - **Topic Initiation**: Tutor initiates conversations on interesting topics:
   - AI adoption in France
   - French culture

@@ -1,9 +1,13 @@
+export type MessageType = 'chat' | 'vocabulary'
+
 export class Message {
   constructor(
     public readonly id: string,
     public readonly content: string,
     public readonly sender: MessageSender,
     public readonly timestamp: Date,
+    public readonly type: MessageType = 'chat',
+    public readonly vocabularyWord?: string,
   ) {}
 
   static fromApi(data: MessageApiResponse): Message {

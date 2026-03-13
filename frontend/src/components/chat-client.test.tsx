@@ -22,6 +22,7 @@ class MockMediaRecorder {
 
 const CONVERSATION_ID = 'conv-1'
 const MESSAGES_PATH = `/api/conversations/${CONVERSATION_ID}/messages`
+const VOCABULARY_PATH = `/api/conversations/${CONVERSATION_ID}/vocabulary`
 
 const initialMessages = [
   {
@@ -193,6 +194,128 @@ describe('ChatClient', () => {
 
       await waitFor(() =>
         expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', 'Tapez votre message en français…')
+      )
+    })
+  })
+
+  describe('/vocabulary slash command', () => {
+    it('shows autocomplete popup when user types /', async () => {
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.type(screen.getByRole('textbox'), '/')
+
+      expect(screen.getByText('/vocabulary')).toBeInTheDocument()
+      expect(screen.getByText('Expliquer un mot en contexte')).toBeInTheDocument()
+    })
+
+    it('hides autocomplete once a space is typed after the command', async () => {
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.type(screen.getByRole('textbox'), '/vocabulary ')
+
+      expect(screen.queryByText('Expliquer un mot en contexte')).not.toBeInTheDocument()
+    })
+
+    it('fills input with /vocabulary when autocomplete entry is clicked', async () => {
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.type(screen.getByRole('textbox'), '/')
+      await user.click(screen.getByText('/vocabulary'))
+
+      expect(screen.getByRole('textbox')).toHaveValue('/vocabulary ')
+    })
+
+    it('sends word and last tutor message context to vocabulary endpoint', async () => {
+      const user = userEvent.setup()
+      let capturedBody: Record<string, unknown> | undefined
+      server.use(
+        http.post(VOCABULARY_PATH, async ({ request }) => {
+          capturedBody = await request.json() as Record<string, unknown>
+          return HttpResponse.json({ explanation: '«Passée» est le participe passé.' })
+        }),
+      )
+
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+      await waitFor(() =>
+        expect(capturedBody).toEqual({
+          word: 'passée',
+          context: 'Bonjour ! Comment puis-je vous aider ?',
+        }),
+      )
+    })
+
+    it('does not show user bubble — only the vocabulary response appears', async () => {
+      const user = userEvent.setup()
+      server.use(
+        http.post(VOCABULARY_PATH, () =>
+          HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),
+        ),
+      )
+
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+      await waitFor(() => expect(screen.getByText('📖 passée')).toBeInTheDocument())
+      expect(screen.queryByText('/vocabulary passée')).not.toBeInTheDocument()
+      expect(screen.getByText('«Passée» est le participe passé.')).toBeInTheDocument()
+    })
+
+    it('shows "Analyse en cours…" while the vocabulary request is in flight', async () => {
+      const user = userEvent.setup()
+      server.use(
+        http.post(VOCABULARY_PATH, async () => {
+          await delay(50)
+          return HttpResponse.json({ explanation: '«Passée» est le participe passé.' })
+        }),
+      )
+
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+      expect(screen.getByText('Analyse en cours…')).toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByText('Analyse en cours…')).not.toBeInTheDocument())
+    })
+
+    it('shows inline hint when /vocabulary is submitted without a word', async () => {
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.type(screen.getByRole('textbox'), '/vocabulary')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+      expect(screen.getByText('Usage : /vocabulary [mot]')).toBeInTheDocument()
+    })
+
+    it('shows error for unknown slash command', async () => {
+      const user = userEvent.setup()
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+
+      await user.type(screen.getByRole('textbox'), '/unknown')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+      expect(screen.getByText('Commande inconnue : /unknown')).toBeInTheDocument()
+    })
+
+    it('shows error when vocabulary API fails', async () => {
+      const user = userEvent.setup()
+      server.use(
+        http.post(VOCABULARY_PATH, () => new HttpResponse(null, { status: 503 })),
+      )
+
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+      await waitFor(() =>
+        expect(screen.getByText('Erreur lors de la recherche du vocabulaire. Réessayez.')).toBeInTheDocument(),
       )
     })
   })

@@ -108,6 +108,62 @@ export const openApiSpec = {
         },
       },
     },
+    '/api/conversations/{conversationId}/vocabulary': {
+      post: {
+        tags: ['Conversations'],
+        summary: 'Explain a vocabulary word in context',
+        description:
+          'Explains a French word in the context of the last tutor message. Returns the grammatical form, contextual meaning, and English translation. Does not affect conversation history.',
+        operationId: 'explainVocabulary',
+        parameters: [
+          {
+            $ref: '#/components/parameters/conversationId',
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/ExplainVocabularyRequest',
+              },
+              example: {
+                word: 'passée',
+                context: "Comment s'est passée ta journée jusqu'à présent ?",
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Vocabulary explanation returned',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ExplainVocabularyResponse',
+                },
+                example: {
+                  explanation:
+                    "« Passée » est le participe passé féminin du verbe « se passer » (to happen/go). Dans cette phrase, il s'accorde avec « journée » (féminin). En anglais : \"how has your day gone so far?\"",
+                },
+              },
+            },
+          },
+          '400': {
+            description: 'Bad request — word field is missing',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { error: 'word is required' },
+              },
+            },
+          },
+          '503': {
+            $ref: '#/components/responses/InternalServerError',
+          },
+        },
+      },
+    },
     '/api/conversations/{conversationId}': {
       get: {
         tags: ['Conversations'],
@@ -185,6 +241,33 @@ export const openApiSpec = {
             description: 'The tutor\'s opening message to start the lesson',
             example:
               "Bonjour! Je suis votre professeur de français. Comment puis-je vous aider aujourd'hui?",
+          },
+        },
+      },
+      ExplainVocabularyRequest: {
+        type: 'object',
+        required: ['word'],
+        properties: {
+          word: {
+            type: 'string',
+            description: 'The French word to explain',
+            example: 'passée',
+          },
+          context: {
+            type: 'string',
+            description: 'The sentence in which the word appears (last tutor message)',
+            example: "Comment s'est passée ta journée jusqu'à présent ?",
+          },
+        },
+      },
+      ExplainVocabularyResponse: {
+        type: 'object',
+        required: ['explanation'],
+        properties: {
+          explanation: {
+            type: 'string',
+            description: 'Contextual explanation of the word in French, including grammatical form and English translation',
+            example: "« Passée » est le participe passé féminin du verbe « se passer ».",
           },
         },
       },

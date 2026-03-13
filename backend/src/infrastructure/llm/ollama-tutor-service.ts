@@ -7,6 +7,8 @@ export interface OllamaConfig {
   model: string;
 }
 
+const ANTI_REPETITION = { repeat_penalty: 1.15, presence_penalty: 0.3 } as const;
+
 export class OllamaTutorService implements TutorService {
   private client: OpenAI;
   private model: string;
@@ -33,9 +35,7 @@ export class OllamaTutorService implements TutorService {
       ],
       temperature: 0.7,
       max_tokens: 50,
-      // @ts-expect-error — Ollama-specific sampling options not in OpenAI types
-      repeat_penalty: 1.15,
-      presence_penalty: 0.3,
+      ...ANTI_REPETITION,
     });
     return response.choices[0]?.message?.content || this.getDefaultGreeting();
   }
@@ -56,9 +56,7 @@ export class OllamaTutorService implements TutorService {
       messages,
       temperature: 0.7,
       max_tokens: 120,
-      // @ts-expect-error — Ollama-specific sampling options not in OpenAI types
-      repeat_penalty: 1.15,
-      presence_penalty: 0.3,
+      ...ANTI_REPETITION,
     });
     return response.choices[0]?.message?.content || this.getDefaultResponse();
   }

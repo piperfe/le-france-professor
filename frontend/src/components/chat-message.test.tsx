@@ -32,6 +32,10 @@ function userMessage(content = 'Je vais bien, merci !') {
   return new Message('msg-2', content, MessageSender.USER, new Date())
 }
 
+function vocabularyMessage(word = 'passée', content = '«Passée» est le participe passé féminin de «se passer».') {
+  return new Message('msg-3', content, MessageSender.TUTOR, new Date(), 'vocabulary', word)
+}
+
 // ── tests ─────────────────────────────────────────────────────────────────────
 
 describe('ChatMessage', () => {
@@ -53,5 +57,26 @@ describe('ChatMessage', () => {
 
     expect(screen.queryByRole('button', { name: /écouter en français/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /écouter lentement/i })).not.toBeInTheDocument()
+  })
+
+  describe('vocabulary bubble', () => {
+    it('displays the word header with book emoji', () => {
+      render(<ChatMessage message={vocabularyMessage('passée')} />)
+
+      expect(screen.getByText('📖 passée')).toBeInTheDocument()
+    })
+
+    it('displays the explanation content', () => {
+      render(<ChatMessage message={vocabularyMessage('passée', '«Passée» est le participe passé féminin de «se passer».')} />)
+
+      expect(screen.getByText('«Passée» est le participe passé féminin de «se passer».')).toBeInTheDocument()
+    })
+
+    it('shows audio buttons so the student can hear the explanation', () => {
+      render(<ChatMessage message={vocabularyMessage()} />)
+
+      expect(screen.getByRole('button', { name: /écouter en français/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /écouter lentement/i })).toBeInTheDocument()
+    })
   })
 })

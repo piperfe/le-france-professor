@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { HttpTranscriptionRepository } from './http-transcription-repository'
 import { ServiceUnavailableError } from '../../domain/errors'
 
-describe('HttpTranscriptionRepository', () => {
+describe('HttpTranscriptionRepository',
+  () => {
   const whisperUrl = 'http://127.0.0.1:7600'
   const fakeAudio = new Blob(['audio'], { type: 'audio/webm' })
   const fakeWav = new Blob(['wav-data'], { type: 'audio/wav' })

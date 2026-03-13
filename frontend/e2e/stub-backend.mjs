@@ -30,6 +30,10 @@ const routes = {
     status: 200,
     body: { tutorResponse: TUTOR_RESPONSE },
   }),
+  [`POST /api/conversations/${CONVERSATION_ID}/vocabulary`]: () => ({
+    status: 200,
+    body: { explanation: '«Passée» est le participe passé féminin du verbe «se passer» (to happen). En anglais : "happened".' },
+  }),
 }
 
 const server = createServer((req, res) => {

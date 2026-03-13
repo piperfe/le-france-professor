@@ -121,8 +121,11 @@ integration/
 ├── post-conversations.integration.test.ts
 ├── post-message.integration.test.ts
 ├── get-conversation.integration.test.ts
+├── post-vocabulary.integration.test.ts
 └── llmMock.ts
 ```
+
+`post-vocabulary.integration.test.ts` includes a key assertion: vocabulary lookups do **not** add messages to conversation history (`messages.length` stays at 1 after a vocabulary call). This guards against the vocabulary endpoint accidentally mutating conversation state.
 
 Each test spins up the real Express app via `createApp()`, sends HTTP requests using `supertest`, and mocks only the external LLM call using `nock`.
 
@@ -265,6 +268,11 @@ E2E tests cover three user journeys:
 3. Click stop — speaker button returns
 4. Click slow — verifies `lengthScale: 1.5` is sent in the POST body to `/api/tts`
 5. Two messages: play message 1, click message 2's speaker — message 1's button resets, message 2 plays
+
+**`/vocabulary` slash command:**
+1. Type `/` in the input — autocomplete popup appears with `/vocabulary` and its description
+2. Type `/vocabulary passée` and send — no user bubble in the chat, vocabulary bubble with `📖 passée` header and explanation appears
+3. Type `/vocabulary` (no word) and send — inline hint `Usage : /vocabulary [mot]` appears
 
 Browser APIs (`MediaRecorder`, `getUserMedia`) are injected as fakes via `page.addInitScript()` before the page loads. The `/api/transcribe` BFF route is mocked via `page.route()` — no real whisper.cpp server required.
 
