@@ -69,10 +69,10 @@ export function VoiceInputButton({ onTranscription, onVoiceStateChange, disabled
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         className={[
-          'w-10 h-10 rounded-lg flex items-center justify-center transition-colors',
+          'w-10 h-10 rounded-full flex items-center justify-center transition-colors border',
           isRecording
-            ? 'bg-red-500 text-white animate-pulse'
-            : 'bg-gray-100 hover:bg-gray-200 text-gray-600',
+            ? 'bg-rouge border-rouge text-white animate-pulse'
+            : 'bg-parchment border-border text-ink-muted hover:bg-border',
           isBusy ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         ].join(' ')}
       >

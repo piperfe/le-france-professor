@@ -74,7 +74,7 @@ npm run test:e2e
 npx playwright test --ui
 ```
 
-> **Note:** `npm run test:e2e` starts a stub backend on port 3001 and a production Next.js server on port 3000 automatically via Playwright's `webServer`. No manual setup needed. If those ports are already in use, Playwright will reuse the existing servers (local dev mode).
+> **Note:** `npm run test:e2e` starts a stub backend on port 5101 and a production Next.js server on port 5100 automatically via Playwright's `webServer`. No manual setup needed. If those ports are already in use, Playwright will reuse the existing servers (local dev mode).
 
 ---
 
@@ -121,6 +121,7 @@ integration/
 ├── post-conversations.integration.test.ts
 ├── post-message.integration.test.ts
 ├── get-conversation.integration.test.ts
+├── get-all-conversations.integration.test.ts
 ├── post-vocabulary.integration.test.ts
 └── llmMock.ts
 ```
@@ -238,7 +239,7 @@ frontend/
 └── playwright.config.ts
 ```
 
-The stub backend (`stub-backend.mjs`) is a plain Node.js HTTP server that returns deterministic responses for all three API endpoints the frontend depends on. Playwright's `webServer` starts it automatically on port 3001 before running tests.
+The stub backend (`stub-backend.mjs`) is a plain Node.js HTTP server that returns deterministic responses for all five API endpoints the frontend depends on. Playwright's `webServer` starts it automatically on port 5101 before running tests.
 
 E2E tests cover three user journeys:
 
@@ -274,7 +275,14 @@ E2E tests cover three user journeys:
 2. Type `/vocabulary passée` and send — no user bubble in the chat, vocabulary bubble with `📖 passée` header and explanation appears
 3. Type `/vocabulary` (no word) and send — inline hint `Usage : /vocabulary [mot]` appears
 
+**Sidebar multi-conversation flow:**
+1. Create conv1 — sidebar shows its title
+2. Create conv2 via "+" — sidebar shows both titles (2 entries)
+3. Navigate back to conv1 via `page.goto(conv1Url)` — conv1 messages are restored from the stub; conv2 messages are absent
+
 Browser APIs (`MediaRecorder`, `getUserMedia`) are injected as fakes via `page.addInitScript()` before the page loads. The `/api/transcribe` BFF route is mocked via `page.route()` — no real whisper.cpp server required.
+
+The stub backend is stateful across a test run (Map-based in-memory store). Since tests run in parallel and share the same stub backend, sidebar count assertions use `toBeGreaterThanOrEqual` rather than exact counts to remain stable under parallelism.
 
 ```ts
 await page.addInitScript(() => {

@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useState } from 'react'
 import { Message, MessageSender } from '../domain/entities/message'
 import { ChatMessage } from './chat-message'
+import { Sidebar } from './sidebar'
 import { VoiceInputButton } from './voice-input-button'
 import type { VoiceState } from './use-voice-input'
 
@@ -18,12 +19,18 @@ interface MessageDTO {
   timestamp: string
 }
 
+interface ConversationSummaryDTO {
+  id: string
+  title: string
+}
+
 interface Props {
   initialMessages: MessageDTO[]
   conversationId: string
+  conversations: ConversationSummaryDTO[]
 }
 
-export function ChatClient({ initialMessages, conversationId }: Props) {
+export function ChatClient({ initialMessages, conversationId, conversations }: Props) {
   const [messages, setMessages] = useState<Message[]>(() =>
     initialMessages.map(
       (dto) => new Message(dto.id, dto.content, dto.sender as MessageSender, new Date(dto.timestamp)),
@@ -132,22 +139,47 @@ export function ChatClient({ initialMessages, conversationId }: Props) {
   }
 
   return (
-    <div className="flex flex-col h-screen max-w-2xl mx-auto w-full">
-      <header className="px-6 py-4 border-b border-gray-200 bg-white">
-        <h2 className="text-lg font-semibold text-gray-900">Conversation en français</h2>
+    <div className="flex h-screen">
+      <Sidebar activeConversationId={conversationId} conversations={conversations} />
+      <div className="flex flex-col flex-1 min-w-0">
+      <header className="px-5 py-3 border-b border-border bg-white flex items-center gap-3 flex-shrink-0 shadow-sm">
+        <div className="w-9 h-9 rounded-full bg-tricolore-50 border-2 border-tricolore flex items-center justify-center text-lg flex-shrink-0">
+          👩‍🏫
+        </div>
+        <div>
+          <h2 className="font-display font-semibold text-ink leading-none">Professeure Sophie</h2>
+          <p className="text-xs text-ink-muted mt-0.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 align-middle" />
+            Conversation en français
+          </p>
+        </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
         {messages.map((msg) => (
           <ChatMessage key={msg.id} message={msg} />
         ))}
-        {loadingLabel && <p className="text-sm text-gray-400 italic">{loadingLabel}</p>}
-        {error && <p className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{error}</p>}
+        {loadingLabel && (
+          <div className="flex items-center gap-2 text-xs text-ink-muted italic">
+            <span className="flex gap-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-ink-muted opacity-40 animate-bounce [animation-delay:0ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-ink-muted opacity-60 animate-bounce [animation-delay:150ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-ink-muted opacity-80 animate-bounce [animation-delay:300ms]" />
+            </span>
+            {loadingLabel}
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center gap-3 bg-rouge-50 border border-rouge/20 rounded-xl px-4 py-3 text-sm text-rouge">
+            <span>⚠️</span>
+            <span className="flex-1">{error}</span>
+          </div>
+        )}
       </div>
 
-      <div className="relative px-6">
+      <div className="relative px-5">
         {showAutocomplete && (
-          <ul className="absolute bottom-full mb-1 left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-md overflow-hidden z-10">
+          <ul className="absolute bottom-full mb-2 left-0 right-0 bg-white border border-border rounded-xl shadow-lg overflow-hidden z-10">
             {COMMANDS.filter((c) => c.command.startsWith(input)).map((c) => (
               <li key={c.command}>
                 <button
@@ -156,10 +188,13 @@ export function ChatClient({ initialMessages, conversationId }: Props) {
                     e.preventDefault()
                     setInput(`${c.command} `)
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex gap-3 items-center"
+                  className="w-full text-left px-4 py-3 hover:bg-tricolore-50 flex gap-3 items-center transition-colors"
                 >
-                  <span className="font-medium text-gray-900">{c.command}</span>
-                  <span className="text-gray-400">{c.description}</span>
+                  <span className="text-base">📖</span>
+                  <div>
+                    <span className="block text-sm font-semibold text-tricolore">{c.command}</span>
+                    <span className="block text-xs text-ink-muted">{c.description}</span>
+                  </div>
                 </button>
               </li>
             ))}
@@ -167,28 +202,32 @@ export function ChatClient({ initialMessages, conversationId }: Props) {
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-3 px-6 py-4 border-t border-gray-200 bg-white">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 px-5 py-3 border-t border-border bg-white flex-shrink-0">
+        <VoiceInputButton
+          onTranscription={(text) => setInput((prev) => prev ? `${prev} ${text}` : text)}
+          onVoiceStateChange={handleVoiceStateChange}
+          disabled={loading}
+        />
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={inputPlaceholder}
           disabled={loading}
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:border-blue-500 disabled:bg-gray-50"
-        />
-        <VoiceInputButton
-          onTranscription={(text) => setInput((prev) => prev ? `${prev} ${text}` : text)}
-          onVoiceStateChange={handleVoiceStateChange}
-          disabled={loading}
+          className="flex-1 px-4 py-2.5 bg-parchment border border-border rounded-full text-sm outline-none focus:border-tricolore focus:bg-white transition-colors disabled:opacity-50"
         />
         <button
           type="submit"
+          aria-label="Envoyer"
           disabled={loading || !input.trim()}
-          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer disabled:cursor-not-allowed"
+          className="w-10 h-10 rounded-full bg-tricolore hover:bg-tricolore-700 disabled:bg-border text-white flex items-center justify-center flex-shrink-0 transition-colors cursor-pointer disabled:cursor-not-allowed"
         >
-          Envoyer
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 2L11 13" /><path d="M22 2L15 22 11 13 2 9l20-7z" />
+          </svg>
         </button>
       </form>
+      </div>
     </div>
   )
 }

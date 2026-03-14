@@ -14,6 +14,7 @@ describe('SendMessageUseCase', () => {
     mockRepository = {
       save: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     mockTutorService = {
       initiateConversation: jest.fn(),

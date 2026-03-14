@@ -110,7 +110,7 @@
    cd frontend && npm run test:e2e
    ```
 
-   The E2E suite starts a stub backend on port 3001 and a production Next.js server on port 3000 automatically. If those ports are already in use it will reuse the running servers.
+   The E2E suite starts a stub backend on port 5101 and a production Next.js server on port 5100 automatically. If those ports are already in use it will reuse the running servers.
 
 ## Observability
 
@@ -149,6 +149,8 @@ The UI includes request/response schemas, examples, and a built-in HTTP client t
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `GET`  | `/api/conversations` | List all conversations |
 | `POST` | `/api/conversations` | Create a new conversation |
-| `POST` | `/api/conversations/:conversationId/messages` | Send a message to the tutor |
 | `GET`  | `/api/conversations/:conversationId` | Get conversation details |
+| `POST` | `/api/conversations/:conversationId/messages` | Send a message to the tutor |
+| `POST` | `/api/conversations/:conversationId/vocabulary` | Explain a word in context |

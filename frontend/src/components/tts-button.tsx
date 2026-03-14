@@ -50,26 +50,26 @@ export function TtsButton({ text }: Props) {
   const slowIsLoading    = isLoading && activeSpeed === 'slow'
 
   return (
-    <div className="flex gap-1 mt-2">
+    <div className="flex gap-1.5 mt-2">
       <button
         type="button"
         aria-label={speakerIsActive ? 'Arrêter la lecture' : 'Écouter en français'}
         onClick={() => play(text)}
         disabled={isLoading}
         className={[
-          'w-7 h-7 rounded-md flex items-center justify-center transition-colors',
+          'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
           speakerIsActive
-            ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-            : 'bg-gray-100 hover:bg-gray-200 text-gray-500',
+            ? 'bg-tricolore-50 border-tricolore text-tricolore hover:bg-tricolore/10'
+            : 'bg-parchment border-[#B8B0A6] text-ink-muted hover:bg-border',
           isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         ].join(' ')}
       >
         {speakerIsLoading ? (
-          <span className="text-xs text-gray-400">…</span>
+          <span>…</span>
         ) : speakerIsActive ? (
-          <StopIcon />
+          <><StopIcon /> Normal</>
         ) : (
-          <SpeakerIcon />
+          <><SpeakerIcon /> Normal</>
         )}
       </button>
 
@@ -79,14 +79,14 @@ export function TtsButton({ text }: Props) {
         onClick={() => playSlow(text)}
         disabled={isLoading}
         className={[
-          'w-7 h-7 rounded-md flex items-center justify-center transition-colors text-sm',
+          'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
           slowIsActive
-            ? 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-            : 'bg-gray-100 hover:bg-gray-200 text-gray-500',
+            ? 'bg-tricolore-50 border-tricolore text-tricolore hover:bg-tricolore/10'
+            : 'bg-parchment border-[#B8B0A6] text-ink-muted hover:bg-border',
           isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         ].join(' ')}
       >
-        {slowIsLoading ? <span className="text-xs text-gray-400">…</span> : '🐢'}
+        {slowIsLoading ? <span>…</span> : '🐢 Lent'}
       </button>
     </div>
   )

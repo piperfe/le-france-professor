@@ -20,6 +20,36 @@ export const openApiSpec = {
   ],
   paths: {
     '/api/conversations': {
+      get: {
+        tags: ['Conversations'],
+        summary: 'List all conversations',
+        description: 'Returns a summary of every conversation — id, title (first 40 chars of the first tutor message), and creation date.',
+        operationId: 'getAllConversations',
+        responses: {
+          '200': {
+            description: 'List of conversation summaries',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/GetAllConversationsResponse',
+                },
+                example: {
+                  conversations: [
+                    {
+                      id: 'conv-1700000000000-abc123xyz',
+                      title: "Bonjour ! Comment puis-je vous aider",
+                      createdAt: '2024-01-15T10:30:00.000Z',
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          '500': {
+            $ref: '#/components/responses/InternalServerError',
+          },
+        },
+      },
       post: {
         tags: ['Conversations'],
         summary: 'Create a new conversation',
@@ -324,6 +354,40 @@ export const openApiSpec = {
             format: 'date-time',
             description: 'ISO 8601 timestamp of when the message was created',
             example: '2024-01-15T10:30:00.100Z',
+          },
+        },
+      },
+      ConversationSummary: {
+        type: 'object',
+        required: ['id', 'title', 'createdAt'],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Unique identifier for the conversation',
+            example: 'conv-1700000000000-abc123xyz',
+          },
+          title: {
+            type: 'string',
+            description: 'First 40 characters of the first tutor message',
+            example: "Bonjour ! Comment puis-je vous aider",
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'ISO 8601 timestamp of when the conversation was created',
+            example: '2024-01-15T10:30:00.000Z',
+          },
+        },
+      },
+      GetAllConversationsResponse: {
+        type: 'object',
+        required: ['conversations'],
+        properties: {
+          conversations: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/ConversationSummary',
+            },
           },
         },
       },

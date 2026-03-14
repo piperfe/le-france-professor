@@ -26,4 +26,22 @@ describe('InMemoryConversationRepository', () => {
     const result = await repository.findById('non-existent');
     expect(result).toBeNull();
   });
+
+  it('should return all saved conversations', async () => {
+    const conv1 = Conversation.create();
+    const conv2 = Conversation.create();
+    await repository.save(conv1);
+    await repository.save(conv2);
+
+    const all = await repository.findAll();
+
+    expect(all).toHaveLength(2);
+    expect(all.map((c) => c.id)).toContain(conv1.id);
+    expect(all.map((c) => c.id)).toContain(conv2.id);
+  });
+
+  it('should return empty array when no conversations exist', async () => {
+    const all = await repository.findAll();
+    expect(all).toEqual([]);
+  });
 });

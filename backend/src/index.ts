@@ -8,6 +8,7 @@ import { openApiSpec } from './adapters/http/openapi-spec';
 import { CreateConversationUseCase } from './application/use-cases/create-conversation-use-case';
 import { SendMessageUseCase } from './application/use-cases/send-message-use-case';
 import { GetConversationUseCase } from './application/use-cases/get-conversation-use-case';
+import { GetAllConversationsUseCase } from './application/use-cases/get-all-conversations-use-case';
 import { ExplainVocabularyUseCase } from './application/use-cases/explain-vocabulary-use-case';
 import { InMemoryConversationRepository } from './infrastructure/repositories/in-memory-conversation-repository';
 import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
@@ -53,6 +54,9 @@ function createApp(): express.Application {
   const getConversationUseCase = new GetConversationUseCase(
     conversationRepository,
   );
+  const getAllConversationsUseCase = new GetAllConversationsUseCase(
+    conversationRepository,
+  );
   const explainVocabularyUseCase = new ExplainVocabularyUseCase(vocabularyService);
 
   app.use(
@@ -61,6 +65,7 @@ function createApp(): express.Application {
       createConversationUseCase,
       sendMessageUseCase,
       getConversationUseCase,
+      getAllConversationsUseCase,
       explainVocabularyUseCase,
     ),
   );

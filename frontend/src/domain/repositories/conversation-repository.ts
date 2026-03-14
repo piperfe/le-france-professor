@@ -1,5 +1,11 @@
 import type { Conversation } from '../entities/conversation'
 
+export type ConversationSummary = {
+  id: string
+  title: string
+  createdAt: Date
+}
+
 export interface ConversationRepository {
   create(): Promise<{ conversationId: string; initialMessage: string }>
   sendMessage(
@@ -12,4 +18,5 @@ export interface ConversationRepository {
     word: string,
     context: string,
   ): Promise<{ explanation: string }>
+  findAll(): Promise<ConversationSummary[]>
 }

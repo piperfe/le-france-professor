@@ -13,6 +13,7 @@ describe('SendMessageUseCase', () => {
       sendMessage: vi.fn(),
       getById: vi.fn(),
       explainVocabulary: vi.fn(),
+      findAll: vi.fn(),
     }
     useCase = new SendMessageUseCase(mockRepository)
   })

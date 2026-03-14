@@ -6,6 +6,10 @@ import { http, HttpResponse, delay } from 'msw'
 import { ChatClient } from './chat-client'
 import { MessageSender } from '../domain/entities/message'
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}))
+
 // Minimal MediaRecorder stub so VoiceInputButton renders without errors
 class MockMediaRecorder {
   static isTypeSupported = vi.fn().mockReturnValue(true)
@@ -51,20 +55,20 @@ afterAll(() => server.close())
 
 describe('ChatClient', () => {
   it('renders the initial messages passed as props', () => {
-    render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
 
     expect(screen.getByText('Bonjour ! Comment puis-je vous aider ?')).toBeInTheDocument()
   })
 
   it('disables the submit button when the input is empty', () => {
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeDisabled()
   })
 
   it('enables the submit button once the user types', async () => {
     const user = userEvent.setup()
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
     await user.type(screen.getByRole('textbox'), 'Bonjour')
 
@@ -80,7 +84,7 @@ describe('ChatClient', () => {
       }),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -99,7 +103,7 @@ describe('ChatClient', () => {
       http.post(MESSAGES_PATH, () => HttpResponse.json({ tutorResponse: 'Oui !' })),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -113,7 +117,7 @@ describe('ChatClient', () => {
       http.post(MESSAGES_PATH, () => new HttpResponse(null, { status: 503 })),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -125,7 +129,7 @@ describe('ChatClient', () => {
   })
 
   it('renders the mic button alongside the input', () => {
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
     expect(screen.getByRole('button', { name: /enregistrement vocal/i })).toBeInTheDocument()
   })
 
@@ -134,7 +138,7 @@ describe('ChatClient', () => {
       http.post('/api/transcribe', () => HttpResponse.json({ text: 'Bonjour !' })),
     )
     const user = userEvent.setup()
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
     await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
     await user.click(screen.getByRole('button', { name: /arrêter/i }))
@@ -145,7 +149,7 @@ describe('ChatClient', () => {
   describe('input placeholder during voice recording', () => {
     it('shows recording placeholder with 0s when mic starts', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
 
@@ -157,7 +161,7 @@ describe('ChatClient', () => {
       afterEach(() => { vi.useRealTimers() })
 
       it('increments the recording seconds in the placeholder', async () => {
-        render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+        render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
         fireEvent.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
         await act(async () => {}) // flush getUserMedia microtask
@@ -174,7 +178,7 @@ describe('ChatClient', () => {
         return HttpResponse.json({ text: 'Bonjour !' })
       }))
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
       await user.click(screen.getByRole('button', { name: /arrêter/i }))
@@ -187,7 +191,7 @@ describe('ChatClient', () => {
     it('restores the default placeholder after transcription completes', async () => {
       server.use(http.post('/api/transcribe', () => HttpResponse.json({ text: 'Bonjour !' })))
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
       await user.click(screen.getByRole('button', { name: /arrêter/i }))
@@ -201,7 +205,7 @@ describe('ChatClient', () => {
   describe('/vocabulary slash command', () => {
     it('shows autocomplete popup when user types /', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/')
 
@@ -211,7 +215,7 @@ describe('ChatClient', () => {
 
     it('hides autocomplete once a space is typed after the command', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/vocabulary ')
 
@@ -220,7 +224,7 @@ describe('ChatClient', () => {
 
     it('fills input with /vocabulary when autocomplete entry is clicked', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/')
       await user.click(screen.getByText('/vocabulary'))
@@ -238,7 +242,7 @@ describe('ChatClient', () => {
         }),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -258,7 +262,7 @@ describe('ChatClient', () => {
         ),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -276,7 +280,7 @@ describe('ChatClient', () => {
         }),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -286,7 +290,7 @@ describe('ChatClient', () => {
 
     it('shows inline hint when /vocabulary is submitted without a word', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/vocabulary')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
@@ -296,7 +300,7 @@ describe('ChatClient', () => {
 
     it('shows error for unknown slash command', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/unknown')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
@@ -310,7 +314,7 @@ describe('ChatClient', () => {
         http.post(VOCABULARY_PATH, () => new HttpResponse(null, { status: 503 })),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -331,7 +335,7 @@ describe('ChatClient', () => {
       }),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 

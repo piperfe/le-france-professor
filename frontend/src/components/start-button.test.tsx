@@ -18,10 +18,10 @@ afterEach(() => { server.resetHandlers(); vi.clearAllMocks() })
 afterAll(() => server.close())
 
 describe('StartButton', () => {
-  it('renders a "Commencer" button initially', () => {
+  it('renders the start button initially', () => {
     render(<StartButton />)
 
-    const button = screen.getByRole('button', { name: 'Commencer' })
+    const button = screen.getByRole('button', { name: 'Commencer →' })
     expect(button).toBeInTheDocument()
     expect(button).not.toBeDisabled()
   })
@@ -35,10 +35,10 @@ describe('StartButton', () => {
     )
 
     render(<StartButton />)
-    await user.click(screen.getByRole('button', { name: 'Commencer' }))
+    await user.click(screen.getByRole('button', { name: 'Commencer →' }))
 
     // Loading state is set synchronously on click — observable before the fetch resolves
-    expect(screen.getByRole('button', { name: 'Démarrage...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Démarrage…' })).toBeDisabled()
 
     // setLoading(false) is never called on success — router.push fires instead
     await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/conversation/conv-1'))
@@ -51,13 +51,13 @@ describe('StartButton', () => {
     )
 
     render(<StartButton />)
-    await user.click(screen.getByRole('button', { name: 'Commencer' }))
+    await user.click(screen.getByRole('button', { name: 'Commencer →' }))
 
     await waitFor(() => {
       expect(
         screen.getByText('Impossible de démarrer une conversation. Réessayez.'),
       ).toBeInTheDocument()
     })
-    expect(screen.getByRole('button', { name: 'Commencer' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Commencer →' })).not.toBeDisabled()
   })
 })

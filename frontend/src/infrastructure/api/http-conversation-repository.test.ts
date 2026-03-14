@@ -100,6 +100,36 @@ describe('HttpConversationRepository', () => {
     })
   })
 
+  describe('findAll', () => {
+    it('returns conversation summaries on success', async () => {
+      server.use(
+        http.get(`${BASE_URL}/conversations`, () =>
+          HttpResponse.json({
+            conversations: [
+              { id: 'conv-1', title: 'Bonjour !', createdAt: '2024-01-01T00:00:00Z' },
+              { id: 'conv-2', title: 'Salut !', createdAt: '2024-01-02T00:00:00Z' },
+            ],
+          }),
+        ),
+      )
+
+      const result = await repository.findAll()
+
+      expect(result).toHaveLength(2)
+      expect(result[0].id).toBe('conv-1')
+      expect(result[0].title).toBe('Bonjour !')
+      expect(result[0].createdAt).toBeInstanceOf(Date)
+    })
+
+    it('throws ServiceUnavailableError on failure', async () => {
+      server.use(
+        http.get(`${BASE_URL}/conversations`, () => new HttpResponse(null, { status: 503 })),
+      )
+
+      await expect(repository.findAll()).rejects.toBeInstanceOf(ServiceUnavailableError)
+    })
+  })
+
   describe('explainVocabulary', () => {
     it('returns explanation on success', async () => {
       server.use(

@@ -13,4 +13,8 @@ export class InMemoryConversationRepository
   async findById(id: string): Promise<Conversation | null> {
     return this.conversations.get(id) || null;
   }
+
+  async findAll(): Promise<Conversation[]> {
+    return Array.from(this.conversations.values());
+  }
 }

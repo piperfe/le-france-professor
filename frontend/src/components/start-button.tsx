@@ -26,11 +26,11 @@ export function StartButton() {
       <button
         onClick={handleClick}
         disabled={loading}
-        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
+        className="bg-tricolore hover:bg-tricolore-700 disabled:bg-border text-white font-display font-semibold px-10 py-3.5 rounded-full transition-colors cursor-pointer disabled:cursor-not-allowed shadow-[0_4px_16px_rgba(0,35,149,0.25)]"
       >
-        {loading ? 'Démarrage...' : 'Commencer'}
+        {loading ? 'Démarrage…' : 'Commencer →'}
       </button>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p className="text-rouge text-sm">{error}</p>}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import type { ConversationApiResponse } from '../../domain/entities/conversation';
 import { Conversation } from '../../domain/entities/conversation'
-import type { ConversationRepository } from '../../domain/repositories/conversation-repository'
+import type { ConversationRepository, ConversationSummary } from '../../domain/repositories/conversation-repository'
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors'
 
 export class HttpConversationRepository implements ConversationRepository {
@@ -52,6 +52,13 @@ export class HttpConversationRepository implements ConversationRepository {
       throw new ServiceUnavailableError('Failed to explain vocabulary')
     }
     return await response.json()
+  }
+
+  async findAll(): Promise<ConversationSummary[]> {
+    const response = await fetch(`${this.baseUrl}/conversations`)
+    if (!response.ok) throw new ServiceUnavailableError('Failed to list conversations')
+    const data: { conversations: Array<{ id: string; title: string; createdAt: string }> } = await response.json()
+    return data.conversations.map((c) => ({ id: c.id, title: c.title, createdAt: new Date(c.createdAt) }))
   }
 
   async getById(conversationId: string): Promise<Conversation> {
