@@ -17,9 +17,9 @@ export class OllamaVocabularyService implements VocabularyService {
 
   @Span()
   async explainVocabulary(word: string, context: string): Promise<string> {
-    const systemPrompt = `Tu es un assistant linguistique pour l'apprentissage du français. Tu expliques les mots en contexte, mentionnes leur forme grammaticale, et donnes leur traduction en anglais. Réponds en 2 à 3 phrases, en français. Ne pose pas de question.`;
+    const systemPrompt = `Tu es un assistant linguistique pour l'apprentissage du français. Tu expliques les mots en contexte, mentionnes leur forme grammaticale, et donnes leur traduction en anglais. Réponds en 2 à 3 phrases, en français. Ne pose pas de question. Si tu n'es pas certain de la forme grammaticale, ne la mentionne pas.`;
     const userMessage = context
-      ? `Dans la phrase « ${context} », explique le mot « ${word} » : sa signification dans ce contexte, sa forme grammaticale, et sa traduction en anglais.`
+      ? `Le mot à expliquer est **« ${word} »**. Il apparaît dans cette phrase : « ${context} ». Explique uniquement son sens dans ce contexte précis, sa forme grammaticale, et sa traduction en anglais.`
       : `Explique le mot « ${word} » en français : sa signification, sa forme grammaticale, et sa traduction en anglais.`;
 
     const response = await this.client.chat.completions.create({
