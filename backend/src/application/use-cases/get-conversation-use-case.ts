@@ -5,6 +5,7 @@ import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
 type ConversationDTO = {
   id: string;
+  title: string | null;
   messages: Array<{
     id: string;
     content: string;
@@ -34,6 +35,7 @@ export class GetConversationUseCase {
 
       return okAsync({
         id: conversation.id,
+        title: conversation.title,
         messages: conversation.getMessages().map((msg) => ({
           id: msg.id,
           content: msg.content,

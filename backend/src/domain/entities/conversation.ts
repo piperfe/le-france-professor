@@ -5,6 +5,7 @@ export class Conversation {
     public readonly id: string,
     private messages: Message[],
     public readonly createdAt: Date,
+    public title: string | null = null,
   ) {}
 
   static create(): Conversation {
@@ -15,6 +16,10 @@ export class Conversation {
 
   addMessage(message: Message): void {
     this.messages = [...this.messages, message];
+  }
+
+  setTitle(title: string): void {
+    this.title = title;
   }
 
   getMessages(): readonly Message[] {

@@ -22,7 +22,7 @@ describe('createGetConversationHandler', () => {
 
   it('returns 200 and conversation when found', async () => {
     mockRequest.params = { conversationId: 'conv-123' };
-    const conversation = { id: 'conv-123', messages: [], createdAt: new Date() };
+    const conversation = { id: 'conv-123', title: null, messages: [], createdAt: new Date() };
     mockUseCase.execute.mockReturnValue(okAsync(conversation));
 
     await handler(mockRequest as Request, mockResponse as Response);

@@ -17,10 +17,9 @@ describe('GetAllConversationsUseCase', () => {
     useCase = new GetAllConversationsUseCase(mockRepository);
   });
 
-  it('should return ok with summaries for all conversations', async () => {
+  it('should return stored title when set', async () => {
     const conv = Conversation.create();
-    const message = Message.create('Bonjour ! Comment puis-je vous aider ?', MessageSender.TUTOR);
-    conv.addMessage(message);
+    conv.setTitle('La cuisine française avec Sophie');
     mockRepository.findAll.mockResolvedValue([conv]);
 
     const result = await useCase.execute();
@@ -29,27 +28,12 @@ describe('GetAllConversationsUseCase', () => {
     if (result.isOk()) {
       expect(result.value).toHaveLength(1);
       expect(result.value[0].id).toBe(conv.id);
-      expect(result.value[0].title).toBe('Bonjour ! Comment puis-je vous aider ?');
+      expect(result.value[0].title).toBe('La cuisine française avec Sophie');
       expect(result.value[0].createdAt).toBe(conv.createdAt);
     }
   });
 
-  it('should truncate title to 40 chars with ellipsis', async () => {
-    const conv = Conversation.create();
-    const longContent = 'Bonjour ! Je suis ravi de vous rencontrer et de commencer cette leçon.';
-    const message = Message.create(longContent, MessageSender.TUTOR);
-    conv.addMessage(message);
-    mockRepository.findAll.mockResolvedValue([conv]);
-
-    const result = await useCase.execute();
-
-    expect(result.isOk()).toBe(true);
-    if (result.isOk()) {
-      expect(result.value[0].title).toBe('Bonjour ! Je suis ravi de vous rencontre…');
-    }
-  });
-
-  it('should use "Nouvelle conversation" when no tutor message exists', async () => {
+  it('should use "Nouvelle conversation DD/MM HH:mm" fallback when no title set', async () => {
     const conv = Conversation.create();
     mockRepository.findAll.mockResolvedValue([conv]);
 
@@ -57,7 +41,7 @@ describe('GetAllConversationsUseCase', () => {
 
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
-      expect(result.value[0].title).toBe('Nouvelle conversation');
+      expect(result.value[0].title).toMatch(/^Nouvelle conversation \d{2}\/\d{2} \d{2}:\d{2}$/);
     }
   });
 

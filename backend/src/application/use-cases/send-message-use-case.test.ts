@@ -1,13 +1,16 @@
 import { SendMessageUseCase } from './send-message-use-case';
+import { GenerateTitleUseCase } from './generate-title-use-case';
 import { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import { TutorService } from '../../domain/services/tutor-service';
 import { Conversation } from '../../domain/entities/conversation';
 import { Message, MessageSender } from '../../domain/entities/message';
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
+import { okAsync } from 'neverthrow';
 
 describe('SendMessageUseCase', () => {
   let mockRepository: jest.Mocked<ConversationRepository>;
   let mockTutorService: jest.Mocked<TutorService>;
+  let mockGenerateTitleUseCase: jest.Mocked<GenerateTitleUseCase>;
   let useCase: SendMessageUseCase;
 
   beforeEach(() => {
@@ -20,7 +23,8 @@ describe('SendMessageUseCase', () => {
       initiateConversation: jest.fn(),
       generateResponse: jest.fn(),
     };
-    useCase = new SendMessageUseCase(mockRepository, mockTutorService);
+    mockGenerateTitleUseCase = { execute: jest.fn().mockReturnValue(okAsync(undefined)) } as any;
+    useCase = new SendMessageUseCase(mockRepository, mockTutorService, mockGenerateTitleUseCase);
   });
 
   it('should return ok with message and tutor response', async () => {
@@ -81,5 +85,46 @@ describe('SendMessageUseCase', () => {
       expect(result.error.code).toBe('SERVICE_UNAVAILABLE');
       expect(result.error.message).toBe('LLM timeout');
     }
+  });
+
+  it('should trigger title generation after second user message', async () => {
+    const conversation = Conversation.create();
+    conversation.addMessage(Message.create('Salut !', MessageSender.TUTOR));
+    conversation.addMessage(Message.create('Ça va ?', MessageSender.USER));
+    conversation.addMessage(Message.create('Bien, merci !', MessageSender.TUTOR));
+    mockRepository.findById.mockResolvedValue(conversation);
+    mockRepository.save.mockResolvedValue();
+    mockTutorService.generateResponse.mockResolvedValue('Super !');
+
+    await useCase.execute('conv-1', 'J\'aime la cuisine française');
+
+    expect(mockGenerateTitleUseCase.execute).toHaveBeenCalledWith('conv-1');
+  });
+
+  it('should not trigger title generation after first user message', async () => {
+    const conversation = Conversation.create();
+    conversation.addMessage(Message.create('Salut !', MessageSender.TUTOR));
+    mockRepository.findById.mockResolvedValue(conversation);
+    mockRepository.save.mockResolvedValue();
+    mockTutorService.generateResponse.mockResolvedValue('Bien, merci !');
+
+    await useCase.execute('conv-1', 'Ça va ?');
+
+    expect(mockGenerateTitleUseCase.execute).not.toHaveBeenCalled();
+  });
+
+  it('should not trigger title generation when title is already set', async () => {
+    const conversation = Conversation.create();
+    conversation.addMessage(Message.create('Salut !', MessageSender.TUTOR));
+    conversation.addMessage(Message.create('Ça va ?', MessageSender.USER));
+    conversation.addMessage(Message.create('Bien !', MessageSender.TUTOR));
+    conversation.setTitle('La cuisine française avec Sophie');
+    mockRepository.findById.mockResolvedValue(conversation);
+    mockRepository.save.mockResolvedValue();
+    mockTutorService.generateResponse.mockResolvedValue('Super !');
+
+    await useCase.execute('conv-1', 'J\'aime la cuisine');
+
+    expect(mockGenerateTitleUseCase.execute).not.toHaveBeenCalled();
   });
 });

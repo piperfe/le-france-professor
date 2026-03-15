@@ -128,6 +128,17 @@ integration/
 
 `post-vocabulary.integration.test.ts` includes a key assertion: vocabulary lookups do **not** add messages to conversation history (`messages.length` stays at 1 after a vocabulary call). This guards against the vocabulary endpoint accidentally mutating conversation state.
 
+**Testing fire-and-forget background tasks:**
+`post-message.integration.test.ts` covers LLM title generation, which is triggered as a fire-and-forget after the second user message. Since the background task runs after the HTTP response is returned, the test uses a short `setTimeout` to allow it to complete before asserting:
+
+```ts
+await request(app).post(`/api/conversations/${id}/messages`).send({ message: '...' })
+// Give the background title generation time to complete
+await new Promise((r) => setTimeout(r, 200))
+const res = await request(app).get(`/api/conversations/${id}`)
+expect(res.body.title).toBe('La cuisine française avec Sophie')
+```
+
 Each test spins up the real Express app via `createApp()`, sends HTTP requests using `supertest`, and mocks only the external LLM call using `nock`.
 
 ```ts

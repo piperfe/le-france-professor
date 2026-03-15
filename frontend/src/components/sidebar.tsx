@@ -49,14 +49,14 @@ export function Sidebar({ activeConversationId, conversations }: Props) {
             <button
               key={conv.id}
               onClick={() => router.push(`/conversation/${conv.id}`)}
-              className={`w-full text-left flex items-center gap-2.5 px-4 py-2.5 transition-colors ${
+              className={`w-full text-left flex items-start gap-2.5 px-4 py-2.5 transition-colors ${
                 isActive
                   ? 'bg-white/[0.08] cursor-default'
                   : 'hover:bg-white/[0.05] cursor-pointer'
               }`}
             >
-              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? 'bg-rouge' : 'bg-transparent'}`} />
-              <span className="text-xs text-white truncate">{conv.title}</span>
+              <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1 ${isActive ? 'bg-rouge' : 'bg-transparent'}`} />
+              <span className="text-xs text-white leading-snug line-clamp-2">{conv.title}</span>
             </button>
           )
         })}

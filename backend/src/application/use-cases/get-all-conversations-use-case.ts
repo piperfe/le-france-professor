@@ -3,6 +3,14 @@ import { Span } from '../../infrastructure/telemetry/decorators';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import { ServiceUnavailableError } from '../../domain/errors';
 
+function formatFallbackTitle(date: Date): string {
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `Nouvelle conversation ${dd}/${mm} ${hh}:${min}`;
+}
+
 type ConversationSummaryDTO = {
   id: string;
   title: string;
@@ -22,11 +30,7 @@ export class GetAllConversationsUseCase {
         ),
     ).map((conversations) =>
       conversations.map((conv) => {
-        const firstTutorMessage = conv.getMessages().find((m) => m.sender === 'tutor');
-        const title = firstTutorMessage
-          ? firstTutorMessage.content.slice(0, 40).trimEnd() +
-            (firstTutorMessage.content.length > 40 ? '…' : '')
-          : 'Nouvelle conversation';
+        const title = conv.title ?? formatFallbackTitle(conv.createdAt);
         return { id: conv.id, title, createdAt: conv.createdAt };
       }),
     );

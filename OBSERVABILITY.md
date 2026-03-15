@@ -10,12 +10,16 @@ Every incoming HTTP request produces a trace tree:
 HTTP POST /api/conversations/:id/messages       ← auto (Express)
   └─ SendMessageUseCase.execute                 ← @Span() decorator
         └─ OllamaTutorService.generateResponse  ← @Span() decorator
-              └─ chat openai                    ← auto (openai SDK)
-                    gen_ai.request.model        = "hf.co/..."
-                    gen_ai.request.temperature  = 0.7
-                    gen_ai.request.max_tokens   = 300
-                    gen_ai.usage.input_tokens   = …
-                    gen_ai.usage.output_tokens  = …
+        │     └─ chat openai                    ← auto (openai SDK)
+        │           gen_ai.request.model        = "hf.co/..."
+        │           gen_ai.request.temperature  = 0.7
+        │           gen_ai.request.max_tokens   = 120
+        │           gen_ai.usage.input_tokens   = …
+        │           gen_ai.usage.output_tokens  = …
+        └─ GenerateTitleUseCase.execute          ← @Span() — fire-and-forget, runs after response
+              └─ OllamaTitleService.generateTitle ← @Span() decorator
+                    └─ chat openai               ← auto (openai SDK)
+                          gen_ai.request.max_tokens = 20
 ```
 
 Errors are automatically captured as span **exception events** with a full stack trace and the span status is set to `ERROR`. The `@Span()` decorator handles both thrown exceptions and neverthrow `Result.Err` returns — no extra code needed in error handlers.

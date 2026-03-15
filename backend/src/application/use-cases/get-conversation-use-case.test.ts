@@ -28,6 +28,7 @@ describe('GetConversationUseCase', () => {
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.id).toBe(conversation.id);
+      expect(result.value.title).toBeNull();
       expect(result.value.messages).toHaveLength(1);
       expect(result.value.messages[0].content).toBe('Hello');
     }

@@ -23,7 +23,7 @@ export const openApiSpec = {
       get: {
         tags: ['Conversations'],
         summary: 'List all conversations',
-        description: 'Returns a summary of every conversation — id, title (first 40 chars of the first tutor message), and creation date.',
+        description: 'Returns a summary of every conversation — id, title (LLM-generated after the second exchange, otherwise a dated fallback), and creation date.',
         operationId: 'getAllConversations',
         responses: {
           '200': {
@@ -368,8 +368,8 @@ export const openApiSpec = {
           },
           title: {
             type: 'string',
-            description: 'First 40 characters of the first tutor message',
-            example: "Bonjour ! Comment puis-je vous aider",
+            description: 'LLM-generated title (4–7 words). Falls back to "Nouvelle conversation DD/MM HH:mm" until generated.',
+            example: 'La cuisine française avec Sophie',
           },
           createdAt: {
             type: 'string',
@@ -393,12 +393,18 @@ export const openApiSpec = {
       },
       GetConversationResponse: {
         type: 'object',
-        required: ['id', 'messages', 'createdAt'],
+        required: ['id', 'title', 'messages', 'createdAt'],
         properties: {
           id: {
             type: 'string',
             description: 'Unique identifier for the conversation',
             example: 'conv-1700000000000-abc123xyz',
+          },
+          title: {
+            type: 'string',
+            nullable: true,
+            description: 'LLM-generated title, or null if not yet generated',
+            example: 'La cuisine française avec Sophie',
           },
           createdAt: {
             type: 'string',
