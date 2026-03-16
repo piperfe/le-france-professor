@@ -79,4 +79,33 @@ describe('Sidebar', () => {
 
     expect(screen.getByText(/Le France/)).toBeInTheDocument()
   })
+
+  it('tapping the backdrop closes the drawer', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    render(<Sidebar activeConversationId="conv-1" conversations={CONVERSATIONS} isOpen={true} onClose={onClose} />)
+
+    await user.click(screen.getByRole('button', { name: 'Fermer le menu' }))
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('navigating to a conversation from the open drawer closes it', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    render(<Sidebar activeConversationId="conv-1" conversations={CONVERSATIONS} isOpen={true} onClose={onClose} />)
+
+    // isOpen=true renders both the desktop panel and the mobile overlay — getAllByText returns
+    // [desktop item, mobile overlay item]. Click the overlay item (last) to test the drawer path.
+    const items = screen.getAllByText('Bonjour, je voudrais pratiquer')
+    await user.click(items[items.length - 1])
+
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('the backdrop is absent when the drawer is closed', () => {
+    render(<Sidebar activeConversationId="conv-1" conversations={CONVERSATIONS} isOpen={false} onClose={vi.fn()} />)
+
+    expect(screen.queryByRole('button', { name: 'Fermer le menu' })).not.toBeInTheDocument()
+  })
 })

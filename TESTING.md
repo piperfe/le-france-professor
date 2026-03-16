@@ -218,6 +218,7 @@ Key conventions:
 - `HTMLAudioElement` (used by TTS) is mocked via `vi.stubGlobal('Audio', MockAudio)` — co-located in `tts-button.test.tsx`; `play()` returns `Promise.resolve()` immediately so the hook transitions to `playing` state synchronously in tests
 - `URL.createObjectURL` / `URL.revokeObjectURL` do not exist in jsdom — define them with `Object.defineProperty(URL, 'createObjectURL', { writable: true, value: vi.fn()... })` before each test; `vi.spyOn` will throw `createObjectURL does not exist`
 - `Element.prototype.scrollIntoView` does not exist in jsdom — stubbed globally in `src/test/setup.ts` as `Element.prototype.scrollIntoView = () => {}` so components that call it (e.g. `VocabularyNotebook` scrolling to a highlighted entry via ref callback) do not throw in tests
+- Overlay backdrop buttons: use `<button type="button" aria-label="Fermer le menu">` (not a plain `<div onClick>`) so the backdrop is queryable via `getByRole('button', { name: 'Fermer le menu' })` and its presence/absence can be asserted without relying on CSS class selectors
 - Async click handlers that call `await audio.play()` trigger a state update outside the `userEvent` act boundary — use `fireEvent.click(btn)` + `await act(async () => {})` instead of `await userEvent.click()` when asserting the `playing` state
 
 ```ts

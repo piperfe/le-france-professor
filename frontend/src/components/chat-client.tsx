@@ -43,6 +43,7 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
   const [input, setInput] = useState('')
   const [loadingLabel, setLoadingLabel] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
   const [recordingSeconds, setRecordingSeconds] = useState(0)
   const [vocabularyWords, setVocabularyWords] = useState<VocabularyEntryDTO[]>(initialVocabulary)
@@ -153,9 +154,23 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
 
   return (
     <div className="flex h-screen">
-      <Sidebar activeConversationId={conversationId} conversations={conversations} />
+      <Sidebar
+        activeConversationId={conversationId}
+        conversations={conversations}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="flex flex-col flex-1 min-w-0">
       <header className="px-5 py-3 border-b border-border bg-white flex items-center gap-3 flex-shrink-0 shadow-sm">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Menu"
+          className="md:hidden flex flex-col gap-1 justify-center p-1 flex-shrink-0"
+        >
+          <span className="block w-5 h-0.5 bg-ink" />
+          <span className="block w-5 h-0.5 bg-ink" />
+          <span className="block w-5 h-0.5 bg-ink" />
+        </button>
         <div className="w-9 h-9 rounded-full bg-tricolore-50 border-2 border-tricolore flex items-center justify-center text-lg flex-shrink-0">
           👩‍🏫
         </div>

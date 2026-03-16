@@ -11,9 +11,11 @@ interface ConversationSummaryDTO {
 interface Props {
   activeConversationId: string
   conversations: ConversationSummaryDTO[]
+  isOpen?: boolean
+  onClose?: () => void
 }
 
-export function Sidebar({ activeConversationId, conversations }: Props) {
+export function Sidebar({ activeConversationId, conversations, isOpen = false, onClose }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -28,8 +30,8 @@ export function Sidebar({ activeConversationId, conversations }: Props) {
     router.push(`/conversation/${conversationId}`)
   }
 
-  return (
-    <div className="hidden md:flex flex-col w-60 flex-shrink-0 bg-ink">
+  const panel = (
+    <div className="flex flex-col w-60 flex-shrink-0 bg-ink h-full">
       <div className="px-4 py-5 border-b border-white/10">
         <div className="text-xl mb-1.5">🇫🇷</div>
         <div className="font-display font-bold text-white text-sm leading-tight">
@@ -48,7 +50,7 @@ export function Sidebar({ activeConversationId, conversations }: Props) {
           return (
             <button
               key={conv.id}
-              onClick={() => router.push(`/conversation/${conv.id}`)}
+              onClick={() => { router.push(`/conversation/${conv.id}`); onClose?.() }}
               className={`w-full text-left flex items-start gap-2.5 px-4 py-2.5 transition-colors ${
                 isActive
                   ? 'bg-white/[0.08] cursor-default'
@@ -72,5 +74,22 @@ export function Sidebar({ activeConversationId, conversations }: Props) {
         </button>
       </div>
     </div>
+  )
+
+  return (
+    <>
+      {/* Desktop: always visible */}
+      <div className="hidden md:flex flex-shrink-0">
+        {panel}
+      </div>
+
+      {/* Mobile: overlay drawer */}
+      {isOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex">
+          <div className="flex-shrink-0">{panel}</div>
+          <button type="button" aria-label="Fermer le menu" className="flex-1 bg-black/50 cursor-default" onClick={onClose} />
+        </div>
+      )}
+    </>
   )
 }

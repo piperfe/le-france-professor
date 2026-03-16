@@ -379,6 +379,27 @@ describe('ChatClient', () => {
     await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument())
   })
 
+  it('opens the mobile sidebar drawer when the menu button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
+
+    expect(screen.queryByRole('button', { name: 'Fermer le menu' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+
+    expect(screen.getByRole('button', { name: 'Fermer le menu' })).toBeInTheDocument()
+  })
+
+  it('tapping the backdrop dismisses the open drawer', async () => {
+    const user = userEvent.setup()
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
+
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    await user.click(screen.getByRole('button', { name: 'Fermer le menu' }))
+
+    expect(screen.queryByRole('button', { name: 'Fermer le menu' })).not.toBeInTheDocument()
+  })
+
   it('sends the message body to the correct conversation endpoint', async () => {
     const user = userEvent.setup()
     let capturedBody: Record<string, unknown> | undefined
