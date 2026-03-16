@@ -126,6 +126,21 @@ describe('VocabularyNotebook — drawer content', () => {
     expect(items[0].className).toContain('bg-vocab-50')
   })
 
+  it('shows the conversation title in the drawer sub-header when provided', () => {
+    render(
+      <VocabularyNotebook
+        entries={[entry()]}
+        isOpen={true}
+        highlightedWord={null}
+        onOpen={() => {}}
+        onClose={() => {}}
+        conversationTitle="La cuisine française"
+      />,
+    )
+
+    expect(screen.getByText('La cuisine française')).toBeInTheDocument()
+  })
+
   it('no entry is highlighted when highlightedWord is null', () => {
     render(
       <VocabularyNotebook
@@ -167,6 +182,18 @@ describe('VocabularyNotebook — badge and interactions', () => {
     expect(screen.getByRole('button', { name: 'Fermer le carnet' })).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Fermer le carnet' }))
+
+    expect(screen.queryByRole('button', { name: 'Fermer le carnet' })).not.toBeInTheDocument()
+  })
+
+  it('closes the drawer when the backdrop is clicked', async () => {
+    const user = userEvent.setup()
+    render(<NotebookWithHook entries={[entry()]} />)
+
+    await user.click(screen.getByRole('button', { name: /carnet de vocabulaire/i }))
+    expect(screen.getByRole('button', { name: 'Fermer le carnet' })).toBeInTheDocument()
+
+    await user.click(document.querySelector('.bg-black\\/20')!)
 
     expect(screen.queryByRole('button', { name: 'Fermer le carnet' })).not.toBeInTheDocument()
   })

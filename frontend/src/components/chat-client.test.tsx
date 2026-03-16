@@ -328,29 +328,27 @@ describe('ChatClient', () => {
     })
   })
 
-  describe('vocabulary notebook', () => {
-    it('badge count increments after a /vocabulary command succeeds', async () => {
-      const user = userEvent.setup()
-      const newEntry = {
-        id: 'v-2', word: 'passée', explanation: '«Passée» est le participe passé.',
-        sourceMessageId: 'msg-0', conversationId: CONVERSATION_ID, createdAt: '2026-01-01T00:00:00.000Z',
-      }
-      server.use(
-        http.post(VOCABULARY_PATH, () =>
-          HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),
-        ),
-        http.get(VOCABULARY_PATH, () =>
-          HttpResponse.json({ vocabulary: [newEntry] }),
-        ),
-      )
+  it('badge count increments after a /vocabulary command succeeds', async () => {
+    const user = userEvent.setup()
+    const newEntry = {
+      id: 'v-2', word: 'passée', explanation: '«Passée» est le participe passé.',
+      sourceMessageId: 'msg-0', conversationId: CONVERSATION_ID, createdAt: '2026-01-01T00:00:00.000Z',
+    }
+    server.use(
+      http.post(VOCABULARY_PATH, () =>
+        HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),
+      ),
+      http.get(VOCABULARY_PATH, () =>
+        HttpResponse.json({ vocabulary: [newEntry] }),
+      ),
+    )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
+    render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
-      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
-      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+    await user.type(screen.getByRole('textbox'), '/vocabulary passée')
+    await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
-      await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument())
-    })
+    await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument())
   })
 
   it('sends the message body to the correct conversation endpoint', async () => {

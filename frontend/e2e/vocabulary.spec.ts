@@ -76,6 +76,20 @@ test('vocabulary notebook: badge shows word count and drawer lists saved words',
   await expect(page.locator('li').getByText(VOCABULARY_EXPLANATION)).toBeVisible()
 })
 
+test('vocabulary notebook: drawer closes when clicking the backdrop', async ({ page }) => {
+  await startConversation(page)
+
+  await page.getByRole('textbox').fill('/vocabulary bonjour')
+  await page.getByRole('button', { name: 'Envoyer' }).click()
+  await expect(page.getByText('📖 bonjour')).toBeVisible()
+
+  await page.getByRole('button', { name: /ouvrir le carnet/i }).click()
+  await expect(page.getByRole('heading', { name: /vocabulaire/i })).toBeVisible()
+
+  await page.locator('.bg-black\\/20').click()
+  await expect(page.getByRole('heading', { name: /vocabulaire/i })).not.toBeVisible()
+})
+
 test('vocabulary notebook: drawer closes with the × button', async ({ page }) => {
   await startConversation(page)
 
