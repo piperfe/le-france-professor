@@ -253,6 +253,7 @@ frontend/
 │   ├── tts.spec.ts             # TTS — speaker, slow, stop, multi-message
 │   ├── vocabulary.spec.ts      # /vocabulary command + notebook (badge, drawer, highlight, persist)
 │   ├── sidebar.spec.ts         # Multi-conversation sidebar navigation
+│   ├── welcome.spec.ts         # Welcome page — recent conversations list appears and navigates
 │   └── stub-backend.mjs        # Minimal HTTP server replacing the real backend
 └── playwright.config.ts
 ```
@@ -260,6 +261,11 @@ frontend/
 The stub backend (`stub-backend.mjs`) is a plain Node.js HTTP server that returns deterministic responses for all five API endpoints the frontend depends on. Playwright's `webServer` starts it automatically on port 5101 before running tests.
 
 E2E tests cover three user journeys:
+
+**Welcome page — recent conversations:**
+1. Click "Commencer" on the home page — navigate to `/conversation/[id]`
+2. Navigate back to `/` — "conversations récentes" section appears with a list item for the conversation just created
+3. Click a list item — navigate to a conversation page showing the tutor's initial greeting
 
 **Text conversation flow:**
 1. Land on home page — see "Le France Professor" heading

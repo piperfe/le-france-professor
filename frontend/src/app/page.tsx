@@ -1,6 +1,15 @@
-import { StartButton } from '../components/start-button'
+export const dynamic = 'force-dynamic'
 
-export default function WelcomePage() {
+import { getAllConversationsUseCase } from '../lib/container'
+import { StartButton } from '../components/start-button'
+import { RecentConversationsList } from '../components/recent-conversations-list'
+
+export default async function WelcomePage() {
+  const result = await getAllConversationsUseCase.execute()
+  const conversations = result.isOk()
+    ? result.value.map((c) => ({ id: c.id, title: c.title, createdAt: c.createdAt.toISOString() }))
+    : []
+
   return (
     <main className="relative flex flex-col items-center justify-center min-h-screen gap-8 p-8 text-center">
       <div
@@ -19,6 +28,7 @@ export default function WelcomePage() {
         </p>
       </div>
       <StartButton />
+      <RecentConversationsList conversations={conversations} />
     </main>
   )
 }
