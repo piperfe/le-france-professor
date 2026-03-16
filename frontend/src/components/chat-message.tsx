@@ -3,7 +3,7 @@
 import type { Message } from '../domain/entities/message'
 import { MessageSender } from '../domain/entities/message'
 import { TtsButton } from './tts-button'
-import type { VocabularyEntryDTO } from './vocabulary-drawer'
+import type { VocabularyEntryDTO } from './vocabulary-notebook'
 
 interface Props {
   message: Message

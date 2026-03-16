@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { ChatMessage } from './chat-message'
 import { Message, MessageSender } from '../domain/entities/message'
-import type { VocabularyEntryDTO } from './vocabulary-drawer'
+import type { VocabularyEntryDTO } from './vocabulary-notebook'
 
 // ── Audio mock ────────────────────────────────────────────────────────────────
 // ChatMessage renders TtsButton for tutor messages, which uses HTMLAudioElement.

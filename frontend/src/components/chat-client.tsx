@@ -6,8 +6,9 @@ import { Message, MessageSender } from '../domain/entities/message'
 import { ChatMessage } from './chat-message'
 import { Sidebar } from './sidebar'
 import { VoiceInputButton } from './voice-input-button'
-import { VocabularyDrawer } from './vocabulary-drawer'
-import type { VocabularyEntryDTO } from './vocabulary-drawer'
+import { VocabularyNotebook } from './vocabulary-notebook'
+import type { VocabularyEntryDTO } from './vocabulary-notebook'
+import { useVocabularyNotebook } from './use-vocabulary-notebook'
 import type { VoiceState } from './use-voice-input'
 
 const COMMANDS = [
@@ -45,8 +46,7 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
   const [recordingSeconds, setRecordingSeconds] = useState(0)
   const [vocabularyWords, setVocabularyWords] = useState<VocabularyEntryDTO[]>(initialVocabulary)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [highlightedWord, setHighlightedWord] = useState<string | null>(null)
+  const notebook = useVocabularyNotebook()
 
   const loading = loadingLabel !== null
   const showAutocomplete = input.startsWith('/') && !input.slice(1).includes(' ')
@@ -166,23 +166,14 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
             Conversation en français
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setDrawerOpen(true)}
-          aria-label={`Ouvrir le carnet de vocabulaire, ${vocabularyWords.length} mot${vocabularyWords.length !== 1 ? 's' : ''}`}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${
-            drawerOpen
-              ? 'bg-vocab border-vocab text-white'
-              : 'bg-vocab-50 border-vocab/30 text-vocab hover:bg-vocab/10'
-          }`}
-        >
-          📖 Vocabulaire
-          {vocabularyWords.length > 0 && (
-            <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold ${drawerOpen ? 'bg-white/30 text-white' : 'bg-vocab text-white'}`}>
-              {vocabularyWords.length}
-            </span>
-          )}
-        </button>
+        <VocabularyNotebook
+          entries={vocabularyWords}
+          isOpen={notebook.isOpen}
+          highlightedWord={notebook.highlightedWord}
+          onOpen={notebook.open}
+          onClose={notebook.close}
+          conversationTitle={conversations.find((c) => c.id === conversationId)?.title}
+        />
       </header>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
@@ -191,7 +182,7 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
             key={msg.id}
             message={msg}
             savedWords={vocabularyWords.filter((e) => e.sourceMessageId === msg.id)}
-            onWordClick={(word) => { setHighlightedWord(word); setDrawerOpen(true) }}
+            onWordClick={notebook.openWithWord}
           />
         ))}
         {loadingLabel && (
@@ -264,13 +255,6 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
       </form>
       </div>
 
-      <VocabularyDrawer
-        entries={vocabularyWords}
-        isOpen={drawerOpen}
-        onClose={() => { setDrawerOpen(false); setHighlightedWord(null) }}
-        highlightedWord={highlightedWord ?? undefined}
-        conversationTitle={conversations.find((c) => c.id === conversationId)?.title}
-      />
     </div>
   )
 }

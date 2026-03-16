@@ -329,89 +329,12 @@ describe('ChatClient', () => {
   })
 
   describe('vocabulary notebook', () => {
-    const savedEntry = {
-      id: 'v-1',
-      word: 'incontournable',
-      explanation: "C'est un adjectif qui signifie essentiel.",
-      sourceMessageId: 'msg-0',
-      conversationId: CONVERSATION_ID,
-      createdAt: '2026-01-01T00:00:00.000Z',
-    }
-
-    it('shows badge count from initialVocabulary', () => {
-      render(
-        <ChatClient
-          initialMessages={initialMessages}
-          conversationId={CONVERSATION_ID}
-          conversations={[]}
-          initialVocabulary={[savedEntry]}
-        />,
-      )
-
-      expect(screen.getByText('1')).toBeInTheDocument()
-    })
-
-    it('opens the drawer and shows saved words when badge is clicked', async () => {
-      const user = userEvent.setup()
-      render(
-        <ChatClient
-          initialMessages={initialMessages}
-          conversationId={CONVERSATION_ID}
-          conversations={[]}
-          initialVocabulary={[savedEntry]}
-        />,
-      )
-
-      await user.click(screen.getByRole('button', { name: /carnet de vocabulaire/i }))
-
-      expect(screen.getByText('incontournable')).toBeInTheDocument()
-      expect(screen.getByText("C'est un adjectif qui signifie essentiel.")).toBeInTheDocument()
-    })
-
-    it('closes the drawer when the close button is clicked', async () => {
-      const user = userEvent.setup()
-      render(
-        <ChatClient
-          initialMessages={initialMessages}
-          conversationId={CONVERSATION_ID}
-          conversations={[]}
-          initialVocabulary={[savedEntry]}
-        />,
-      )
-
-      await user.click(screen.getByRole('button', { name: /carnet de vocabulaire/i }))
-      expect(screen.getByRole('button', { name: 'Fermer le carnet' })).toBeInTheDocument()
-
-      await user.click(screen.getByRole('button', { name: 'Fermer le carnet' }))
-
-      expect(screen.queryByRole('button', { name: 'Fermer le carnet' })).not.toBeInTheDocument()
-    })
-
-    it('clicking a highlighted word opens the drawer with that word highlighted', async () => {
-      const entryInMessage = {
-        ...savedEntry,
-        word: 'aider',        // appears in "Bonjour ! Comment puis-je vous aider ?"
-        sourceMessageId: 'msg-0',
-      }
-      render(
-        <ChatClient
-          initialMessages={initialMessages}
-          conversationId={CONVERSATION_ID}
-          conversations={[]}
-          initialVocabulary={[entryInMessage]}
-        />,
-      )
-
-      fireEvent.click(screen.getByRole('mark'))
-
-      // Drawer opens and shows the word entry
-      expect(screen.getByRole('button', { name: 'Fermer le carnet' })).toBeInTheDocument()
-      expect(screen.getAllByText('aider').length).toBeGreaterThan(0)
-    })
-
     it('badge count increments after a /vocabulary command succeeds', async () => {
       const user = userEvent.setup()
-      const newEntry = { ...savedEntry, id: 'v-2', word: 'passée' }
+      const newEntry = {
+        id: 'v-2', word: 'passée', explanation: '«Passée» est le participe passé.',
+        sourceMessageId: 'msg-0', conversationId: CONVERSATION_ID, createdAt: '2026-01-01T00:00:00.000Z',
+      }
       server.use(
         http.post(VOCABULARY_PATH, () =>
           HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),

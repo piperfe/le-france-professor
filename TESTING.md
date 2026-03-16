@@ -217,7 +217,7 @@ Key conventions:
 - `window.matchMedia` is mocked with `Object.defineProperty(window, 'matchMedia', ...)` — avoid `vi.stubGlobal('window', ...)` as spreading `window` breaks React's concurrent internals
 - `HTMLAudioElement` (used by TTS) is mocked via `vi.stubGlobal('Audio', MockAudio)` — co-located in `tts-button.test.tsx`; `play()` returns `Promise.resolve()` immediately so the hook transitions to `playing` state synchronously in tests
 - `URL.createObjectURL` / `URL.revokeObjectURL` do not exist in jsdom — define them with `Object.defineProperty(URL, 'createObjectURL', { writable: true, value: vi.fn()... })` before each test; `vi.spyOn` will throw `createObjectURL does not exist`
-- `Element.prototype.scrollIntoView` does not exist in jsdom — stubbed globally in `src/test/setup.ts` as `Element.prototype.scrollIntoView = () => {}` so components that call it (e.g. `VocabularyDrawer` scrolling to a highlighted entry) do not throw in tests
+- `Element.prototype.scrollIntoView` does not exist in jsdom — stubbed globally in `src/test/setup.ts` as `Element.prototype.scrollIntoView = () => {}` so components that call it (e.g. `VocabularyNotebook` scrolling to a highlighted entry via ref callback) do not throw in tests
 - Async click handlers that call `await audio.play()` trigger a state update outside the `userEvent` act boundary — use `fireEvent.click(btn)` + `await act(async () => {})` instead of `await userEvent.click()` when asserting the `playing` state
 
 ```ts
@@ -246,8 +246,13 @@ E2E tests live in `frontend/e2e/` and run against a **production Next.js build**
 ```
 frontend/
 ├── e2e/
-│   ├── conversation.spec.ts   # Full user journey
-│   └── stub-backend.mjs       # Minimal HTTP server replacing the real backend
+│   ├── helpers.ts              # Shared: constants, startConversation, addFakeAudio, addFakeMediaRecorder
+│   ├── conversation.spec.ts    # Core conversation flow
+│   ├── voice-input.spec.ts     # Voice input — desktop (click-toggle) + mobile (press-hold)
+│   ├── tts.spec.ts             # TTS — speaker, slow, stop, multi-message
+│   ├── vocabulary.spec.ts      # /vocabulary command + notebook (badge, drawer, highlight, persist)
+│   ├── sidebar.spec.ts         # Multi-conversation sidebar navigation
+│   └── stub-backend.mjs        # Minimal HTTP server replacing the real backend
 └── playwright.config.ts
 ```
 
