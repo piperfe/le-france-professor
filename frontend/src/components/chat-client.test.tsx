@@ -256,6 +256,34 @@ describe('ChatClient', () => {
       )
     })
 
+    it('uses the original tutor message as context on the second /vocabulary command (not the vocab card)', async () => {
+      const user = userEvent.setup()
+      const bodies: Record<string, unknown>[] = []
+      server.use(
+        http.post(VOCABULARY_PATH, async ({ request }) => {
+          bodies.push(await request.json() as Record<string, unknown>)
+          return HttpResponse.json({ explanation: 'Explication.' })
+        }),
+        http.get(VOCABULARY_PATH, () => HttpResponse.json({ vocabulary: [] })),
+      )
+
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
+
+      await user.type(screen.getByRole('textbox'), '/vocabulary merci')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+      await waitFor(() => expect(bodies).toHaveLength(1))
+
+      await user.type(screen.getByRole('textbox'), '/vocabulary journée')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+      await waitFor(() => expect(bodies).toHaveLength(2))
+
+      expect(bodies[1]).toEqual({
+        word: 'journée',
+        context: 'Bonjour ! Comment puis-je vous aider ?',
+        sourceMessageId: 'msg-0',
+      })
+    })
+
     it('does not show user bubble — only the vocabulary response appears', async () => {
       const user = userEvent.setup()
       server.use(

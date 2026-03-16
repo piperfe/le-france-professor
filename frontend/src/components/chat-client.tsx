@@ -112,7 +112,7 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
   }
 
   async function handleVocabularyCommand(word: string) {
-    const lastTutorMessage = [...messages].reverse().find((m) => m.sender === MessageSender.TUTOR)
+    const lastTutorMessage = [...messages].reverse().find((m) => m.sender === MessageSender.TUTOR && m.type !== 'vocabulary')
     const context = lastTutorMessage?.content ?? ''
     const sourceMessageId = lastTutorMessage?.id ?? ''
 
