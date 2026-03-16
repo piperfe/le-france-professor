@@ -112,46 +112,8 @@
 
    The E2E suite starts a stub backend on port 5101 and a production Next.js server on port 5100 automatically. If those ports are already in use it will reuse the running servers.
 
-## Observability
+## Further reading
 
-Add to `backend/.env` to enable tracing:
-
-```
-# console (default) — prints spans as JSON to stdout
-# otlp             — sends to the local Grafana stack (Tempo + Loki)
-OTEL_TRACES_EXPORTER=otlp
-
-# Capture full LLM prompt and response text as log records
-OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true
-```
-
-To run the local Grafana stack (Tempo + Loki + Grafana):
-```bash
-cd observability
-docker compose up -d
-```
-
-Then open `http://localhost:3100` — no login required.
-
-See [OBSERVABILITY.md](./OBSERVABILITY.md) for the full trace hierarchy, exporter options, and how to add spans to new classes.
-
-## API Documentation
-
-Interactive API docs are served by the backend via [Scalar](https://scalar.com):
-
-```
-http://localhost:3001/docs
-```
-
-The UI includes request/response schemas, examples, and a built-in HTTP client to test endpoints directly in the browser. The OpenAPI spec source is at `backend/src/adapters/http/openapi-spec.ts`.
-
-### Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET`  | `/api/conversations` | List all conversations |
-| `POST` | `/api/conversations` | Create a new conversation |
-| `GET`  | `/api/conversations/:conversationId` | Get conversation details |
-| `POST` | `/api/conversations/:conversationId/messages` | Send a message to the tutor |
-| `POST` | `/api/conversations/:conversationId/vocabulary` | Explain a word in context and save to notebook |
-| `GET`  | `/api/conversations/:conversationId/vocabulary` | List saved vocabulary entries for a conversation |
+- [OBSERVABILITY.md](./OBSERVABILITY.md) — OpenTelemetry traces, exporter options, Grafana stack, adding spans
+- [TESTING.md](./TESTING.md) — Testing strategy, conventions, commands for each layer
+- API docs — interactive docs at `http://localhost:3001/docs` once the backend is running
