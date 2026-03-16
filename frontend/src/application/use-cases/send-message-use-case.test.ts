@@ -13,6 +13,7 @@ describe('SendMessageUseCase', () => {
       sendMessage: vi.fn(),
       getById: vi.fn(),
       explainVocabulary: vi.fn(),
+      getVocabulary: vi.fn(),
       findAll: vi.fn(),
     }
     useCase = new SendMessageUseCase(mockRepository)
@@ -22,6 +23,7 @@ describe('SendMessageUseCase', () => {
     vi.mocked(mockRepository.sendMessage).mockResolvedValue({
       message: 'Hello',
       tutorResponse: 'Bonjour !',
+      messageId: 'msg-tutor-1',
     })
 
     const result = await useCase.execute('conv-1', 'Hello')
@@ -29,6 +31,7 @@ describe('SendMessageUseCase', () => {
     expect(result.isOk()).toBe(true)
     if (result.isOk()) {
       expect(result.value.tutorResponse).toBe('Bonjour !')
+      expect(result.value.messageId).toBe('msg-tutor-1')
     }
   })
 

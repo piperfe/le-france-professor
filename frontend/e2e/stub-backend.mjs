@@ -9,6 +9,8 @@ const VOCABULARY_EXPLANATION   = '«Passée» est le participe passé féminin d
 
 // conversation id → { id, messages[], createdAt }
 const conversations = new Map()
+// conversation id → VocabularyEntry[]
+const vocabularies = new Map()
 let convCounter = 0
 
 function createConversation() {
@@ -76,14 +78,32 @@ const server = createServer(async (req, res) => {
     const conv = conversations.get(msgMatch[1])
     if (!conv) return send(res, 404, { error: 'Not found' })
     const { message } = await readBody(req)
+    const now = Date.now()
+    const tutorMsgId = `msg-t-${now}`
     conv.messages.push(
-      { id: `msg-u-${Date.now()}`, content: message,        sender: 'user',  timestamp: new Date().toISOString() },
-      { id: `msg-t-${Date.now()}`, content: TUTOR_RESPONSE, sender: 'tutor', timestamp: new Date().toISOString() },
+      { id: `msg-u-${now}`, content: message,        sender: 'user',  timestamp: new Date().toISOString() },
+      { id: tutorMsgId,     content: TUTOR_RESPONSE, sender: 'tutor', timestamp: new Date().toISOString() },
     )
-    return send(res, 200, { tutorResponse: TUTOR_RESPONSE })
+    return send(res, 200, { tutorResponse: TUTOR_RESPONSE, messageId: tutorMsgId })
+  }
+
+  if (method === 'GET' && vocabMatch) {
+    const entries = vocabularies.get(vocabMatch[1]) ?? []
+    return send(res, 200, { vocabulary: entries })
   }
 
   if (method === 'POST' && vocabMatch) {
+    const convId = vocabMatch[1]
+    const { word, sourceMessageId } = await readBody(req)
+    if (!vocabularies.has(convId)) vocabularies.set(convId, [])
+    vocabularies.get(convId).push({
+      id: `vocab-${Date.now()}`,
+      word,
+      explanation: VOCABULARY_EXPLANATION,
+      sourceMessageId: sourceMessageId ?? '',
+      conversationId: convId,
+      createdAt: new Date().toISOString(),
+    })
     return send(res, 200, { explanation: VOCABULARY_EXPLANATION })
   }
 

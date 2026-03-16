@@ -8,3 +8,9 @@ if (typeof window !== 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(window as any).IS_REACT_ACT_ENVIRONMENT = true
 }
+
+// jsdom does not implement scrollIntoView — stub it globally so components that
+// call el.scrollIntoView() (e.g. VocabularyDrawer) don't throw in tests.
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView = () => {}
+}

@@ -40,6 +40,7 @@ describe('SendMessageUseCase', () => {
     if (result.isOk()) {
       expect(result.value.message).toBe('Je vais bien');
       expect(result.value.tutorResponse).toBe('Très bien, merci !');
+      expect(typeof result.value.messageId).toBe('string');
     }
     expect(mockRepository.save).toHaveBeenCalledTimes(1);
   });

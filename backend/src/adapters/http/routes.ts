@@ -4,11 +4,14 @@ import type { SendMessageUseCase } from '../../application/use-cases/send-messag
 import type { GetConversationUseCase } from '../../application/use-cases/get-conversation-use-case';
 import type { GetAllConversationsUseCase } from '../../application/use-cases/get-all-conversations-use-case';
 import type { ExplainVocabularyUseCase } from '../../application/use-cases/explain-vocabulary-use-case';
+import type { SaveVocabularyUseCase } from '../../application/use-cases/save-vocabulary-use-case';
+import type { GetVocabularyUseCase } from '../../application/use-cases/get-vocabulary-use-case';
 import { createCreateConversationHandler } from './handlers/create-conversation';
 import { createSendMessageHandler } from './handlers/send-message';
 import { createGetConversationHandler } from './handlers/get-conversation';
 import { createGetAllConversationsHandler } from './handlers/get-all-conversations';
 import { createExplainVocabularyHandler } from './handlers/explain-vocabulary';
+import { createGetVocabularyHandler } from './handlers/get-vocabulary';
 
 export function createRoutes(
   createConversationUseCase: CreateConversationUseCase,
@@ -16,6 +19,8 @@ export function createRoutes(
   getConversationUseCase: GetConversationUseCase,
   getAllConversationsUseCase: GetAllConversationsUseCase,
   explainVocabularyUseCase: ExplainVocabularyUseCase,
+  saveVocabularyUseCase: SaveVocabularyUseCase,
+  getVocabularyUseCase: GetVocabularyUseCase,
 ): Router {
   const router = Router();
   router.get(
@@ -36,7 +41,11 @@ export function createRoutes(
   );
   router.post(
     '/conversations/:conversationId/vocabulary',
-    createExplainVocabularyHandler(explainVocabularyUseCase),
+    createExplainVocabularyHandler(explainVocabularyUseCase, saveVocabularyUseCase),
+  );
+  router.get(
+    '/conversations/:conversationId/vocabulary',
+    createGetVocabularyHandler(getVocabularyUseCase),
   );
   return router;
 }

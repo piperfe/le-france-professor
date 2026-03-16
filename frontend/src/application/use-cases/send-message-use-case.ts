@@ -8,9 +8,9 @@ export class SendMessageUseCase {
   execute(
     conversationId: string,
     message: string,
-  ): ResultAsync<{ tutorResponse: string }, ServiceUnavailableError> {
+  ): ResultAsync<{ tutorResponse: string; messageId: string }, ServiceUnavailableError> {
     return ResultAsync.fromPromise(
-      this.repository.sendMessage(conversationId, message).then((r) => ({ tutorResponse: r.tutorResponse })),
+      this.repository.sendMessage(conversationId, message).then((r) => ({ tutorResponse: r.tutorResponse, messageId: r.messageId })),
       (e) => e instanceof ServiceUnavailableError ? e : new ServiceUnavailableError((e as Error).message),
     )
   }

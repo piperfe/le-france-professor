@@ -6,6 +6,7 @@ import { SendMessageUseCase } from '../application/use-cases/send-message-use-ca
 import { GetConversationUseCase } from '../application/use-cases/get-conversation-use-case'
 import { GetAllConversationsUseCase } from '../application/use-cases/get-all-conversations-use-case'
 import { ExplainVocabularyUseCase } from '../application/use-cases/explain-vocabulary-use-case'
+import { GetVocabularyUseCase } from '../application/use-cases/get-vocabulary-use-case'
 import { TranscribeAudioUseCase } from '../application/use-cases/transcribe-audio-use-case'
 import { SynthesizeSpeechUseCase } from '../application/use-cases/synthesize-speech-use-case'
 
@@ -18,6 +19,7 @@ export const sendMessageUseCase = new SendMessageUseCase(conversationRepository)
 export const getConversationUseCase = new GetConversationUseCase(conversationRepository)
 export const getAllConversationsUseCase = new GetAllConversationsUseCase(conversationRepository)
 export const explainVocabularyUseCase = new ExplainVocabularyUseCase(conversationRepository)
+export const getVocabularyUseCase = new GetVocabularyUseCase(conversationRepository)
 export const transcribeAudioUseCase = new TranscribeAudioUseCase(
   new HttpTranscriptionRepository(process.env.WHISPER_URL ?? 'http://127.0.0.1:7600'),
 )

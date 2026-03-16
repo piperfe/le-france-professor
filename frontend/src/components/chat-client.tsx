@@ -6,6 +6,8 @@ import { Message, MessageSender } from '../domain/entities/message'
 import { ChatMessage } from './chat-message'
 import { Sidebar } from './sidebar'
 import { VoiceInputButton } from './voice-input-button'
+import { VocabularyDrawer } from './vocabulary-drawer'
+import type { VocabularyEntryDTO } from './vocabulary-drawer'
 import type { VoiceState } from './use-voice-input'
 
 const COMMANDS = [
@@ -28,9 +30,10 @@ interface Props {
   initialMessages: MessageDTO[]
   conversationId: string
   conversations: ConversationSummaryDTO[]
+  initialVocabulary: VocabularyEntryDTO[]
 }
 
-export function ChatClient({ initialMessages, conversationId, conversations }: Props) {
+export function ChatClient({ initialMessages, conversationId, conversations, initialVocabulary }: Props) {
   const [messages, setMessages] = useState<Message[]>(() =>
     initialMessages.map(
       (dto) => new Message(dto.id, dto.content, dto.sender as MessageSender, new Date(dto.timestamp)),
@@ -41,6 +44,9 @@ export function ChatClient({ initialMessages, conversationId, conversations }: P
   const [error, setError] = useState<string | null>(null)
   const [voiceState, setVoiceState] = useState<VoiceState>('idle')
   const [recordingSeconds, setRecordingSeconds] = useState(0)
+  const [vocabularyWords, setVocabularyWords] = useState<VocabularyEntryDTO[]>(initialVocabulary)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [highlightedWord, setHighlightedWord] = useState<string | null>(null)
 
   const loading = loadingLabel !== null
   const showAutocomplete = input.startsWith('/') && !input.slice(1).includes(' ')
@@ -84,8 +90,8 @@ export function ChatClient({ initialMessages, conversationId, conversations }: P
       return
     }
 
-    const { tutorResponse } = await res.json()
-    const tutorMessage = new Message(crypto.randomUUID(), tutorResponse, MessageSender.TUTOR, new Date())
+    const { tutorResponse, messageId } = await res.json()
+    const tutorMessage = new Message(messageId, tutorResponse, MessageSender.TUTOR, new Date())
     setMessages((prev) => [...prev, tutorMessage])
   }
 
@@ -108,6 +114,7 @@ export function ChatClient({ initialMessages, conversationId, conversations }: P
   async function handleVocabularyCommand(word: string) {
     const lastTutorMessage = [...messages].reverse().find((m) => m.sender === MessageSender.TUTOR)
     const context = lastTutorMessage?.content ?? ''
+    const sourceMessageId = lastTutorMessage?.id ?? ''
 
     setInput('')
     setLoadingLabel('Analyse en cours…')
@@ -116,7 +123,7 @@ export function ChatClient({ initialMessages, conversationId, conversations }: P
     const res = await fetch(`/api/conversations/${conversationId}/vocabulary`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word, context }),
+      body: JSON.stringify({ word, context, sourceMessageId }),
     })
 
     setLoadingLabel(null)
@@ -136,6 +143,12 @@ export function ChatClient({ initialMessages, conversationId, conversations }: P
       word,
     )
     setMessages((prev) => [...prev, vocabMessage])
+
+    const vocabRes = await fetch(`/api/conversations/${conversationId}/vocabulary`)
+    if (vocabRes.ok) {
+      const data: { vocabulary: VocabularyEntryDTO[] } = await vocabRes.json()
+      setVocabularyWords(data.vocabulary)
+    }
   }
 
   return (
@@ -146,18 +159,40 @@ export function ChatClient({ initialMessages, conversationId, conversations }: P
         <div className="w-9 h-9 rounded-full bg-tricolore-50 border-2 border-tricolore flex items-center justify-center text-lg flex-shrink-0">
           👩‍🏫
         </div>
-        <div>
+        <div className="flex-1">
           <h2 className="font-display font-semibold text-ink leading-none">Professeure Sophie</h2>
           <p className="text-xs text-ink-muted mt-0.5">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 align-middle" />
             Conversation en français
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-label={`Ouvrir le carnet de vocabulaire, ${vocabularyWords.length} mot${vocabularyWords.length !== 1 ? 's' : ''}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${
+            drawerOpen
+              ? 'bg-vocab border-vocab text-white'
+              : 'bg-vocab-50 border-vocab/30 text-vocab hover:bg-vocab/10'
+          }`}
+        >
+          📖 Vocabulaire
+          {vocabularyWords.length > 0 && (
+            <span className={`inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold ${drawerOpen ? 'bg-white/30 text-white' : 'bg-vocab text-white'}`}>
+              {vocabularyWords.length}
+            </span>
+          )}
+        </button>
       </header>
 
       <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} />
+          <ChatMessage
+            key={msg.id}
+            message={msg}
+            savedWords={vocabularyWords.filter((e) => e.sourceMessageId === msg.id)}
+            onWordClick={(word) => { setHighlightedWord(word); setDrawerOpen(true) }}
+          />
         ))}
         {loadingLabel && (
           <div className="flex items-center gap-2 text-xs text-ink-muted italic">
@@ -228,6 +263,14 @@ export function ChatClient({ initialMessages, conversationId, conversations }: P
         </button>
       </form>
       </div>
+
+      <VocabularyDrawer
+        entries={vocabularyWords}
+        isOpen={drawerOpen}
+        onClose={() => { setDrawerOpen(false); setHighlightedWord(null) }}
+        highlightedWord={highlightedWord ?? undefined}
+        conversationTitle={conversations.find((c) => c.id === conversationId)?.title}
+      />
     </div>
   )
 }

@@ -10,8 +10,11 @@ import { SendMessageUseCase } from './application/use-cases/send-message-use-cas
 import { GetConversationUseCase } from './application/use-cases/get-conversation-use-case';
 import { GetAllConversationsUseCase } from './application/use-cases/get-all-conversations-use-case';
 import { ExplainVocabularyUseCase } from './application/use-cases/explain-vocabulary-use-case';
+import { SaveVocabularyUseCase } from './application/use-cases/save-vocabulary-use-case';
+import { GetVocabularyUseCase } from './application/use-cases/get-vocabulary-use-case';
 import { GenerateTitleUseCase } from './application/use-cases/generate-title-use-case';
 import { InMemoryConversationRepository } from './infrastructure/repositories/in-memory-conversation-repository';
+import { InMemoryVocabularyRepository } from './infrastructure/repositories/in-memory-vocabulary-repository';
 import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
 import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
@@ -36,6 +39,7 @@ function createApp(): express.Application {
   app.use(express.json());
 
   const conversationRepository = new InMemoryConversationRepository();
+  const vocabularyRepository = new InMemoryVocabularyRepository();
 
   const ollamaConfig = {
     baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1',
@@ -63,6 +67,8 @@ function createApp(): express.Application {
     conversationRepository,
   );
   const explainVocabularyUseCase = new ExplainVocabularyUseCase(vocabularyService);
+  const saveVocabularyUseCase = new SaveVocabularyUseCase(vocabularyRepository);
+  const getVocabularyUseCase = new GetVocabularyUseCase(vocabularyRepository);
 
   app.use(
     '/api',
@@ -72,6 +78,8 @@ function createApp(): express.Application {
       getConversationUseCase,
       getAllConversationsUseCase,
       explainVocabularyUseCase,
+      saveVocabularyUseCase,
+      getVocabularyUseCase,
     ),
   );
 

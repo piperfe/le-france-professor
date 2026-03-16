@@ -17,7 +17,7 @@ describe('POST /api/conversations/[id]/messages', () => {
 
   it('returns 200 with tutorResponse on success', async () => {
     vi.mocked(sendMessageUseCase.execute).mockResolvedValue(
-      ok({ tutorResponse: 'Très bien !' }),
+      ok({ message: 'Bonjour', tutorResponse: 'Très bien !', messageId: 'msg-tutor-1' }),
     )
 
     const req = new NextRequest('http://localhost/api/conversations/conv-1/messages', {
@@ -30,6 +30,7 @@ describe('POST /api/conversations/[id]/messages', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.tutorResponse).toBe('Très bien !')
+    expect(body.messageId).toBe('msg-tutor-1')
     expect(sendMessageUseCase.execute).toHaveBeenCalledWith('conv-1', 'Bonjour')
   })
 

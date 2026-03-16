@@ -217,6 +217,7 @@ Key conventions:
 - `window.matchMedia` is mocked with `Object.defineProperty(window, 'matchMedia', ...)` — avoid `vi.stubGlobal('window', ...)` as spreading `window` breaks React's concurrent internals
 - `HTMLAudioElement` (used by TTS) is mocked via `vi.stubGlobal('Audio', MockAudio)` — co-located in `tts-button.test.tsx`; `play()` returns `Promise.resolve()` immediately so the hook transitions to `playing` state synchronously in tests
 - `URL.createObjectURL` / `URL.revokeObjectURL` do not exist in jsdom — define them with `Object.defineProperty(URL, 'createObjectURL', { writable: true, value: vi.fn()... })` before each test; `vi.spyOn` will throw `createObjectURL does not exist`
+- `Element.prototype.scrollIntoView` does not exist in jsdom — stubbed globally in `src/test/setup.ts` as `Element.prototype.scrollIntoView = () => {}` so components that call it (e.g. `VocabularyDrawer` scrolling to a highlighted entry) do not throw in tests
 - Async click handlers that call `await audio.play()` trigger a state update outside the `userEvent` act boundary — use `fireEvent.click(btn)` + `await act(async () => {})` instead of `await userEvent.click()` when asserting the `playing` state
 
 ```ts
@@ -283,8 +284,16 @@ E2E tests cover three user journeys:
 
 **`/vocabulary` slash command:**
 1. Type `/` in the input — autocomplete popup appears with `/vocabulary` and its description
-2. Type `/vocabulary passée` and send — no user bubble in the chat, vocabulary bubble with `📖 passée` header and explanation appears
+2. Type `/vocabulary passée` and send — no user bubble in the chat, vocabulary card with `📖 passée` header and explanation appears inline
 3. Type `/vocabulary` (no word) and send — inline hint `Usage : /vocabulary [mot]` appears
+
+**Vocabulary notebook:**
+1. Badge on `📖 Vocabulaire` button shows word count after a `/vocabulary` command succeeds
+2. Clicking the button opens the drawer — saved entry visible inside a `<li>` (word + explanation)
+3. Clicking the `×` button closes the drawer
+4. Saved words persist across navigation — badge count and drawer entries reload from the server on return
+5. Saved word is highlighted (`<mark>`) in the source tutor message; highlight persists after navigation because the backend returns `messageId` on `POST /messages` and the frontend uses it directly for `sourceMessageId` matching
+6. Clicking a highlighted word opens the drawer with that entry remarked (`li.bg-vocab-50`)
 
 **Sidebar multi-conversation flow:**
 1. Create conv1 — sidebar shows its title

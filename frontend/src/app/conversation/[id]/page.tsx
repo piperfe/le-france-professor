@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { getConversationUseCase, getAllConversationsUseCase } from '../../../lib/container'
+import { getConversationUseCase, getAllConversationsUseCase, getVocabularyUseCase } from '../../../lib/container'
 import { ChatClient } from '../../../components/chat-client'
 
 interface Props {
@@ -8,9 +8,10 @@ interface Props {
 
 export default async function ConversationPage({ params }: Props) {
   const { id } = await params
-  const [convResult, allResult] = await Promise.all([
+  const [convResult, allResult, vocabResult] = await Promise.all([
     getConversationUseCase.execute(id),
     getAllConversationsUseCase.execute(),
+    getVocabularyUseCase.execute(id),
   ])
 
   if (convResult.isErr() && convResult.error.code === 'NOT_FOUND') redirect('/')
@@ -28,5 +29,23 @@ export default async function ConversationPage({ params }: Props) {
     ? allResult.value.map((c) => ({ id: c.id, title: c.title }))
     : []
 
-  return <ChatClient initialMessages={initialMessages} conversationId={id} conversations={conversations} />
+  const initialVocabulary = vocabResult.isOk()
+    ? vocabResult.value.map((e) => ({
+        id: e.id,
+        word: e.word,
+        explanation: e.explanation,
+        sourceMessageId: e.sourceMessageId,
+        conversationId: e.conversationId,
+        createdAt: e.createdAt.toISOString(),
+      }))
+    : []
+
+  return (
+    <ChatClient
+      initialMessages={initialMessages}
+      conversationId={id}
+      conversations={conversations}
+      initialVocabulary={initialVocabulary}
+    />
+  )
 }

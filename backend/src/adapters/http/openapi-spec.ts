@@ -115,6 +115,7 @@ export const openApiSpec = {
                   message: 'Comment dit-on "apple" en français?',
                   tutorResponse:
                     'En français, "apple" se dit "une pomme". C\'est un mot féminin. Par exemple: "Je mange une pomme." Voulez-vous pratiquer avec d\'autres fruits?',
+                  messageId: '1700000000002-abc456',
                 },
               },
             },
@@ -139,6 +140,44 @@ export const openApiSpec = {
       },
     },
     '/api/conversations/{conversationId}/vocabulary': {
+      get: {
+        tags: ['Conversations'],
+        summary: 'List saved vocabulary entries',
+        description: 'Returns all vocabulary entries saved for a conversation — words looked up via /vocabulary, with their explanation and the source message they came from.',
+        operationId: 'getVocabulary',
+        parameters: [
+          {
+            $ref: '#/components/parameters/conversationId',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Vocabulary entries returned',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/GetVocabularyResponse',
+                },
+                example: {
+                  vocabulary: [
+                    {
+                      id: 'v-1700000000000-abc123',
+                      word: 'passée',
+                      explanation: "« Passée » est le participe passé féminin du verbe « se passer ».",
+                      sourceMessageId: '1700000000001-xyz789',
+                      conversationId: 'conv-1700000000000-abc123xyz',
+                      createdAt: '2024-01-15T10:35:00.000Z',
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          '500': {
+            $ref: '#/components/responses/InternalServerError',
+          },
+        },
+      },
       post: {
         tags: ['Conversations'],
         summary: 'Explain a vocabulary word in context',
@@ -288,6 +327,11 @@ export const openApiSpec = {
             description: 'The sentence in which the word appears (last tutor message)',
             example: "Comment s'est passée ta journée jusqu'à présent ?",
           },
+          sourceMessageId: {
+            type: 'string',
+            description: 'ID of the tutor message that contains the word — stored on the vocabulary entry so the frontend can highlight the word in that message',
+            example: '1700000000001-xyz789',
+          },
         },
       },
       ExplainVocabularyResponse: {
@@ -314,7 +358,7 @@ export const openApiSpec = {
       },
       SendMessageResponse: {
         type: 'object',
-        required: ['message', 'tutorResponse'],
+        required: ['message', 'tutorResponse', 'messageId'],
         properties: {
           message: {
             type: 'string',
@@ -326,6 +370,11 @@ export const openApiSpec = {
             description: 'The tutor\'s response to the user message',
             example:
               'En français, "apple" se dit "une pomme". C\'est un mot féminin.',
+          },
+          messageId: {
+            type: 'string',
+            description: 'Persisted ID of the tutor message — used as sourceMessageId when saving vocabulary entries so highlights survive navigation',
+            example: '1700000000002-abc456',
           },
         },
       },
@@ -417,6 +466,55 @@ export const openApiSpec = {
             description: 'Full message history of the conversation',
             items: {
               $ref: '#/components/schemas/Message',
+            },
+          },
+        },
+      },
+      VocabularyEntry: {
+        type: 'object',
+        required: ['id', 'word', 'explanation', 'sourceMessageId', 'conversationId', 'createdAt'],
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Unique identifier for the vocabulary entry',
+            example: 'v-1700000000000-abc123',
+          },
+          word: {
+            type: 'string',
+            description: 'The French word that was explained',
+            example: 'passée',
+          },
+          explanation: {
+            type: 'string',
+            description: 'Contextual explanation including grammatical form and English translation',
+            example: "« Passée » est le participe passé féminin du verbe « se passer ».",
+          },
+          sourceMessageId: {
+            type: 'string',
+            description: 'ID of the tutor message that contained this word',
+            example: '1700000000001-xyz789',
+          },
+          conversationId: {
+            type: 'string',
+            description: 'ID of the conversation this entry belongs to',
+            example: 'conv-1700000000000-abc123xyz',
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+            description: 'ISO 8601 timestamp of when the entry was saved',
+            example: '2024-01-15T10:35:00.000Z',
+          },
+        },
+      },
+      GetVocabularyResponse: {
+        type: 'object',
+        required: ['vocabulary'],
+        properties: {
+          vocabulary: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/VocabularyEntry',
             },
           },
         },

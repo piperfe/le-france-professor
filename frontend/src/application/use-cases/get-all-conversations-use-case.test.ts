@@ -13,6 +13,7 @@ describe('GetAllConversationsUseCase', () => {
       sendMessage: vi.fn(),
       getById: vi.fn(),
       explainVocabulary: vi.fn(),
+      getVocabulary: vi.fn(),
       findAll: vi.fn(),
     }
     useCase = new GetAllConversationsUseCase(mockRepository)

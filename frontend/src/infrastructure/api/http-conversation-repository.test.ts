@@ -43,13 +43,14 @@ describe('HttpConversationRepository', () => {
     it('returns tutorResponse on success', async () => {
       server.use(
         http.post(`${BASE_URL}/conversations/conv-1/messages`, () =>
-          HttpResponse.json({ message: 'Hello', tutorResponse: 'Bonjour !' }),
+          HttpResponse.json({ message: 'Hello', tutorResponse: 'Bonjour !', messageId: 'msg-tutor-1' }),
         ),
       )
 
       const result = await repository.sendMessage('conv-1', 'Hello')
 
       expect(result.tutorResponse).toBe('Bonjour !')
+      expect(result.messageId).toBe('msg-tutor-1')
     })
 
     it('throws ServiceUnavailableError on failure', async () => {
@@ -138,12 +139,12 @@ describe('HttpConversationRepository', () => {
         ),
       )
 
-      const result = await repository.explainVocabulary('conv-1', 'passée', "Comment s'est passée ta journée ?")
+      const result = await repository.explainVocabulary('conv-1', 'passée', "Comment s'est passée ta journée ?", 'msg-1')
 
       expect(result.explanation).toBe('«Passée» est le participe passé féminin de «se passer».')
     })
 
-    it('sends word and context in the request body', async () => {
+    it('sends word, context and sourceMessageId in the request body', async () => {
       let capturedBody: Record<string, unknown> | undefined
       server.use(
         http.post(`${BASE_URL}/conversations/conv-1/vocabulary`, async ({ request }) => {
@@ -152,9 +153,9 @@ describe('HttpConversationRepository', () => {
         }),
       )
 
-      await repository.explainVocabulary('conv-1', 'passée', "Comment s'est passée ta journée ?")
+      await repository.explainVocabulary('conv-1', 'passée', "Comment s'est passée ta journée ?", 'msg-1')
 
-      expect(capturedBody).toEqual({ word: 'passée', context: "Comment s'est passée ta journée ?" })
+      expect(capturedBody).toEqual({ word: 'passée', context: "Comment s'est passée ta journée ?", sourceMessageId: 'msg-1' })
     })
 
     it('throws ServiceUnavailableError on failure', async () => {
@@ -164,7 +165,48 @@ describe('HttpConversationRepository', () => {
         ),
       )
 
-      await expect(repository.explainVocabulary('conv-1', 'passée', '')).rejects.toBeInstanceOf(ServiceUnavailableError)
+      await expect(repository.explainVocabulary('conv-1', 'passée', '', 'msg-1')).rejects.toBeInstanceOf(ServiceUnavailableError)
+    })
+  })
+
+  describe('getVocabulary', () => {
+    it('returns vocabulary entries with Date objects', async () => {
+      const raw = [
+        { id: 'v-1', word: 'passée', explanation: 'Expl.', sourceMessageId: 'msg-1', conversationId: 'conv-1', createdAt: '2026-01-01T00:00:00.000Z' },
+      ]
+      server.use(
+        http.get(`${BASE_URL}/conversations/conv-1/vocabulary`, () =>
+          HttpResponse.json({ vocabulary: raw }),
+        ),
+      )
+
+      const result = await repository.getVocabulary('conv-1')
+
+      expect(result).toHaveLength(1)
+      expect(result[0].word).toBe('passée')
+      expect(result[0].createdAt).toBeInstanceOf(Date)
+    })
+
+    it('returns empty array when no entries', async () => {
+      server.use(
+        http.get(`${BASE_URL}/conversations/conv-1/vocabulary`, () =>
+          HttpResponse.json({ vocabulary: [] }),
+        ),
+      )
+
+      const result = await repository.getVocabulary('conv-1')
+
+      expect(result).toEqual([])
+    })
+
+    it('throws ServiceUnavailableError on failure', async () => {
+      server.use(
+        http.get(`${BASE_URL}/conversations/conv-1/vocabulary`, () =>
+          new HttpResponse(null, { status: 503 }),
+        ),
+      )
+
+      await expect(repository.getVocabulary('conv-1')).rejects.toBeInstanceOf(ServiceUnavailableError)
     })
   })
 })

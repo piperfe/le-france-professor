@@ -18,7 +18,7 @@ export class SendMessageUseCase {
   execute(
     conversationId: string,
     userMessage: string,
-  ): ResultAsync<{ message: string; tutorResponse: string }, NotFoundError | ServiceUnavailableError> {
+  ): ResultAsync<{ message: string; tutorResponse: string; messageId: string }, NotFoundError | ServiceUnavailableError> {
     return ResultAsync.fromPromise(
       this.conversationRepository.findById(conversationId),
       (error) =>
@@ -53,7 +53,7 @@ export class SendMessageUseCase {
             ),
         ).map(() => {
           this.maybeGenerateTitle(conversationId, conversation);
-          return { message: userMessage, tutorResponse };
+          return { message: userMessage, tutorResponse, messageId: tutorMsg.id };
         });
       });
     });

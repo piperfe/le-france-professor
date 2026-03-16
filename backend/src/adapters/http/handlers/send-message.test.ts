@@ -23,7 +23,7 @@ describe('createSendMessageHandler', () => {
   it('returns 200 and result when message is sent', async () => {
     mockRequest.params = { conversationId: 'conv-123' };
     mockRequest.body = { message: 'Hello' };
-    const result = { message: 'Hello', tutorResponse: 'Bonjour !' };
+    const result = { message: 'Hello', tutorResponse: 'Bonjour !', messageId: 'msg-tutor-1' };
     mockUseCase.execute.mockReturnValue(okAsync(result));
 
     await handler(mockRequest as Request, mockResponse as Response);

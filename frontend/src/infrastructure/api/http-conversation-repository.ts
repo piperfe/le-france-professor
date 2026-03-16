@@ -1,6 +1,7 @@
 import type { ConversationApiResponse } from '../../domain/entities/conversation';
 import { Conversation } from '../../domain/entities/conversation'
 import type { ConversationRepository, ConversationSummary } from '../../domain/repositories/conversation-repository'
+import type { VocabularyEntry } from '../../domain/entities/vocabulary-entry'
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors'
 
 export class HttpConversationRepository implements ConversationRepository {
@@ -20,7 +21,7 @@ export class HttpConversationRepository implements ConversationRepository {
   async sendMessage(
     conversationId: string,
     message: string,
-  ): Promise<{ message: string; tutorResponse: string }> {
+  ): Promise<{ message: string; tutorResponse: string; messageId: string }> {
     const response = await fetch(
       `${this.baseUrl}/conversations/${conversationId}/messages`,
       {
@@ -39,19 +40,32 @@ export class HttpConversationRepository implements ConversationRepository {
     conversationId: string,
     word: string,
     context: string,
+    sourceMessageId: string,
   ): Promise<{ explanation: string }> {
     const response = await fetch(
       `${this.baseUrl}/conversations/${conversationId}/vocabulary`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word, context }),
+        body: JSON.stringify({ word, context, sourceMessageId }),
       },
     )
     if (!response.ok) {
       throw new ServiceUnavailableError('Failed to explain vocabulary')
     }
     return await response.json()
+  }
+
+  async getVocabulary(conversationId: string): Promise<VocabularyEntry[]> {
+    const response = await fetch(
+      `${this.baseUrl}/conversations/${conversationId}/vocabulary`,
+    )
+    if (!response.ok) {
+      throw new ServiceUnavailableError('Failed to get vocabulary')
+    }
+    const data: { vocabulary: Array<Omit<VocabularyEntry, 'createdAt'> & { createdAt: string }> } =
+      await response.json()
+    return data.vocabulary.map((e) => ({ ...e, createdAt: new Date(e.createdAt) }))
   }
 
   async findAll(): Promise<ConversationSummary[]> {

@@ -13,6 +13,7 @@ describe('ExplainVocabularyUseCase', () => {
       sendMessage: vi.fn(),
       getById: vi.fn(),
       explainVocabulary: vi.fn(),
+      getVocabulary: vi.fn(),
       findAll: vi.fn(),
     }
     useCase = new ExplainVocabularyUseCase(mockRepository)
@@ -23,7 +24,7 @@ describe('ExplainVocabularyUseCase', () => {
       explanation: '«Passée» est le participe passé féminin de «se passer».',
     })
 
-    const result = await useCase.execute('conv-1', 'passée', "Comment s'est passée ta journée ?")
+    const result = await useCase.execute('conv-1', 'passée', "Comment s'est passée ta journée ?", 'msg-1')
 
     expect(result.isOk()).toBe(true)
     if (result.isOk()) {
@@ -31,22 +32,23 @@ describe('ExplainVocabularyUseCase', () => {
     }
   })
 
-  it('calls the repository with the correct arguments', async () => {
+  it('forwards word, context and source message to the backend for explanation', async () => {
     vi.mocked(mockRepository.explainVocabulary).mockResolvedValue({ explanation: 'test' })
 
-    await useCase.execute('conv-1', 'passée', "Comment s'est passée ta journée ?")
+    await useCase.execute('conv-1', 'passée', "Comment s'est passée ta journée ?", 'msg-1')
 
     expect(mockRepository.explainVocabulary).toHaveBeenCalledWith(
       'conv-1',
       'passée',
       "Comment s'est passée ta journée ?",
+      'msg-1',
     )
   })
 
   it('returns err with ServiceUnavailableError when repository throws', async () => {
     vi.mocked(mockRepository.explainVocabulary).mockRejectedValue(new Error('LLM unavailable'))
 
-    const result = await useCase.execute('conv-1', 'passée', '')
+    const result = await useCase.execute('conv-1', 'passée', '', 'msg-1')
 
     expect(result.isErr()).toBe(true)
     if (result.isErr()) {
@@ -59,7 +61,7 @@ describe('ExplainVocabularyUseCase', () => {
     const original = new ServiceUnavailableError('already wrapped')
     vi.mocked(mockRepository.explainVocabulary).mockRejectedValue(original)
 
-    const result = await useCase.execute('conv-1', 'passée', '')
+    const result = await useCase.execute('conv-1', 'passée', '', 'msg-1')
 
     expect(result.isErr()).toBe(true)
     if (result.isErr()) {

@@ -153,4 +153,5 @@ The UI includes request/response schemas, examples, and a built-in HTTP client t
 | `POST` | `/api/conversations` | Create a new conversation |
 | `GET`  | `/api/conversations/:conversationId` | Get conversation details |
 | `POST` | `/api/conversations/:conversationId/messages` | Send a message to the tutor |
-| `POST` | `/api/conversations/:conversationId/vocabulary` | Explain a word in context |
+| `POST` | `/api/conversations/:conversationId/vocabulary` | Explain a word in context and save to notebook |
+| `GET`  | `/api/conversations/:conversationId/vocabulary` | List saved vocabulary entries for a conversation |

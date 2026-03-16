@@ -55,20 +55,20 @@ afterAll(() => server.close())
 
 describe('ChatClient', () => {
   it('renders the initial messages passed as props', () => {
-    render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
     expect(screen.getByText('Bonjour ! Comment puis-je vous aider ?')).toBeInTheDocument()
   })
 
   it('disables the submit button when the input is empty', () => {
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
     expect(screen.getByRole('button', { name: 'Envoyer' })).toBeDisabled()
   })
 
   it('enables the submit button once the user types', async () => {
     const user = userEvent.setup()
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
     await user.type(screen.getByRole('textbox'), 'Bonjour')
 
@@ -80,11 +80,11 @@ describe('ChatClient', () => {
     server.use(
       http.post(MESSAGES_PATH, async () => {
         await delay(50)
-        return HttpResponse.json({ tutorResponse: 'Très bien !' })
+        return HttpResponse.json({ tutorResponse: 'Très bien !', messageId: 'msg-tutor-1' })
       }),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -100,10 +100,10 @@ describe('ChatClient', () => {
   it('clears the input after submission', async () => {
     const user = userEvent.setup()
     server.use(
-      http.post(MESSAGES_PATH, () => HttpResponse.json({ tutorResponse: 'Oui !' })),
+      http.post(MESSAGES_PATH, () => HttpResponse.json({ tutorResponse: 'Oui !', messageId: 'msg-tutor-1' })),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -117,7 +117,7 @@ describe('ChatClient', () => {
       http.post(MESSAGES_PATH, () => new HttpResponse(null, { status: 503 })),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -129,7 +129,7 @@ describe('ChatClient', () => {
   })
 
   it('renders the mic button alongside the input', () => {
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
     expect(screen.getByRole('button', { name: /enregistrement vocal/i })).toBeInTheDocument()
   })
 
@@ -138,7 +138,7 @@ describe('ChatClient', () => {
       http.post('/api/transcribe', () => HttpResponse.json({ text: 'Bonjour !' })),
     )
     const user = userEvent.setup()
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
     await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
     await user.click(screen.getByRole('button', { name: /arrêter/i }))
@@ -149,7 +149,7 @@ describe('ChatClient', () => {
   describe('input placeholder during voice recording', () => {
     it('shows recording placeholder with 0s when mic starts', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
 
@@ -161,7 +161,7 @@ describe('ChatClient', () => {
       afterEach(() => { vi.useRealTimers() })
 
       it('increments the recording seconds in the placeholder', async () => {
-        render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+        render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
         fireEvent.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
         await act(async () => {}) // flush getUserMedia microtask
@@ -178,7 +178,7 @@ describe('ChatClient', () => {
         return HttpResponse.json({ text: 'Bonjour !' })
       }))
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
       await user.click(screen.getByRole('button', { name: /arrêter/i }))
@@ -191,7 +191,7 @@ describe('ChatClient', () => {
     it('restores the default placeholder after transcription completes', async () => {
       server.use(http.post('/api/transcribe', () => HttpResponse.json({ text: 'Bonjour !' })))
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.click(screen.getByRole('button', { name: /enregistrement vocal/i }))
       await user.click(screen.getByRole('button', { name: /arrêter/i }))
@@ -205,7 +205,7 @@ describe('ChatClient', () => {
   describe('/vocabulary slash command', () => {
     it('shows autocomplete popup when user types /', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/')
 
@@ -215,7 +215,7 @@ describe('ChatClient', () => {
 
     it('hides autocomplete once a space is typed after the command', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/vocabulary ')
 
@@ -224,7 +224,7 @@ describe('ChatClient', () => {
 
     it('fills input with /vocabulary when autocomplete entry is clicked', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/')
       await user.click(screen.getByText('/vocabulary'))
@@ -232,7 +232,7 @@ describe('ChatClient', () => {
       expect(screen.getByRole('textbox')).toHaveValue('/vocabulary ')
     })
 
-    it('sends word and last tutor message context to vocabulary endpoint', async () => {
+    it('uses the last tutor message as context when looking up a word', async () => {
       const user = userEvent.setup()
       let capturedBody: Record<string, unknown> | undefined
       server.use(
@@ -240,9 +240,10 @@ describe('ChatClient', () => {
           capturedBody = await request.json() as Record<string, unknown>
           return HttpResponse.json({ explanation: '«Passée» est le participe passé.' })
         }),
+        http.get(VOCABULARY_PATH, () => HttpResponse.json({ vocabulary: [] })),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -250,6 +251,7 @@ describe('ChatClient', () => {
         expect(capturedBody).toEqual({
           word: 'passée',
           context: 'Bonjour ! Comment puis-je vous aider ?',
+          sourceMessageId: 'msg-0',
         }),
       )
     })
@@ -260,9 +262,10 @@ describe('ChatClient', () => {
         http.post(VOCABULARY_PATH, () =>
           HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),
         ),
+        http.get(VOCABULARY_PATH, () => HttpResponse.json({ vocabulary: [] })),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -278,9 +281,10 @@ describe('ChatClient', () => {
           await delay(50)
           return HttpResponse.json({ explanation: '«Passée» est le participe passé.' })
         }),
+        http.get(VOCABULARY_PATH, () => HttpResponse.json({ vocabulary: [] })),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
@@ -290,7 +294,7 @@ describe('ChatClient', () => {
 
     it('shows inline hint when /vocabulary is submitted without a word', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/vocabulary')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
@@ -300,7 +304,7 @@ describe('ChatClient', () => {
 
     it('shows error for unknown slash command', async () => {
       const user = userEvent.setup()
-      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
       await user.type(screen.getByRole('textbox'), '/unknown')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
@@ -314,13 +318,115 @@ describe('ChatClient', () => {
         http.post(VOCABULARY_PATH, () => new HttpResponse(null, { status: 503 })),
       )
 
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
       await user.type(screen.getByRole('textbox'), '/vocabulary passée')
       await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
       await waitFor(() =>
         expect(screen.getByText('Erreur lors de la recherche du vocabulaire. Réessayez.')).toBeInTheDocument(),
       )
+    })
+  })
+
+  describe('vocabulary notebook', () => {
+    const savedEntry = {
+      id: 'v-1',
+      word: 'incontournable',
+      explanation: "C'est un adjectif qui signifie essentiel.",
+      sourceMessageId: 'msg-0',
+      conversationId: CONVERSATION_ID,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    }
+
+    it('shows badge count from initialVocabulary', () => {
+      render(
+        <ChatClient
+          initialMessages={initialMessages}
+          conversationId={CONVERSATION_ID}
+          conversations={[]}
+          initialVocabulary={[savedEntry]}
+        />,
+      )
+
+      expect(screen.getByText('1')).toBeInTheDocument()
+    })
+
+    it('opens the drawer and shows saved words when badge is clicked', async () => {
+      const user = userEvent.setup()
+      render(
+        <ChatClient
+          initialMessages={initialMessages}
+          conversationId={CONVERSATION_ID}
+          conversations={[]}
+          initialVocabulary={[savedEntry]}
+        />,
+      )
+
+      await user.click(screen.getByRole('button', { name: /carnet de vocabulaire/i }))
+
+      expect(screen.getByText('incontournable')).toBeInTheDocument()
+      expect(screen.getByText("C'est un adjectif qui signifie essentiel.")).toBeInTheDocument()
+    })
+
+    it('closes the drawer when the close button is clicked', async () => {
+      const user = userEvent.setup()
+      render(
+        <ChatClient
+          initialMessages={initialMessages}
+          conversationId={CONVERSATION_ID}
+          conversations={[]}
+          initialVocabulary={[savedEntry]}
+        />,
+      )
+
+      await user.click(screen.getByRole('button', { name: /carnet de vocabulaire/i }))
+      expect(screen.getByRole('button', { name: 'Fermer le carnet' })).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Fermer le carnet' }))
+
+      expect(screen.queryByRole('button', { name: 'Fermer le carnet' })).not.toBeInTheDocument()
+    })
+
+    it('clicking a highlighted word opens the drawer with that word highlighted', async () => {
+      const entryInMessage = {
+        ...savedEntry,
+        word: 'aider',        // appears in "Bonjour ! Comment puis-je vous aider ?"
+        sourceMessageId: 'msg-0',
+      }
+      render(
+        <ChatClient
+          initialMessages={initialMessages}
+          conversationId={CONVERSATION_ID}
+          conversations={[]}
+          initialVocabulary={[entryInMessage]}
+        />,
+      )
+
+      fireEvent.click(screen.getByRole('mark'))
+
+      // Drawer opens and shows the word entry
+      expect(screen.getByRole('button', { name: 'Fermer le carnet' })).toBeInTheDocument()
+      expect(screen.getAllByText('aider').length).toBeGreaterThan(0)
+    })
+
+    it('badge count increments after a /vocabulary command succeeds', async () => {
+      const user = userEvent.setup()
+      const newEntry = { ...savedEntry, id: 'v-2', word: 'passée' }
+      server.use(
+        http.post(VOCABULARY_PATH, () =>
+          HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),
+        ),
+        http.get(VOCABULARY_PATH, () =>
+          HttpResponse.json({ vocabulary: [newEntry] }),
+        ),
+      )
+
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
+
+      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+
+      await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument())
     })
   })
 
@@ -331,11 +437,11 @@ describe('ChatClient', () => {
     server.use(
       http.post(MESSAGES_PATH, async ({ request }) => {
         capturedBody = await request.json() as Record<string, unknown>
-        return HttpResponse.json({ tutorResponse: 'Oui !' })
+        return HttpResponse.json({ tutorResponse: 'Oui !', messageId: 'msg-tutor-1' })
       }),
     )
 
-    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} />)
+    render(<ChatClient initialMessages={[]} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
     await user.type(screen.getByRole('textbox'), 'Bonjour')
     await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
