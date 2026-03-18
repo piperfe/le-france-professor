@@ -1,4 +1,5 @@
 import { ResultAsync } from 'neverthrow';
+import { Span } from '../../infrastructure/telemetry/decorators';
 import type { VocabularyRepository } from '../../domain/repositories/vocabulary-repository';
 import { VocabularyEntry } from '../../domain/entities/vocabulary-entry';
 import { ServiceUnavailableError } from '../../domain/errors';
@@ -6,6 +7,7 @@ import { ServiceUnavailableError } from '../../domain/errors';
 export class SaveVocabularyUseCase {
   constructor(private repository: VocabularyRepository) {}
 
+  @Span()
   execute(
     word: string,
     explanation: string,

@@ -64,3 +64,22 @@ execute(id: string): ResultAsync<ConversationDTO, NotFoundError | ServiceUnavail
 ```
 
 Backend handlers use `result.match()` to map domain error codes to HTTP status codes via a `HTTP_STATUS` lookup table — no `instanceof` chains.
+
+---
+
+## Architecture Decisions
+
+The decisions that shaped this architecture are recorded in [`docs/decisions/`](./docs/decisions/):
+
+| ADR | Decision |
+|-----|----------|
+| [ADR-0001](./docs/decisions/arch-2026-03-04-hexagonal-clean-architecture.md) | Hexagonal (Clean) Architecture — strict layering |
+| [ADR-0002](./docs/decisions/arch-2026-03-06-bff-pattern-browser-calls-bff-only.md) | BFF Pattern — browser never calls backend directly |
+| [ADR-0003](./docs/decisions/arch-2026-03-04-di-container-lib-container.md) | DI Container — lib/container.ts for server-side wiring |
+| [ADR-0004](./docs/decisions/arch-2026-03-02-openapi-embedded-in-express.md) | OpenAPI docs embedded in Express — not decoupled |
+| [ADR-0005](./docs/decisions/frontend-2026-03-04-tailwind-css-for-all-styling.md) | Tailwind CSS for all frontend styling |
+| [ADR-0006](./docs/decisions/frontend-2026-03-06-hook-thin-component-zero-useeffect.md) | Hook + thin component — zero useEffect |
+| [ADR-0007](./docs/decisions/frontend-2026-03-16-force-dynamic-static-root-page.md) | Static root page requires `export const dynamic = "force-dynamic"` |
+| [ADR-0008](./docs/decisions/frontend-2026-03-09-ssr-guard-lazy-usestate.md) | SSR guard for browser-only globals via lazy useState initialiser |
+| [ADR-0014](./docs/decisions/errors-2026-03-15-neverthrow-resultasync-typed-errors.md) | neverthrow ResultAsync for use cases — typed errors at the boundary |
+| [ADR-0015](./docs/decisions/errors-2026-03-15-fire-and-forget-void-not-match.md) | Fire-and-forget ResultAsync: use `void`, not `.match()` |

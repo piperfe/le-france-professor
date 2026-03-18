@@ -359,3 +359,16 @@ Both test suites run on every push and pull request to `main` via GitHub Actions
 **Backend job:** typecheck → lint → unit tests → integration tests
 
 **Frontend job:** typecheck → lint → Vitest (unit + integration + component) → build → install Playwright browsers → E2E tests
+
+---
+
+## Architecture Decisions
+
+The decisions that shaped the testing strategy are recorded in [`docs/decisions/`](./docs/decisions/):
+
+| ADR | Decision |
+|-----|----------|
+| [ADR-0009](./docs/decisions/testing-2026-03-04-testing-trophy-integration-first.md) | Testing Trophy over Testing Pyramid — integration tests are the priority |
+| [ADR-0011](./docs/decisions/testing-2026-03-12-msw-inline-per-test-file.md) | MSW inline per test file — no shared handlers.ts |
+| [ADR-0012](./docs/decisions/testing-2026-03-15-e2e-one-spec-per-feature.md) | E2E: one spec file per feature + shared helpers.ts |
+| [ADR-0013](./docs/decisions/testing-2026-03-12-tests-same-step-as-code.md) | Tests are written in the same step as code — never deferred |

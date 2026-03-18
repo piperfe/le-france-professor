@@ -33,7 +33,7 @@
    | 16 GB | `mistral-nemo` | `ollama pull mistral-nemo` |
    | 32 GB | `mistral-small3.2` | `ollama pull mistral-small3.2` |
 
-   > **Why not EuroLLM?** EuroLLM-9B-Instruct was trained with SFT only (no RLHF/DPO alignment). It repeats itself, confuses roles, and ignores system prompt constraints — not suitable for conversational tutoring. `gemma3:4b` is RLHF-aligned and follows instructions reliably on 8 GB machines.
+   > **Why not EuroLLM?** EuroLLM-9B-Instruct was trained with SFT only (no RLHF/DPO alignment). It repeats itself, confuses roles, and ignores system prompt constraints — not suitable for conversational tutoring. `gemma3:4b` is RLHF-aligned and follows instructions reliably on 8 GB machines. → [ADR-0019](./docs/decisions/llm-2026-03-09-model-gemma3-4b-eurollm-banned.md)
 
    Create `frontend/.env.local` (optional — defaults shown):
    ```
@@ -53,7 +53,7 @@
 
    > **Model must be multilingual** — models ending in `.en` (e.g. `ggml-small.en.bin`) ignore the `language=fr` parameter and always transcribe in English. Use the plain variant (`ggml-small.bin`, `ggml-base.bin`, etc.).
    >
-   > Audio conversion is handled automatically: the BFF route converts WebM/Opus (Chrome), MP4/AAC (Safari), and OGG/Opus (Firefox) to 16kHz mono WAV using ffmpeg before sending to whisper.cpp.
+   > Audio conversion is handled automatically: the BFF route converts WebM/Opus (Chrome), MP4/AAC (Safari), and OGG/Opus (Firefox) to 16kHz mono WAV using ffmpeg before sending to whisper.cpp. → [ADR-0021](./docs/decisions/voice-2026-03-06-stt-whisper-cpp-local.md), [ADR-0023](./docs/decisions/voice-2026-03-06-webm-wav-conversion-in-bff.md)
 
    `PIPER_URL` points to a running [piper1-gpl](https://github.com/OHF-Voice/piper1-gpl) TTS server. If the server is not running, TTS buttons are still shown but requests return 503 and the UI silently stays idle (TTS is a supplementary feature).
 
@@ -77,7 +77,7 @@
    python3 -m piper.http_server -m fr_FR-upmc-medium --data-dir ./models --port 7602
    ```
 
-   > **Voice:** `fr_FR-upmc-medium` (Jessica) — Parisian French female, UPMC corpus. Speed is controlled server-side via `length_scale` (1.0 = normal, 1.5 = slow) so the turtle button produces genuinely slower phoneme duration rather than browser-stretched audio.
+   > **Voice:** `fr_FR-upmc-medium` (Jessica) — Parisian French female, UPMC corpus. Speed is controlled server-side via `length_scale` (1.0 = normal, 1.5 = slow) so the turtle button produces genuinely slower phoneme duration rather than browser-stretched audio. → [ADR-0022](./docs/decisions/voice-2026-03-11-tts-piper-upmc-medium-jessica.md)
    >
    > **Test the server:** `curl -s -X POST http://127.0.0.1:7602/ -H "Content-Type: application/json" -d '{"text":"Bonjour !"}' -o /tmp/test.wav && open /tmp/test.wav`
 

@@ -39,4 +39,5 @@ For full setup — Ollama model selection, whisper.cpp (voice), and piper1-gpl (
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Hexagonal layers, BFF pattern, DDD |
 | [TESTING.md](./TESTING.md) | Testing strategy, conventions, commands |
 | [OBSERVABILITY.md](./OBSERVABILITY.md) | OpenTelemetry traces, Grafana stack |
+| [docs/decisions/](./docs/decisions/) | Architecture Decision Records — 27 decisions with source conversations |
 | API docs | Interactive docs at `http://localhost:3001/docs` (backend must be running) |

@@ -24,7 +24,7 @@ function ensureOllamaConfig(): void {
   if (!model) {
     console.error(
       'OLLAMA_MODEL is required. Set it in backend/.env, e.g.:\n' +
-        '  OLLAMA_MODEL=hf.co/QuantFactory/EuroLLM-9B-Instruct-GGUF\n' +
+        '  OLLAMA_MODEL=gemma3:4b\n' +
         '  OLLAMA_BASE_URL=http://localhost:11434/v1',
     );
     process.exit(1);

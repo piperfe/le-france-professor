@@ -1,56 +1,53 @@
-// TODO: replace global.fetch mock with MSW (setupServer / http.post) for consistency
-// with the component-layer tests. Currently uses global.fetch = vi.fn() like
-// http-transcription-repository.test.ts — both should be migrated together.
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import { setupServer } from 'msw/node'
+import { http, HttpResponse } from 'msw'
 import { HttpTtsRepository } from './http-tts-repository'
 import { ServiceUnavailableError } from '../../domain/errors'
 
+const TTS_URL = 'http://127.0.0.1:7602'
+const fakeWavBuffer = new ArrayBuffer(44)
+
+const server = setupServer()
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }))
+afterEach(() => server.resetHandlers())
+afterAll(() => server.close())
+
 describe('HttpTtsRepository', () => {
-  const ttsUrl = 'http://127.0.0.1:7602'
-  const fakeWavBuffer = new ArrayBuffer(44)
-
-  let repository: HttpTtsRepository
-
-  beforeEach(() => {
-    repository = new HttpTtsRepository(ttsUrl)
-    global.fetch = vi.fn()
-  })
+  const repository = new HttpTtsRepository(TTS_URL)
 
   it('posts text to the piper root endpoint without length_scale when not provided', async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: async () => fakeWavBuffer,
-    } as Response)
+    let capturedBody: Record<string, unknown> | undefined
+    server.use(
+      http.post(`${TTS_URL}/`, async ({ request }) => {
+        capturedBody = await request.json() as Record<string, unknown>
+        return new HttpResponse(fakeWavBuffer, { status: 200 })
+      }),
+    )
 
     await repository.synthesize('Bonjour !')
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      `${ttsUrl}/`,
-      expect.objectContaining({
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: 'Bonjour !' }),
-      }),
-    )
+    expect(capturedBody).toEqual({ text: 'Bonjour !' })
   })
 
   it('includes length_scale in the request body when provided', async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: async () => fakeWavBuffer,
-    } as Response)
+    let capturedBody: Record<string, unknown> | undefined
+    server.use(
+      http.post(`${TTS_URL}/`, async ({ request }) => {
+        capturedBody = await request.json() as Record<string, unknown>
+        return new HttpResponse(fakeWavBuffer, { status: 200 })
+      }),
+    )
 
     await repository.synthesize('Bonjour !', 1.5)
 
-    const body = vi.mocked(global.fetch).mock.calls[0][1]?.body as string
-    expect(JSON.parse(body)).toEqual({ text: 'Bonjour !', length_scale: 1.5 })
+    expect(capturedBody).toEqual({ text: 'Bonjour !', length_scale: 1.5 })
   })
 
   it('returns a WAV blob with the synthesized audio', async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: async () => fakeWavBuffer,
-    } as Response)
+    server.use(
+      http.post(`${TTS_URL}/`, () => new HttpResponse(fakeWavBuffer, { status: 200 })),
+    )
 
     const result = await repository.synthesize('Bonjour !')
 
@@ -60,7 +57,9 @@ describe('HttpTtsRepository', () => {
   })
 
   it('throws ServiceUnavailableError when piper server responds with an error', async () => {
-    vi.mocked(global.fetch).mockResolvedValueOnce({ ok: false, status: 503 } as Response)
+    server.use(
+      http.post(`${TTS_URL}/`, () => new HttpResponse(null, { status: 503 })),
+    )
 
     await expect(repository.synthesize('Bonjour !')).rejects.toBeInstanceOf(ServiceUnavailableError)
   })

@@ -139,3 +139,16 @@ class MyUseCase {
 The decorator duck-types the return value via `isErr()` — if the method returns a `Result.Err`, the error is recorded as a span exception and the status is set to `ERROR`, exactly as if the method had thrown. A `Result.Ok` leaves the span status as `OK`.
 
 > Always add `@Span()` to use case `execute()` methods and service methods that call external I/O (LLM, repository). This keeps the trace tree complete for every request.
+
+---
+
+## Architecture Decisions
+
+The decisions that shaped the observability setup are recorded in [`docs/decisions/`](./docs/decisions/):
+
+| ADR | Decision |
+|-----|----------|
+| [ADR-0016](./docs/decisions/observability-2026-02-26-span-decorator-tracing.md) | `@Span()` decorator — tracing without polluting business logic |
+| [ADR-0017](./docs/decisions/observability-2026-02-26-dual-exporter-console-or-otlp.md) | Dual exporter — console (default) or OTLP via env var |
+| [ADR-0018](./docs/decisions/observability-2026-02-26-llm-content-as-otel-log-records.md) | LLM content captured as OTel log records — not span events |
+| [ADR-0015](./docs/decisions/errors-2026-03-15-fire-and-forget-void-not-match.md) | Fire-and-forget ResultAsync: use `void`, not `.match()` — `@Span` strips ResultAsync at runtime |
