@@ -17,19 +17,16 @@ A French learning application where students chat with an AI tutor powered by a 
 ## Quick Start
 
 ```bash
-# Install all dependencies
-npm install && cd backend && npm install && cd ../frontend && npm install
-
-# Start the backend (port 3001)
-npm run dev:backend
-
-# Start the frontend (port 3000)
-npm run dev:frontend
+npm install                  # install dependencies
+npm run models:download      # download whisper + piper models (~310 MB, one-time)
+docker compose up -d         # start whisper (7600) and piper TTS (7602)
+npm run dev                  # start backend (3001) + frontend (3000)
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-For full setup — Ollama model selection, whisper.cpp (voice), and piper1-gpl (TTS) — see [QUICKSTART.md](./QUICKSTART.md).
+**Prerequisites:** [Ollama](https://ollama.com/) + `ollama pull gemma3:4b`, [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+Full setup, model recommendations, and native macOS alternative — see [QUICKSTART.md](./QUICKSTART.md).
 
 ## Documentation
 
