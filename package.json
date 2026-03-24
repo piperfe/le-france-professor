@@ -8,8 +8,10 @@
     "frontend"
   ],
   "scripts": {
+    "dev": "concurrently --kill-others-on-fail -n backend,frontend -c cyan,magenta \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
+    "models:download": "bash scripts/download-models.sh",
     "test:backend": "cd backend && npm test",
     "test:frontend": "cd frontend && npm test",
     "test:all": "npm run test:backend && npm run test:frontend"
@@ -17,6 +19,7 @@
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^20.10.0"
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2"
   }
 }

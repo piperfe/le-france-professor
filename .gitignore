@@ -14,3 +14,10 @@ frontend/.next/
 frontend/tsconfig.tsbuildinfo
 
 backend/test-results/
+
+certificates
+
+# AI model files (downloaded via npm run models:download)
+docker/models/*.bin
+docker/models/*.onnx
+docker/models/*.onnx.json
