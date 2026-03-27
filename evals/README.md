@@ -70,6 +70,20 @@ npx tsx src/cli.ts run \
   --judge-model gemma3:4b
 ```
 
+## Judge model comparison (2026-03-27, gemma3:4b tutor, 5 scenarios)
+
+Ran all four local models that fit in 8 GB RAM as judges, plus a manual Claude evaluation, against the same 5 scenario transcripts:
+
+| Judge | engage | teach | cohere | q_nat | avg |
+|-------|--------|-------|--------|-------|-----|
+| `gemma3:4b` | 3.6 | 3.6 | 4.2 | 3.6 | **3.75** |
+| `llama3.2:3b` | 4.6 | 4.8 | 4.6 | 4.2 | **4.55** |
+| `qwen2.5:3b` | 4.2 | 3.6 | 3.6 | 2.4 | **3.45** |
+| `phi4-mini` | 4.2 | 3.6 | 3.6 | 2.4 | **3.45** |
+| Claude (manual) | 3.6 | 2.8 | 4.2 | 3.0 | **3.40** |
+
+**`gemma3:4b` is the default judge.** `llama3.2:3b` inflates scores and barely differentiates between scenarios. `qwen2.5:3b` and `phi4-mini` produced identical scores — likely converged on the same structured output pattern. `gemma3:4b` is the closest to the manual Claude evaluation and the most discriminating (correctly tanked `a2-one-word-answers` to 2/2/1/1).
+
 ## Tests
 
 ```bash
