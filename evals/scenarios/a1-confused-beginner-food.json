@@ -1,0 +1,13 @@
+{
+  "id": "a1-confused-beginner-food",
+  "description": "A1 beginner, very hesitant, 1-2 word answers, food topic. Tests whether the tutor re-engages without overwhelming.",
+  "level": "A1",
+  "interest": "food",
+  "studentTurns": [
+    "euh... bonjour. je sais pas trop comment...",
+    "j'aime manger.",
+    "le pain. et... euh... fromage ?",
+    "oui.",
+    "je sais pas ce mot... le truc chaud le matin ?"
+  ]
+}

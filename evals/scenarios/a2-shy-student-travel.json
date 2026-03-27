@@ -1,0 +1,13 @@
+{
+  "id": "a2-shy-student-travel",
+  "description": "A2 student, shy, mixes English when stuck, travel topic. Tests the engagement cliff — does the tutor lose the student at message 2-3?",
+  "level": "A2",
+  "interest": "travel",
+  "studentTurns": [
+    "j'aime voyager mais je suis... nervous ? en français",
+    "j'ai visité Paris l'année dernière.",
+    "c'était bien. j'ai mangé beaucoup.",
+    "je suis allé au tour Eiffel.",
+    "oui mais il y avait beaucoup de... tourists ?"
+  ]
+}

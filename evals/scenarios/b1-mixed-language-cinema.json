@@ -1,0 +1,13 @@
+{
+  "id": "b1-mixed-language-cinema",
+  "description": "B1 student who switches to Spanish when stuck, cinema topic. Tests whether the tutor handles code-switching gracefully and keeps the conversation in French.",
+  "level": "B1",
+  "interest": "cinema",
+  "studentTurns": [
+    "j'aime beaucoup le cinéma, surtout les films... como se dice 'de época' ?",
+    "oui les films historiques ! j'ai vu un film français récemment mais je comprenais pas tout",
+    "les acteurs parlaient très vite et... no entendía los subtítulos",
+    "je pense que le cinéma français est différent de Hollywood, más artístico ?",
+    "oui exactement, menos acción y más... psychologie ?"
+  ]
+}
