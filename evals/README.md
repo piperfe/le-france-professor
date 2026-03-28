@@ -8,17 +8,19 @@ The tutor uses `gemma3:4b` via the backend. The judge uses a **different model**
 
 ## Architecture
 
-Three layers, no hexagonal:
+Four layers, no hexagonal:
 
 ```
-runner.ts        — scenario → transcript   (calls backend API, records tutor responses)
-judge.ts         — transcript → score      (calls LLM judge, validates 1-5 range)
-reporter.ts      — results → report        (bar charts + averages table)
-commands/run.ts  — orchestrates + emits onProgress events
-cli.ts           — commander entry point with ora spinner
+runner.ts          — scenario → transcript    (calls backend API, records tutor responses)
+judge.ts           — transcript → score       (calls LLM judge, validates 1-5 range)
+reporter.ts        — results → report         (bar charts + averages table)
+storage.ts         — run → disk               (saves/loads JSON in runs/, lists labels)
+commands/run.ts    — orchestrates + saves run + emits onProgress events
+commands/compare.ts— loads two runs, diffs scores, prints arrow table
+cli.ts             — commander entry point with ora spinner
 ```
 
-Types are co-located with their owner: `Score` in `judge.ts`, `Scenario/Transcript` in `runner.ts`, `ScenarioResult` in `reporter.ts`.
+Types are co-located with their owner: `Score` in `judge.ts`, `Scenario/Transcript` in `runner.ts`, `ScenarioResult` in `reporter.ts`, `RunRecord/RunMeta` in `storage.ts`.
 
 ## Scenarios
 
@@ -51,14 +53,38 @@ Requires the Le France Professor backend and an Ollama instance to be running. U
 cd evals
 npm install
 
-# Run with defaults
+# Run with defaults — saves to runs/run-{timestamp}.json
 npm run eval
 
-# Override URLs and judge model
+# Label the run and add an annotation
+npm run eval -- --label baseline --note "default prompt, gemma3:4b"
+
+# Override URLs, judge model, and runs directory
 BACKEND_URL=http://localhost:3001 \
 JUDGE_URL=http://localhost:11434 \
 JUDGE_MODEL=gemma3:4b \
-npm run eval
+npm run eval -- --label baseline
+```
+
+Every run is automatically saved to `evals/runs/{label}.json` (gitignored). To compare two runs:
+
+```bash
+npm run compare baseline phase-v1
+```
+
+Output:
+
+```
+Comparing: baseline → phase-v1
+  baseline         gemma3:4b  "default prompt"         (2026-03-28)
+  phase-v1         gemma3:4b  "discovery phase added"  (2026-03-29)
+────────────────────────────────────────────────────────────────────────
+Scenario                        engage    teach     cohere    q_nat
+────────────────────────────────────────────────────────────────────────
+a1-confused-beginner-food       3→4↑      4→4=      5→5=      2→3↑
+a2-shy-student-travel           2→4↑      3→4↑      4→5↑      2→4↑
+────────────────────────────────────────────────────────────────────────
+Average                         2.5→4.0   3.5→4.0   4.5→5.0   2.0→3.5
 ```
 
 CLI flags work too and take precedence over env vars:
@@ -67,7 +93,11 @@ CLI flags work too and take precedence over env vars:
 npx tsx src/cli.ts run \
   --backend http://localhost:3001 \
   --judge-url http://localhost:11434 \
-  --judge-model gemma3:4b
+  --judge-model gemma3:4b \
+  --label baseline \
+  --note "default prompt"
+
+npx tsx src/cli.ts compare baseline phase-v1
 ```
 
 ## Judge model comparison (2026-03-27, gemma3:4b tutor, 5 scenarios)
@@ -87,8 +117,10 @@ Ran all four local models that fit in 8 GB RAM as judges, plus a manual Claude e
 ## Tests
 
 ```bash
-npm test          # unit tests only (judge + reporter)
+npm test          # unit tests only (judge, reporter, storage, compare)
 npm run test:all  # unit + integration (nock intercepts HTTP — no live servers needed)
 ```
 
 Integration tests use [nock](https://github.com/nock/nock) to intercept both the backend and the Ollama judge. HTTP calls use `node-fetch` v2 (nock only intercepts the Node.js `http` module, not native fetch / undici).
+
+Storage and compare tests use `os.tmpdir()` temp directories — isolated per suite, cleaned up after each test.

@@ -3,6 +3,7 @@ import { join } from 'path';
 import { runScenario } from '../runner';
 import { scoreTranscript } from '../judge';
 import { formatReport } from '../reporter';
+import { saveRun } from '../storage';
 import type { Score } from '../judge';
 import type { ScenarioResult } from '../reporter';
 import type { Scenario } from '../runner';
@@ -12,6 +13,9 @@ export interface RunOptions {
   judgeUrl: string;
   judgeModel: string;
   scenariosDir: string;
+  label: string;
+  runsDir: string;
+  note?: string;
   onProgress?: (event: ProgressEvent) => void;
 }
 
@@ -28,7 +32,8 @@ function loadScenarios(scenariosDir: string): Scenario[] {
 }
 
 export async function runCommand(options: RunOptions): Promise<string> {
-  const { backendUrl, judgeUrl, judgeModel, scenariosDir, onProgress } = options;
+  const { backendUrl, judgeUrl, judgeModel, scenariosDir, label, runsDir, note, onProgress } =
+    options;
   const scenarios = loadScenarios(scenariosDir);
   const results: ScenarioResult[] = [];
 
@@ -49,6 +54,12 @@ export async function runCommand(options: RunOptions): Promise<string> {
   if (results.length === 0) {
     throw new Error('No scenarios completed successfully — check backend and Ollama are running.');
   }
+
+  saveRun(
+    { label, note, judgeModel, judgeUrl, backendUrl, createdAt: new Date().toISOString() },
+    results,
+    runsDir,
+  );
 
   return formatReport(results);
 }

@@ -1,11 +1,23 @@
 import nock from 'nock';
+import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
+import { tmpdir } from 'os';
 import { runCommand } from './run';
 
 const SCENARIOS_DIR = join(__dirname, '..', '..', 'scenarios');
 const BACKEND_URL = 'http://localhost:3001';
 const JUDGE_URL = 'http://localhost:11434';
 const JUDGE_MODEL = 'gemma3:4b';
+
+let runsDir: string;
+
+beforeEach(() => {
+  runsDir = mkdtempSync(join(tmpdir(), 'evals-run-test-'));
+});
+
+afterEach(() => {
+  rmSync(runsDir, { recursive: true });
+});
 
 const FAKE_SCORE = {
   engagement: 4,
@@ -33,7 +45,6 @@ function mockScenario(): void {
 
 beforeEach(() => {
   nock.cleanAll();
-  // Mock all 5 scenarios
   for (let i = 0; i < 5; i++) {
     mockScenario();
   }
@@ -50,6 +61,8 @@ describe('runCommand (integration)', () => {
       judgeUrl: JUDGE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
+      label: 'test-run',
+      runsDir,
     });
 
     expect(report).toContain('SUMMARY');
@@ -63,6 +76,8 @@ describe('runCommand (integration)', () => {
       judgeUrl: JUDGE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
+      label: 'test-run',
+      runsDir,
     });
 
     expect(report).toContain('a1-confused-beginner-food');
@@ -76,6 +91,8 @@ describe('runCommand (integration)', () => {
       judgeUrl: JUDGE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
+      label: 'test-run',
+      runsDir,
       onProgress: (event) => events.push(event.type),
     });
 
@@ -98,6 +115,8 @@ describe('runCommand (integration)', () => {
       judgeUrl: JUDGE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
+      label: 'test-run',
+      runsDir,
       onProgress: (event) => {
         if (event.type === 'scenario_error') errors.push(event.scenarioId);
       },
@@ -132,6 +151,8 @@ describe('runCommand (integration)', () => {
       judgeUrl: JUDGE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
+      label: 'test-run',
+      runsDir,
       onProgress: (event) => {
         if (event.type === 'scenario_error') errors.push(event.scenarioId);
       },
