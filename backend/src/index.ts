@@ -13,6 +13,7 @@ import { ExplainVocabularyUseCase } from './application/use-cases/explain-vocabu
 import { SaveVocabularyUseCase } from './application/use-cases/save-vocabulary-use-case';
 import { GetVocabularyUseCase } from './application/use-cases/get-vocabulary-use-case';
 import { GenerateTitleUseCase } from './application/use-cases/generate-title-use-case';
+import { ExtractTopicUseCase } from './application/use-cases/extract-topic-use-case';
 import { InMemoryConversationRepository } from './infrastructure/repositories/in-memory-conversation-repository';
 import { InMemoryVocabularyRepository } from './infrastructure/repositories/in-memory-vocabulary-repository';
 import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
@@ -55,10 +56,12 @@ function createApp(): express.Application {
     tutorService,
   );
   const generateTitleUseCase = new GenerateTitleUseCase(conversationRepository, titleService);
+  const extractTopicUseCase = new ExtractTopicUseCase(conversationRepository, tutorService);
   const sendMessageUseCase = new SendMessageUseCase(
     conversationRepository,
     tutorService,
     generateTitleUseCase,
+    extractTopicUseCase,
   );
   const getConversationUseCase = new GetConversationUseCase(
     conversationRepository,

@@ -16,8 +16,12 @@ HTTP POST /api/conversations/:id/messages       ← auto (Express)
         │           gen_ai.request.max_tokens   = 120
         │           gen_ai.usage.input_tokens   = …
         │           gen_ai.usage.output_tokens  = …
-        └─ GenerateTitleUseCase.execute          ← @Span() — fire-and-forget, runs after response
-              └─ OllamaTitleService.generateTitle ← @Span() decorator
+        ├─ GenerateTitleUseCase.execute          ← @Span() — fire-and-forget after 2nd student message
+        │     └─ OllamaTitleService.generateTitle ← @Span() decorator
+        │           └─ chat openai               ← auto (openai SDK)
+        │                 gen_ai.request.max_tokens = 20
+        └─ ExtractTopicUseCase.execute           ← @Span() — fire-and-forget after 4th student message
+              └─ OllamaTutorService.extractTopic ← @Span() decorator
                     └─ chat openai               ← auto (openai SDK)
                           gen_ai.request.max_tokens = 20
 ```

@@ -86,7 +86,6 @@ Unit tests live alongside source files (`*.test.ts`). Each file covers one layer
 
 ```
 domain/entities/           → pure logic, zero mocks
-domain/value-objects/      → pure logic, zero mocks
 application/use-cases/     → mock ConversationRepository + TutorService
 adapters/http/handlers/    → mock UseCase, mock Express Request/Response
 infrastructure/            → mock external clients (OpenAI, telemetry)
@@ -129,7 +128,11 @@ integration/
 `post-vocabulary.integration.test.ts` includes a key assertion: vocabulary lookups do **not** add messages to conversation history (`messages.length` stays at 1 after a vocabulary call). This guards against the vocabulary endpoint accidentally mutating conversation state.
 
 **Testing fire-and-forget background tasks:**
-`post-message.integration.test.ts` covers LLM title generation, which is triggered as a fire-and-forget after the second user message. Since the background task runs after the HTTP response is returned, the test uses a short `setTimeout` to allow it to complete before asserting:
+Two tasks run after the HTTP response is returned:
+- **Title generation** — triggered after the 2nd student message (`GenerateTitleUseCase`)
+- **Topic extraction** — triggered after the 4th student message (`ExtractTopicUseCase`)
+
+Both use the same pattern: a short `setTimeout` in the integration test allows the background task to complete before asserting on the stored result.
 
 ```ts
 await request(app).post(`/api/conversations/${id}/messages`).send({ message: '...' })

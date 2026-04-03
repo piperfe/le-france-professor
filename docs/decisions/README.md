@@ -55,6 +55,7 @@ Files are named `{category}-{date}-{slug}.md` and organised by domain below.
 |-----|-------|--------|------|
 | [ADR-0019](./llm-2026-03-09-model-gemma3-4b-eurollm-banned.md) | Model selection: gemma3:4b for 8 GB RAM — EuroLLM banned | Established | 2026-03-09 |
 | [ADR-0020](./llm-2026-03-10-tutor-prompt-design.md) | Tutor prompt design — tu, short, always a question, anti-repetition penalties | Established | 2026-03-10 |
+| [ADR-0029](./llm-2026-04-03-calibration-flow-topic-anchoring.md) | CALIBRATION → FLOW phase system — topic discovery and anchoring for student engagement | Established | 2026-04-03 |
 
 ## 🎙️ Voice & TTS
 

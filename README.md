@@ -6,7 +6,7 @@ A French learning application where students chat with an AI tutor powered by a 
 
 ## Features
 
-- **Chat Interface** — Interactive French conversation with an AI tutor. The tutor initiates each conversation on an interesting topic (AI in France, French culture, French in the world) and adapts to the student's level.
+- **Chat Interface** — Interactive French conversation with an AI tutor. The tutor opens each session by asking what the student enjoys talking about, then anchors the entire conversation on that topic. Errors are recast naturally mid-conversation; vocabulary is introduced in context.
 - **Voice Input** — Speak French directly into the chat. Audio is transcribed via whisper.cpp and placed in the input box for review before sending. Adaptive UX: click-to-toggle on desktop, press-and-hold on mobile. A live recording timer and transcription status keep students informed.
 - **Text-to-Speech** — Every tutor response has a speaker (▶) and slow-play (🐢) button. Audio is synthesised locally via piper1-gpl. Slow mode uses server-side `length_scale` for genuinely slower phoneme duration, not browser pitch-shifting. Only one message plays at a time.
 - **Slash Commands** — Type `/vocabulary [word]` for a contextual explanation of any French word. Typing `/` opens an autocomplete popup. The result appears as a `📖 word` card inline in the chat and is saved to the vocabulary notebook.

@@ -5,13 +5,18 @@ import type { Conversation } from '../../domain/entities/conversation';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import type { TutorService } from '../../domain/services/tutor-service';
 import type { GenerateTitleUseCase } from './generate-title-use-case';
+import type { ExtractTopicUseCase } from './extract-topic-use-case';
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
+
+const TITLE_TRIGGER_USER_MESSAGE = 2;
+const TOPIC_TRIGGER_USER_MESSAGE = 4;
 
 export class SendMessageUseCase {
   constructor(
     private conversationRepository: ConversationRepository,
     private tutorService: TutorService,
     private generateTitleUseCase: GenerateTitleUseCase,
+    private extractTopicUseCase: ExtractTopicUseCase,
   ) {}
 
   @Span()
@@ -36,7 +41,10 @@ export class SendMessageUseCase {
       const conversationHistory = this.buildConversationHistory(conversation);
 
       return ResultAsync.fromPromise(
-        this.tutorService.generateResponse(conversationHistory, userMessage),
+        this.tutorService.generateResponse(conversationHistory, userMessage, {
+          phase: conversation.phase(),
+          topic: conversation.topic,
+        }),
         (error) =>
           new ServiceUnavailableError(
             error instanceof Error ? error.message : 'Tutor service unavailable',
@@ -53,6 +61,7 @@ export class SendMessageUseCase {
             ),
         ).map(() => {
           this.maybeGenerateTitle(conversationId, conversation);
+          this.maybeExtractTopic(conversationId, conversation);
           return { message: userMessage, tutorResponse, messageId: tutorMsg.id };
         });
       });
@@ -60,11 +69,14 @@ export class SendMessageUseCase {
   }
 
   private maybeGenerateTitle(conversationId: string, conversation: Conversation): void {
-    const userMessageCount = conversation
-      .getMessages()
-      .filter((m) => m.sender === MessageSender.USER).length;
-    if (userMessageCount === 2 && !conversation.title) {
+    if (conversation.userMessageCount() === TITLE_TRIGGER_USER_MESSAGE && !conversation.isTitleGenerated()) {
       void this.generateTitleUseCase.execute(conversationId);
+    }
+  }
+
+  private maybeExtractTopic(conversationId: string, conversation: Conversation): void {
+    if (conversation.userMessageCount() === TOPIC_TRIGGER_USER_MESSAGE && !conversation.isTopicDiscovered()) {
+      void this.extractTopicUseCase.execute(conversationId);
     }
   }
 

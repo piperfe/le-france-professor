@@ -1,4 +1,9 @@
 import type { Message } from './message';
+import { MessageSender } from './message';
+
+const CALIBRATION_TURN_COUNT = 4;
+
+export type ConversationPhase = 'calibration' | 'flow';
 
 export class Conversation {
   constructor(
@@ -6,6 +11,7 @@ export class Conversation {
     private messages: Message[],
     public readonly createdAt: Date,
     public title: string | null = null,
+    public topic: string | null = null,
   ) {}
 
   static create(): Conversation {
@@ -20,6 +26,26 @@ export class Conversation {
 
   setTitle(title: string): void {
     this.title = title;
+  }
+
+  setTopic(topic: string): void {
+    this.topic = topic;
+  }
+
+  isTitleGenerated(): boolean {
+    return this.title !== null;
+  }
+
+  isTopicDiscovered(): boolean {
+    return this.topic !== null;
+  }
+
+  userMessageCount(): number {
+    return this.messages.filter((m) => m.sender === MessageSender.USER).length;
+  }
+
+  phase(): ConversationPhase {
+    return this.userMessageCount() <= CALIBRATION_TURN_COUNT ? 'calibration' : 'flow';
   }
 
   getMessages(): readonly Message[] {

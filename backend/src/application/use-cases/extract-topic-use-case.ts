@@ -1,13 +1,13 @@
 import { ResultAsync, errAsync } from 'neverthrow';
 import { Span } from '../../infrastructure/telemetry/decorators';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
-import type { TitleService } from '../../domain/services/title-service';
+import type { TutorService } from '../../domain/services/tutor-service';
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
-export class GenerateTitleUseCase {
+export class ExtractTopicUseCase {
   constructor(
     private conversationRepository: ConversationRepository,
-    private titleService: TitleService,
+    private tutorService: TutorService,
   ) {}
 
   @Span()
@@ -20,16 +20,16 @@ export class GenerateTitleUseCase {
         return errAsync(new NotFoundError('Conversation not found'));
       }
 
-      if (conversation.isTitleGenerated()) {
+      if (conversation.isTopicDiscovered()) {
         return ResultAsync.fromSafePromise(Promise.resolve());
       }
 
-      const messages = Array.from(conversation.getMessages());
+      const history = Array.from(conversation.getMessages()).map((m) => m.content);
       return ResultAsync.fromPromise(
-        this.titleService.generateTitle(messages),
+        this.tutorService.extractTopic(history),
         (e) => new ServiceUnavailableError((e as Error).message),
-      ).andThen((title) => {
-        conversation.setTitle(title);
+      ).andThen((topic) => {
+        conversation.setTopic(topic);
         return ResultAsync.fromPromise(
           this.conversationRepository.save(conversation),
           (e) => new ServiceUnavailableError((e as Error).message),

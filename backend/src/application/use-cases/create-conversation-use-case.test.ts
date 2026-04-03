@@ -17,6 +17,7 @@ describe('CreateConversationUseCase', () => {
     mockTutorService = {
       initiateConversation: jest.fn(),
       generateResponse: jest.fn(),
+      extractTopic: jest.fn(),
     };
     useCase = new CreateConversationUseCase(mockRepository, mockTutorService);
   });

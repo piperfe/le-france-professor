@@ -3,7 +3,7 @@ import { ConversationRepository } from '../../domain/repositories/conversation-r
 import { TitleService } from '../../domain/services/title-service';
 import { Conversation } from '../../domain/entities/conversation';
 import { Message, MessageSender } from '../../domain/entities/message';
-import { ServiceUnavailableError } from '../../domain/errors';
+import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
 describe('GenerateTitleUseCase', () => {
   let mockRepository: jest.Mocked<ConversationRepository>;
@@ -50,12 +50,15 @@ describe('GenerateTitleUseCase', () => {
     expect(mockRepository.save).not.toHaveBeenCalled();
   });
 
-  it('does nothing if conversation is not found', async () => {
+  it('returns NotFoundError when conversation does not exist', async () => {
     mockRepository.findById.mockResolvedValue(null);
 
     const result = await useCase.execute('unknown-id');
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error).toBeInstanceOf(NotFoundError);
+    }
     expect(mockTitleService.generateTitle).not.toHaveBeenCalled();
   });
 
