@@ -1,12 +1,14 @@
 import fetch from 'node-fetch';
 
 export type Level = 'A1' | 'A2' | 'B1' | 'B2';
+export type EvalMode = 'coherence' | 'discovery';
 
 export interface Scenario {
   id: string;
   description: string;
   level: Level;
   interest: string;
+  evalMode: EvalMode;
   studentTurns: string[];
 }
 
@@ -19,6 +21,7 @@ export interface Transcript {
   scenarioId: string;
   level: Level;
   interest: string;
+  evalMode: EvalMode;
   turns: Turn[];
 }
 
@@ -61,5 +64,11 @@ export async function runScenario(scenario: Scenario, backendUrl: string): Promi
     turns.push({ student: studentTurn, tutor: tutorResponse });
   }
 
-  return { scenarioId: scenario.id, level: scenario.level, interest: scenario.interest, turns };
+  return {
+    scenarioId: scenario.id,
+    level: scenario.level,
+    interest: scenario.interest,
+    evalMode: scenario.evalMode,
+    turns,
+  };
 }

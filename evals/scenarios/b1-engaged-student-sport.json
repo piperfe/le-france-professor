@@ -3,6 +3,7 @@
   "description": "B1 student, engaged and talkative, makes grammar mistakes naturally. Tests teaching quality — does the tutor use recasts and introduce vocabulary in context?",
   "level": "B1",
   "interest": "sport",
+  "evalMode": "coherence",
   "studentTurns": [
     "je joue au football depuis que j'ai dix ans",
     "oui, je joue avec mes amis chaque weekend. on a perdu le dernier match parce que notre gardien était pas là",

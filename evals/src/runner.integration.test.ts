@@ -9,6 +9,7 @@ const scenario: Scenario = {
   description: 'Minimal scenario used only by the integration test',
   level: 'A2',
   interest: 'food',
+  evalMode: 'coherence',
   studentTurns: ["j'aime manger.", 'le fromage surtout.'],
 };
 

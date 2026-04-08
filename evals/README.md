@@ -20,30 +20,35 @@ commands/compare.ts— loads two runs, diffs scores, prints arrow table
 cli.ts             — commander entry point with ora spinner
 ```
 
-Types are co-located with their owner: `Score` in `judge.ts`, `Scenario/Transcript` in `runner.ts`, `ScenarioResult` in `reporter.ts`, `RunRecord/RunMeta` in `storage.ts`.
+Types are co-located with their owner: `Score` in `judge.ts`, `EvalMode/Scenario/Transcript` in `runner.ts`, `ScenarioResult` in `reporter.ts`, `RunRecord/RunMeta` in `storage.ts`.
 
 ## Scenarios
 
-Static student personas in `scenarios/` — pre-written student turns that exercise known problem patterns:
+Static student personas in `scenarios/` — pre-written student turns that exercise known problem patterns. Each scenario has an `evalMode` that determines which topic dimension the judge scores:
 
-| File | Level | Pattern |
-|------|-------|---------|
-| `a1-confused-beginner-food.json` | A1 | Hesitant, 1-2 word answers |
-| `a2-shy-student-travel.json` | A2 | Mixes English — engagement cliff test |
-| `a2-one-word-answers.json` | A2 | Minimal responses — hardest engagement scenario |
-| `b1-engaged-student-sport.json` | B1 | Talkative with grammar mistakes |
-| `b1-mixed-language-cinema.json` | B1 | Switches to Spanish when stuck |
+| File | Level | evalMode | Pattern |
+|------|-------|----------|---------|
+| `a1-confused-beginner-food.json` | A1 | `coherence` | Hesitant, 1-2 word answers |
+| `a1-silent-beginner.json` | A1 | `discovery` | Only monosyllables — oui/non/d'accord |
+| `a2-shy-student-travel.json` | A2 | `coherence` | Mixes English — engagement cliff test |
+| `a2-one-word-answers.json` | A2 | `discovery` | Minimal responses — hardest engagement scenario |
+| `b1-engaged-student-sport.json` | B1 | `coherence` | Talkative with grammar mistakes |
+| `b1-mixed-language-cinema.json` | B1 | `coherence` | Switches to Spanish when stuck |
+| `b1-deflecting-student.json` | B1 | `discovery` | Grammatically present but actively evasive |
 
 The design is "Static seeds + LLM student" — student turns are fixed so results are reproducible across runs. LLM-generated student turns are a future option if you need broader coverage.
 
 ## Scoring dimensions
 
-Each conversation is scored 1–5 on four axes:
+Each conversation is scored 1–5 on four axes. The **topic** axis depends on the scenario's `evalMode`:
 
 - **engagement** — does the tutor keep the student wanting to continue?
 - **teaching_quality** — natural vocab intro, recasts, teaching in context
-- **topic_coherence** — does the tutor maintain a coherent topic thread?
+- **topic_coherence** *(coherence scenarios)* — the student's declared interest is passed as an anchor; penalises drift to unrelated topics (e.g. weather)
+- **topic_discovery** *(discovery scenarios)* — the student gave only minimal responses; scores whether the tutor actively probed for a concrete interest vs. defaulting to generic small talk
 - **question_naturalness** — varied and conversational, not a forced question every turn
+
+The summary report shows separate `Avg coherence` and `Avg discovery` rows. The compare table uses a unified `topic` column — each row picks whichever field is present.
 
 ## Running
 
@@ -79,7 +84,7 @@ Comparing: baseline → phase-v1
   baseline         gemma3:4b  "default prompt"         (2026-03-28)
   phase-v1         gemma3:4b  "discovery phase added"  (2026-03-29)
 ────────────────────────────────────────────────────────────────────────
-Scenario                        engage    teach     cohere    q_nat
+Scenario                        engage    teach     topic     q_nat
 ────────────────────────────────────────────────────────────────────────
 a1-confused-beginner-food       3→4↑      4→4=      5→5=      2→3↑
 a2-shy-student-travel           2→4↑      3→4↑      4→5↑      2→4↑
@@ -102,9 +107,11 @@ npx tsx src/cli.ts compare baseline phase-v1
 
 ## Judge model comparison (2026-03-27, gemma3:4b tutor, 5 scenarios)
 
+> **Note:** This data predates the `eval_mode` split. All 5 scenarios were scored with a single undifferentiated `topic_coherence` prompt — no interest anchor, no discovery dimension. The `cohere` column below reflects those old scores. Re-run with the current harness to get corrected `topic_coherence` / `topic_discovery` values.
+
 Ran all four local models that fit in 8 GB RAM as judges, plus a manual Claude evaluation, against the same 5 scenario transcripts:
 
-| Judge | engage | teach | cohere | q_nat | avg |
+| Judge | engage | teach | cohere (old) | q_nat | avg |
 |-------|--------|-------|--------|-------|-----|
 | `gemma3:4b` | 3.6 | 3.6 | 4.2 | 3.6 | **3.75** |
 | `llama3.2:3b` | 4.6 | 4.8 | 4.6 | 4.2 | **4.55** |

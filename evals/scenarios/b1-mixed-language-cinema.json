@@ -3,6 +3,7 @@
   "description": "B1 student who switches to Spanish when stuck, cinema topic. Tests whether the tutor handles code-switching gracefully and keeps the conversation in French.",
   "level": "B1",
   "interest": "cinema",
+  "evalMode": "coherence",
   "studentTurns": [
     "j'aime beaucoup le cinéma, surtout les films... como se dice 'de época' ?",
     "oui les films historiques ! j'ai vu un film français récemment mais je comprenais pas tout",

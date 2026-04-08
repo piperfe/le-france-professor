@@ -3,6 +3,7 @@
   "description": "A1 beginner, very hesitant, 1-2 word answers, food topic. Tests whether the tutor re-engages without overwhelming.",
   "level": "A1",
   "interest": "food",
+  "evalMode": "coherence",
   "studentTurns": [
     "euh... bonjour. je sais pas trop comment...",
     "j'aime manger.",

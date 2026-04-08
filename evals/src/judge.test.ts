@@ -1,8 +1,8 @@
 import { parseScore } from './judge';
 import type { Score } from './judge';
 
-describe('parseScore', () => {
-  it('maps snake_case Ollama output to camelCase Score', () => {
+describe('parseScore — coherence mode', () => {
+  it('parses a valid coherence score into a Score with topicCoherence set', () => {
     const raw = JSON.stringify({
       engagement: 4,
       teaching_quality: 3,
@@ -11,7 +11,7 @@ describe('parseScore', () => {
       rationale: 'Tutor kept the topic but ended every turn with a question.',
     });
 
-    expect(parseScore(raw)).toEqual<Score>({
+    expect(parseScore(raw, 'coherence')).toEqual<Score>({
       engagement: 4,
       teachingQuality: 3,
       topicCoherence: 5,
@@ -29,10 +29,22 @@ describe('parseScore', () => {
       rationale: 'Mixed.',
     });
 
-    expect(() => parseScore(raw)).not.toThrow();
+    expect(() => parseScore(raw, 'coherence')).not.toThrow();
   });
 
-  it('throws when model returns 0 — signals judge needs tuning, not a real score', () => {
+  it('throws when topic score is 0 — below valid range', () => {
+    const raw = JSON.stringify({
+      engagement: 3,
+      teaching_quality: 3,
+      topic_coherence: 0,
+      question_naturalness: 3,
+      rationale: 'Bad.',
+    });
+
+    expect(() => parseScore(raw, 'coherence')).toThrow('topicCoherence');
+  });
+
+  it('throws when model returns 0 on engagement', () => {
     const raw = JSON.stringify({
       engagement: 0,
       teaching_quality: 3,
@@ -41,10 +53,10 @@ describe('parseScore', () => {
       rationale: 'Bad.',
     });
 
-    expect(() => parseScore(raw)).toThrow('engagement');
+    expect(() => parseScore(raw, 'coherence')).toThrow('engagement');
   });
 
-  it('throws when model returns 6 — overflow from small model ignoring range constraint', () => {
+  it('throws when model returns 6 on teachingQuality', () => {
     const raw = JSON.stringify({
       engagement: 3,
       teaching_quality: 6,
@@ -53,10 +65,10 @@ describe('parseScore', () => {
       rationale: 'Bad.',
     });
 
-    expect(() => parseScore(raw)).toThrow('teachingQuality');
+    expect(() => parseScore(raw, 'coherence')).toThrow('teachingQuality');
   });
 
-  it('throws when score is a float — integer constraint not respected by model', () => {
+  it('throws when score is a float', () => {
     const raw = JSON.stringify({
       engagement: 3.5,
       teaching_quality: 3,
@@ -65,10 +77,42 @@ describe('parseScore', () => {
       rationale: 'Bad.',
     });
 
-    expect(() => parseScore(raw)).toThrow('engagement');
+    expect(() => parseScore(raw, 'coherence')).toThrow('engagement');
   });
 
-  it('throws on malformed JSON — Ollama returned non-parseable output', () => {
-    expect(() => parseScore('not json')).toThrow();
+  it('throws on malformed JSON', () => {
+    expect(() => parseScore('not json', 'coherence')).toThrow();
+  });
+});
+
+describe('parseScore — discovery mode', () => {
+  it('parses a valid discovery score into a Score with topicDiscovery set and topicCoherence absent', () => {
+    const raw = JSON.stringify({
+      engagement: 2,
+      teaching_quality: 3,
+      topic_discovery: 1,
+      question_naturalness: 4,
+      rationale: 'Tutor gave up and talked about the weather.',
+    });
+
+    expect(parseScore(raw, 'discovery')).toEqual<Score>({
+      engagement: 2,
+      teachingQuality: 3,
+      topicDiscovery: 1,
+      questionNaturalness: 4,
+      rationale: 'Tutor gave up and talked about the weather.',
+    });
+  });
+
+  it('throws when topic score is out of range', () => {
+    const raw = JSON.stringify({
+      engagement: 3,
+      teaching_quality: 3,
+      topic_discovery: 6,
+      question_naturalness: 3,
+      rationale: 'Bad.',
+    });
+
+    expect(() => parseScore(raw, 'discovery')).toThrow('topicDiscovery');
   });
 });

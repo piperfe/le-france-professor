@@ -14,10 +14,12 @@ const JUDGE_MODEL = process.env.JUDGE_MODEL ?? 'gemma3:4b';
 const DEFAULT_LABEL = `run-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')}`;
 
 function scoreLabel(score: Score): string {
+  const topicValue = score.topicCoherence ?? score.topicDiscovery;
+  const topicKey = score.topicDiscovery !== undefined ? 'disc' : 'coh';
   return (
     `engage:${score.engagement} ` +
     `teach:${score.teachingQuality} ` +
-    `cohere:${score.topicCoherence} ` +
+    `${topicKey}:${topicValue} ` +
     `q_nat:${score.questionNaturalness}`
   );
 }

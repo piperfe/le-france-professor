@@ -3,6 +3,7 @@
   "description": "A2 student, shy, mixes English when stuck, travel topic. Tests the engagement cliff — does the tutor lose the student at message 2-3?",
   "level": "A2",
   "interest": "travel",
+  "evalMode": "coherence",
   "studentTurns": [
     "j'aime voyager mais je suis... nervous ? en français",
     "j'ai visité Paris l'année dernière.",

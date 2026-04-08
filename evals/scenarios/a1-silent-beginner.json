@@ -1,0 +1,14 @@
+{
+  "id": "a1-silent-beginner",
+  "description": "A1 student giving only monosyllabic answers — bonjour, oui, non, d'accord. Tests whether the tutor probes for any topic at all using very simple scaffolding, vs defaulting to generic small talk.",
+  "level": "A1",
+  "interest": "unknown",
+  "evalMode": "discovery",
+  "studentTurns": [
+    "bonjour.",
+    "oui.",
+    "non.",
+    "euh... oui ?",
+    "d'accord."
+  ]
+}

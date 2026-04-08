@@ -17,18 +17,20 @@ const FAKE_META: RunMeta = {
   backendUrl: 'http://localhost:3001',
 };
 
-const FAKE_RESULT: ScenarioResult = {
+const FAKE_COHERENCE_RESULT: ScenarioResult = {
   scenario: {
     id: 'a1-test',
     description: 'Test scenario',
     level: 'A1',
     interest: 'food',
+    evalMode: 'coherence',
     studentTurns: ['Bonjour'],
   },
   transcript: {
     scenarioId: 'a1-test',
     level: 'A1',
     interest: 'food',
+    evalMode: 'coherence',
     turns: [{ student: 'Bonjour', tutor: 'Bonjour ! Comment tu vas ?' }],
   },
   score: {
@@ -40,10 +42,35 @@ const FAKE_RESULT: ScenarioResult = {
   },
 };
 
+const FAKE_DISCOVERY_RESULT: ScenarioResult = {
+  scenario: {
+    id: 'a2-one-word-answers',
+    description: 'Discovery scenario',
+    level: 'A2',
+    interest: 'unknown',
+    evalMode: 'discovery',
+    studentTurns: ['oui.'],
+  },
+  transcript: {
+    scenarioId: 'a2-one-word-answers',
+    level: 'A2',
+    interest: 'unknown',
+    evalMode: 'discovery',
+    turns: [{ student: 'oui.', tutor: 'Tu aimes la musique ?' }],
+  },
+  score: {
+    engagement: 3,
+    teachingQuality: 2,
+    topicDiscovery: 1,
+    questionNaturalness: 3,
+    rationale: 'Tutor gave up and talked about the weather.',
+  },
+};
+
 describe('saveRun / loadRun', () => {
   it('round-trips a run record', () => {
     const dir = tempDir();
-    saveRun(FAKE_META, [FAKE_RESULT], dir);
+    saveRun(FAKE_META, [FAKE_COHERENCE_RESULT], dir);
     const record = loadRun('baseline', dir);
     expect(record.label).toBe('baseline');
     expect(record.judgeModel).toBe('gemma3:4b');
@@ -52,9 +79,20 @@ describe('saveRun / loadRun', () => {
     rmSync(dir, { recursive: true });
   });
 
+  it('round-trips a discovery scenario preserving its topic score and eval mode', () => {
+    const dir = tempDir();
+    saveRun(FAKE_META, [FAKE_DISCOVERY_RESULT], dir);
+    const record = loadRun('baseline', dir);
+    const score = record.results[0].score;
+    expect(score.topicDiscovery).toBe(1);
+    expect(score.topicCoherence).toBeUndefined();
+    expect(record.results[0].scenario.evalMode).toBe('discovery');
+    rmSync(dir, { recursive: true });
+  });
+
   it('stores the optional note', () => {
     const dir = tempDir();
-    saveRun({ ...FAKE_META, note: 'default prompt before phase work' }, [FAKE_RESULT], dir);
+    saveRun({ ...FAKE_META, note: 'default prompt before phase work' }, [FAKE_COHERENCE_RESULT], dir);
     const record = loadRun('baseline', dir);
     expect(record.note).toBe('default prompt before phase work');
     rmSync(dir, { recursive: true });
@@ -62,7 +100,7 @@ describe('saveRun / loadRun', () => {
 
   it('omits note field when not provided', () => {
     const dir = tempDir();
-    saveRun(FAKE_META, [FAKE_RESULT], dir);
+    saveRun(FAKE_META, [FAKE_COHERENCE_RESULT], dir);
     const record = loadRun('baseline', dir);
     expect(record.note).toBeUndefined();
     rmSync(dir, { recursive: true });
@@ -70,7 +108,7 @@ describe('saveRun / loadRun', () => {
 
   it('creates the runs dir if it does not exist', () => {
     const dir = join(tmpdir(), `evals-missing-${Date.now()}`);
-    saveRun(FAKE_META, [FAKE_RESULT], dir);
+    saveRun(FAKE_META, [FAKE_COHERENCE_RESULT], dir);
     const record = loadRun('baseline', dir);
     expect(record.label).toBe('baseline');
     rmSync(dir, { recursive: true });
@@ -86,8 +124,8 @@ describe('saveRun / loadRun', () => {
 describe('listRuns', () => {
   it('returns saved labels sorted alphabetically', () => {
     const dir = tempDir();
-    saveRun({ ...FAKE_META, label: 'phase-v1' }, [FAKE_RESULT], dir);
-    saveRun({ ...FAKE_META, label: 'baseline' }, [FAKE_RESULT], dir);
+    saveRun({ ...FAKE_META, label: 'phase-v1' }, [FAKE_COHERENCE_RESULT], dir);
+    saveRun({ ...FAKE_META, label: 'baseline' }, [FAKE_COHERENCE_RESULT], dir);
     expect(listRuns(dir)).toEqual(['baseline', 'phase-v1']);
     rmSync(dir, { recursive: true });
   });
@@ -98,7 +136,7 @@ describe('listRuns', () => {
 
   it('ignores non-json files', () => {
     const dir = tempDir();
-    saveRun(FAKE_META, [FAKE_RESULT], dir);
+    saveRun(FAKE_META, [FAKE_COHERENCE_RESULT], dir);
     writeFileSync(join(dir, 'notes.txt'), 'ignore me');
     expect(listRuns(dir)).toEqual(['baseline']);
     rmSync(dir, { recursive: true });

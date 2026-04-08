@@ -12,8 +12,8 @@ function tempDir(): string {
 
 function makeResult(id: string, scores: Partial<ScenarioResult['score']> = {}): ScenarioResult {
   return {
-    scenario: { id, description: 'Test', level: 'A2', interest: 'food', studentTurns: ['Bonjour'] },
-    transcript: { scenarioId: id, level: 'A2', interest: 'food', turns: [] },
+    scenario: { id, description: 'Test', level: 'A2', interest: 'food', evalMode: 'coherence', studentTurns: ['Bonjour'] },
+    transcript: { scenarioId: id, level: 'A2', interest: 'food', evalMode: 'coherence', turns: [] },
     score: {
       engagement: 3,
       teachingQuality: 3,
@@ -54,13 +54,29 @@ describe('compareRuns', () => {
     rmSync(dir, { recursive: true });
   });
 
-  it('shows = for unchanged scores', () => {
+  it('shows = for unchanged topic scores', () => {
     const dir = tempDir();
     saveRun(BASE_META, [makeResult('a1-test', { topicCoherence: 3 })], dir);
     saveRun({ ...BASE_META, label: 'phase-v1' }, [makeResult('a1-test', { topicCoherence: 3 })], dir);
 
     const output = compareRuns({ labelA: 'baseline', labelB: 'phase-v1', runsDir: dir });
     expect(output).toContain('3→3=');
+    rmSync(dir, { recursive: true });
+  });
+
+  it('shows improvement arrow when discovery topic score increases between runs', () => {
+    const dir = tempDir();
+    const discoveryResult = (id: string, topicDiscovery: number): ScenarioResult => ({
+      scenario: { id, description: 'Test', level: 'A2', interest: 'unknown', evalMode: 'discovery', studentTurns: ['oui.'] },
+      transcript: { scenarioId: id, level: 'A2', interest: 'unknown', evalMode: 'discovery', turns: [] },
+      score: { engagement: 3, teachingQuality: 3, topicDiscovery, questionNaturalness: 3, rationale: 'Test.' },
+    });
+
+    saveRun(BASE_META, [discoveryResult('a2-one-word', 1)], dir);
+    saveRun({ ...BASE_META, label: 'phase-v1' }, [discoveryResult('a2-one-word', 4)], dir);
+
+    const output = compareRuns({ labelA: 'baseline', labelB: 'phase-v1', runsDir: dir });
+    expect(output).toContain('1→4↑');
     rmSync(dir, { recursive: true });
   });
 

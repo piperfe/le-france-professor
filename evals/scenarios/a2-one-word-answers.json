@@ -3,6 +3,7 @@
   "description": "A2 student giving minimal one-word answers throughout. The hardest engagement test — can the tutor pull the student back into the conversation?",
   "level": "A2",
   "interest": "music",
+  "evalMode": "discovery",
   "studentTurns": [
     "oui.",
     "non.",

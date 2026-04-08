@@ -1,0 +1,14 @@
+{
+  "id": "b1-deflecting-student",
+  "description": "B1 student who is grammatically present but actively evasive — deflects every topic with vague dismissals. More subtle than monosyllables. Tests whether the tutor finds creative angles to probe for a concrete interest vs giving up.",
+  "level": "B1",
+  "interest": "unknown",
+  "evalMode": "discovery",
+  "studentTurns": [
+    "je sais pas trop ce que j'aime vraiment.",
+    "bof, rien de spécial.",
+    "ça dépend des jours.",
+    "peu importe, tout se ressemble.",
+    "comme tout le monde je suppose."
+  ]
+}
