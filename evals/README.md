@@ -71,7 +71,13 @@ JUDGE_MODEL=gemma3:4b \
 npm run eval -- --label baseline
 ```
 
-Every run is automatically saved to `evals/runs/{label}.json` (gitignored). To compare two runs:
+Every run is automatically saved to `evals/runs/{label}.json` (gitignored). To reprint a saved run's full report:
+
+```bash
+npm run show calibration-flow-v2
+```
+
+To compare two runs:
 
 ```bash
 npm run compare baseline phase-v1

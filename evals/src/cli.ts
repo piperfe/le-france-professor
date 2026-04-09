@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import ora from 'ora';
 import { runCommand } from './commands/run';
 import { compareRuns } from './commands/compare';
+import { showRun } from './commands/show';
 import type { ProgressEvent } from './commands/run';
 import type { Score } from './judge';
 
@@ -86,6 +87,19 @@ program
     } catch (err) {
       spinner.stop();
       console.error('\n' + (err instanceof Error ? err.message : String(err)));
+      process.exit(1);
+    }
+  });
+
+program
+  .command('show <label>')
+  .description('Print the full report for a saved run')
+  .option('--runs-dir <path>', 'Directory for saved runs', RUNS_DIR)
+  .action((label: string, opts: { runsDir: string }) => {
+    try {
+      console.log('\n' + showRun({ label, runsDir: opts.runsDir }));
+    } catch (err) {
+      console.error(err instanceof Error ? err.message : String(err));
       process.exit(1);
     }
   });
