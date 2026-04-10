@@ -15,6 +15,7 @@ Files are named `{category}-{date}-{slug}.md` and organised by domain below.
 | [ADR-0002](./arch-2026-03-06-bff-pattern-browser-calls-bff-only.md) | BFF Pattern — browser never calls backend directly | Established | 2026-03-06 |
 | [ADR-0003](./arch-2026-03-04-di-container-lib-container.md) | DI Container — lib/container.ts for server-side wiring | Established | 2026-03-04 |
 | [ADR-0004](./arch-2026-03-02-openapi-embedded-in-express.md) | OpenAPI docs embedded in Express — not decoupled | Established | 2026-03-02 |
+| [ADR-0030](./arch-2026-04-10-whatsapp-cloud-api-webhook.md) | WhatsApp via Meta Cloud API webhook — one conversation per phone number | Established | 2026-04-10 |
 
 ## ⚛️ Frontend Patterns
 

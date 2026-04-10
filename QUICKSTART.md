@@ -89,7 +89,19 @@ python3 -m piper.http_server -m fr_FR-upmc-medium --data-dir ./models --port 760
 >
 > **Test piper:** `curl -s -X POST http://127.0.0.1:7602/ -H "Content-Type: application/json" -d '{"text":"Bonjour !"}' -o /tmp/test.wav && open /tmp/test.wav`
 
-## 4. (Optional) Start observability stack
+## 4. (Optional) Configure WhatsApp
+
+To receive and respond to WhatsApp messages, add these vars to `backend/.env`:
+
+```
+WHATSAPP_VERIFY_TOKEN=your-verify-token       # any string you choose — used when registering the webhook
+WHATSAPP_ACCESS_TOKEN=your-access-token       # Meta Cloud API permanent token
+WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id # from Meta → WhatsApp → API Setup
+```
+
+The webhook endpoint is `POST /api/webhook/whatsapp`. Register it in the Meta Developer Portal with the same `WHATSAPP_VERIFY_TOKEN`. Without these vars the WhatsApp routes are simply not registered and the rest of the app works normally.
+
+## 5. (Optional) Start observability stack
 
 Grafana + Tempo + Loki + OpenTelemetry collector for local traces and logs:
 
@@ -99,7 +111,7 @@ docker compose -f observability/docker-compose.yaml up -d
 
 Grafana is at [http://localhost:3100](http://localhost:3100). See [OBSERVABILITY.md](./OBSERVABILITY.md) for dashboard setup, adding spans, and exporter configuration.
 
-## 5. Start the app
+## 6. Start the app
 
 ```bash
 npm run dev

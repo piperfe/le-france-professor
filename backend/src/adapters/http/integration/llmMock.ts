@@ -23,4 +23,7 @@ export function chatCompletionsMock(content: string) {
 export function setIntegrationLlmEnv(): void {
   process.env.OLLAMA_MODEL = 'llama2';
   process.env.OLLAMA_BASE_URL = `${LLM_BASE_URL}/v1`;
+  process.env.WHATSAPP_VERIFY_TOKEN = 'test-verify-token';
+  process.env.WHATSAPP_ACCESS_TOKEN = 'test-access-token';
+  process.env.WHATSAPP_PHONE_NUMBER_ID = 'test-phone-id';
 }

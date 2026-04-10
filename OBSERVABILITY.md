@@ -4,7 +4,9 @@ The backend is instrumented with [OpenTelemetry](https://opentelemetry.io/) and 
 
 ## What is traced
 
-Every incoming HTTP request produces a trace tree:
+Every incoming request produces a trace tree. There are two entry points:
+
+### HTTP API (frontend)
 
 ```
 HTTP POST /api/conversations/:id/messages       ← auto (Express)
@@ -25,6 +27,22 @@ HTTP POST /api/conversations/:id/messages       ← auto (Express)
                     └─ chat openai               ← auto (openai SDK)
                           gen_ai.request.max_tokens = 20
 ```
+
+### WhatsApp webhook (Meta Cloud API)
+
+```
+HTTP POST /api/webhook/whatsapp                         ← auto (Express)
+  └─ HandleWhatsAppMessageUseCase.execute               ← @Span() decorator
+        └─ SendMessageUseCase.execute                   ← @Span() decorator (existing conversation)
+        │     └─ OllamaTutorService.generateResponse    ← @Span() decorator
+        │     │     └─ chat openai                      ← auto (openai SDK)
+        │     ├─ GenerateTitleUseCase.execute            ← @Span() fire-and-forget
+        │     └─ ExtractTopicUseCase.execute             ← @Span() fire-and-forget
+        └─ MetaWhatsAppClient.sendMessage               ← @Span() decorator
+              └─ POST graph.facebook.com/v25.0/…        ← auto (undici — native fetch)
+```
+
+One conversation is created per phone number on first contact and reused for all subsequent messages (no session reset). New conversations emit the initial greeting via `CreateConversationUseCase` before the first `SendMessageUseCase` call.
 
 Errors are automatically captured as span **exception events** with a full stack trace and the span status is set to `ERROR`. The `@Span()` decorator handles both thrown exceptions and neverthrow `Result.Err` returns — no extra code needed in error handlers.
 
@@ -140,7 +158,7 @@ class MyUseCase {
 }
 ```
 
-The decorator duck-types the return value via `isErr()` — if the method returns a `Result.Err`, the error is recorded as a span exception and the status is set to `ERROR`, exactly as if the method had thrown. A `Result.Ok` leaves the span status as `OK`.
+The decorator duck-types the return value via `.andThen` presence. For `ResultAsync` methods it chains `.map` / `.mapErr` to end the span; for `async` methods it chains `.then` / `.catch`. In both cases an error is recorded as a span exception and the status is set to `ERROR`. A successful result leaves the span status as `OK`.
 
 > Always add `@Span()` to use case `execute()` methods and service methods that call external I/O (LLM, repository). This keeps the trace tree complete for every request.
 
@@ -155,4 +173,5 @@ The decisions that shaped the observability setup are recorded in [`docs/decisio
 | [ADR-0016](./docs/decisions/observability-2026-02-26-span-decorator-tracing.md) | `@Span()` decorator — tracing without polluting business logic |
 | [ADR-0017](./docs/decisions/observability-2026-02-26-dual-exporter-console-or-otlp.md) | Dual exporter — console (default) or OTLP via env var |
 | [ADR-0018](./docs/decisions/observability-2026-02-26-llm-content-as-otel-log-records.md) | LLM content captured as OTel log records — not span events |
-| [ADR-0015](./docs/decisions/errors-2026-03-15-fire-and-forget-void-not-match.md) | Fire-and-forget ResultAsync: use `void`, not `.match()` — `@Span` strips ResultAsync at runtime |
+| [ADR-0015](./docs/decisions/errors-2026-03-15-fire-and-forget-void-not-match.md) | Fire-and-forget ResultAsync: use `void`, not `.match()` |
+| [ADR-0030](./docs/decisions/arch-2026-04-10-whatsapp-cloud-api-webhook.md) | WhatsApp via Meta Cloud API webhook — one conversation per phone number |

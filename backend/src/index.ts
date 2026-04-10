@@ -4,6 +4,7 @@ import express from 'express';
 import cors from 'cors';
 import { apiReference } from '@scalar/express-api-reference';
 import { createRoutes } from './adapters/http/routes';
+import { createWhatsAppRoutes } from './adapters/whatsapp/routes';
 import { openApiSpec } from './adapters/http/openapi-spec';
 import { CreateConversationUseCase } from './application/use-cases/create-conversation-use-case';
 import { SendMessageUseCase } from './application/use-cases/send-message-use-case';
@@ -14,11 +15,14 @@ import { SaveVocabularyUseCase } from './application/use-cases/save-vocabulary-u
 import { GetVocabularyUseCase } from './application/use-cases/get-vocabulary-use-case';
 import { GenerateTitleUseCase } from './application/use-cases/generate-title-use-case';
 import { ExtractTopicUseCase } from './application/use-cases/extract-topic-use-case';
+import { HandleWhatsAppMessageUseCase } from './application/use-cases/handle-whatsapp-message-use-case';
 import { InMemoryConversationRepository } from './infrastructure/repositories/in-memory-conversation-repository';
 import { InMemoryVocabularyRepository } from './infrastructure/repositories/in-memory-vocabulary-repository';
+import { InMemoryPhoneSessionRepository } from './infrastructure/repositories/in-memory-phone-session-repository';
 import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
 import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
+import { MetaWhatsAppClient } from './infrastructure/whatsapp/meta-whatsapp-client';
 
 function ensureOllamaConfig(): void {
   const model = process.env.OLLAMA_MODEL?.trim();
@@ -32,8 +36,19 @@ function ensureOllamaConfig(): void {
   }
 }
 
+function getWhatsAppConfig(): { verifyToken: string; accessToken: string; phoneNumberId: string } | null {
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
+
+  if (!verifyToken || !accessToken || !phoneNumberId) return null;
+
+  return { verifyToken, accessToken, phoneNumberId };
+}
+
 function createApp(): express.Application {
   ensureOllamaConfig();
+  const whatsAppConfig = getWhatsAppConfig();
 
   const app = express();
   app.use(cors());
@@ -85,6 +100,18 @@ function createApp(): express.Application {
       getVocabularyUseCase,
     ),
   );
+
+  if (whatsAppConfig) {
+    const phoneSessionRepository = new InMemoryPhoneSessionRepository();
+    const whatsAppSender = new MetaWhatsAppClient(whatsAppConfig.accessToken, whatsAppConfig.phoneNumberId);
+    const handleWhatsAppMessageUseCase = new HandleWhatsAppMessageUseCase(
+      phoneSessionRepository,
+      createConversationUseCase,
+      sendMessageUseCase,
+      whatsAppSender,
+    );
+    app.use('/api', createWhatsAppRoutes(whatsAppConfig.verifyToken, handleWhatsAppMessageUseCase));
+  }
 
   app.use('/docs', apiReference({ spec: { content: openApiSpec } }));
 

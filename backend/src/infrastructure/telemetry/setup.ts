@@ -9,6 +9,7 @@ import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { OpenAIInstrumentation } from '@opentelemetry/instrumentation-openai';
+import { UndiciInstrumentation } from '@opentelemetry/instrumentation-undici';
 
 const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: 'le-france-professor',
@@ -47,6 +48,10 @@ const sdk = new NodeSDK({
   instrumentations: [
     new HttpInstrumentation(),
     new ExpressInstrumentation(),
+    // Instruments native fetch() (backed by undici in Node.js 18+).
+    // Captures outgoing HTTP spans for calls like MetaWhatsAppClient.sendMessage()
+    // that use fetch instead of the http/https core modules.
+    new UndiciInstrumentation(),
     // Instruments every openai client call (chat.completions.create, etc.)
     // and emits spans with gen_ai.* semantic convention attributes.
     // Set OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true to also

@@ -23,6 +23,7 @@
     "@opentelemetry/instrumentation-express": "^0.60.0",
     "@opentelemetry/instrumentation-http": "^0.212.0",
     "@opentelemetry/instrumentation-openai": "^0.10.0",
+    "@opentelemetry/instrumentation-undici": "^0.24.0",
     "@opentelemetry/resources": "^2.5.1",
     "@opentelemetry/sdk-logs": "^0.212.0",
     "@opentelemetry/sdk-node": "^0.212.0",
