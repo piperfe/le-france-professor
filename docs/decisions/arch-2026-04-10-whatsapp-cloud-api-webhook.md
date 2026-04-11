@@ -52,6 +52,14 @@ This is intentionally different from the frontend model. The reasoning: forcing 
 - Free tier: 1,000 conversations/month per phone number; up to 5 test numbers before business verification; no time limit on the free tier
 - The one-conversation-per-phone model keeps `PhoneSessionRepository` simple (a Map) — future resets (daily, per-turn threshold, explicit command) would only touch the session layer, not the use cases
 
+### Webhook timeout constraint — respond 200 immediately
+
+Meta's webhook delivery has a **hard ~20s timeout**. If the server does not respond 200 within that window, Meta marks the delivery as failed and retries (up to 3 times). This is not configurable in the Meta for Developers console.
+
+The LLM (`gemma3:4b`) can take 30–40s under load — well past Meta's timeout. The original synchronous handler (`await use case → send 200`) caused Meta to retry mid-processing: both the original and the retry ran the full use case and sent two tutor messages to the student.
+
+**Decision:** The webhook handler responds 200 immediately and fires the use case with `void` (fire-and-forget). Meta gets its acknowledgement in milliseconds; the LLM + Meta send happen asynchronously. This is consistent with how `GenerateTitleUseCase` and `ExtractTopicUseCase` are handled in the conversational flow (ADR-0015). The trade-off: errors from the use case are no longer surfaced as HTTP error codes to Meta — they are silently dropped. This is acceptable because Meta retries are triggered by missing 200s, not by 4xx/5xx; returning 503 would only cause more retries.
+
 ## Source Conversation
 
 > **Apr 10 — Thursday**
