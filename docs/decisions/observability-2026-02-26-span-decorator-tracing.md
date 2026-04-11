@@ -21,6 +21,16 @@ Use the @Span() TypeScript decorator on async methods in use cases and services.
 - Side effect: @Span wraps return value in a plain Promise, stripping ResultAsync — see fire-and-forget ADR.
 - handleError in Express was reverted to simple form — @Span already captures exceptions.
 
+## Update — 2026-04-11
+
+The "Side effect: @Span wraps return value in a plain Promise, stripping ResultAsync" consequence, combined with a hexagonal architecture violation (application layer importing from infrastructure), motivated a change to how use cases are traced.
+
+**Use cases no longer use `@Span()`.**  They are wrapped with `withTracing()` at the composition root (`src/index.ts`). This is a JS Proxy that intercepts method calls and wraps them in spans — same span naming convention (`ClassName.methodName`), same error handling — but applied from outside the use case, keeping the application layer free of infrastructure imports.
+
+`@Span()` is retained for infrastructure service methods (LLM, WhatsApp) where the decorator pattern remains appropriate.
+
+The shared wrapping logic (`wrapResultAsync`, `wrapPromise`, `endSpanOk`, `endSpanErr`) lives in `infrastructure/telemetry/span-wrappers.ts`, used by both mechanisms.
+
 ## Source Conversation
 
 > **Feb 26 — Thursday — 20:22**

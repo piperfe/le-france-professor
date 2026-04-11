@@ -1,5 +1,4 @@
 import { ResultAsync } from 'neverthrow';
-import { Span } from '../../infrastructure/telemetry/decorators';
 import type { PhoneSessionRepository } from '../../domain/repositories/phone-session-repository';
 import type { WhatsAppSender } from '../../domain/services/whatsapp-sender';
 import type { CreateConversationUseCase } from './create-conversation-use-case';
@@ -14,7 +13,6 @@ export class HandleWhatsAppMessageUseCase {
     private readonly whatsAppSender: WhatsAppSender,
   ) {}
 
-  @Span()
   execute(
     phone: string,
     messageText: string,

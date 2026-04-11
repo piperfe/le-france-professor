@@ -10,7 +10,7 @@ The layers manifest differently depending on what the code does, not because of 
 
 | Layer | Tool | What is mocked |
 |---|---|---|
-| **Static analysis** | TypeScript + ESLint | — |
+| **Static analysis** | TypeScript + ESLint + eslint-plugin-boundaries | — |
 | **Unit** | Jest | All dependencies — validates error branches and per-layer contracts |
 | **Integration** | Jest + Supertest + Nock | Only the external LLM call — full Express stack exercised as a real HTTP client would |
 
@@ -378,3 +378,4 @@ The decisions that shaped the testing strategy are recorded in [`docs/decisions/
 | [ADR-0011](./docs/decisions/testing-2026-03-12-msw-inline-per-test-file.md) | MSW inline per test file — no shared handlers.ts |
 | [ADR-0012](./docs/decisions/testing-2026-03-15-e2e-one-spec-per-feature.md) | E2E: one spec file per feature + shared helpers.ts |
 | [ADR-0013](./docs/decisions/testing-2026-03-12-tests-same-step-as-code.md) | Tests are written in the same step as code — never deferred |
+| [ADR-0031](./docs/decisions/arch-2026-04-11-eslint-boundaries-hexagonal-enforcement.md) | eslint-plugin-boundaries — hexagonal layer violations caught at lint time |

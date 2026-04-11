@@ -1,5 +1,4 @@
 import { ResultAsync } from 'neverthrow';
-import { Span } from '../../infrastructure/telemetry/decorators';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import { ServiceUnavailableError } from '../../domain/errors';
 
@@ -20,7 +19,6 @@ type ConversationSummaryDTO = {
 export class GetAllConversationsUseCase {
   constructor(private conversationRepository: ConversationRepository) {}
 
-  @Span()
   execute(): ResultAsync<ConversationSummaryDTO[], ServiceUnavailableError> {
     return ResultAsync.fromPromise(
       this.conversationRepository.findAll(),

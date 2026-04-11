@@ -1,5 +1,4 @@
 import { ResultAsync } from 'neverthrow';
-import { Span } from '../../infrastructure/telemetry/decorators';
 import { Conversation } from '../../domain/entities/conversation';
 import { Message, MessageSender } from '../../domain/entities/message';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
@@ -17,7 +16,6 @@ export class CreateConversationUseCase {
     private tutorService: TutorService,
   ) {}
 
-  @Span()
   execute(): ResultAsync<CreateConversationDTO, ServiceUnavailableError> {
     const conversation = Conversation.create();
 

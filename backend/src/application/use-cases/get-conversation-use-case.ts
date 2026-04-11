@@ -1,5 +1,4 @@
 import { ResultAsync, errAsync, okAsync } from 'neverthrow';
-import { Span } from '../../infrastructure/telemetry/decorators';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
@@ -18,7 +17,6 @@ type ConversationDTO = {
 export class GetConversationUseCase {
   constructor(private conversationRepository: ConversationRepository) {}
 
-  @Span()
   execute(
     conversationId: string,
   ): ResultAsync<ConversationDTO, NotFoundError | ServiceUnavailableError> {

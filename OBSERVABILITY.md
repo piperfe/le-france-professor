@@ -4,13 +4,19 @@ The backend is instrumented with [OpenTelemetry](https://opentelemetry.io/) and 
 
 ## What is traced
 
-Every incoming request produces a trace tree. There are two entry points:
+| What | How | Files |
+|---|---|---|
+| Incoming HTTP requests | auto-instrumented | `instrumentation-express`, `instrumentation-http` |
+| Use cases | `withTracing()` proxy at composition root | `infrastructure/telemetry/tracing-proxy.ts`, `src/index.ts` |
+| Infrastructure services (LLM, WhatsApp) | `@Span()` decorator | `infrastructure/telemetry/decorators.ts`, `infrastructure/llm/ollama-*.ts`, `infrastructure/whatsapp/meta-whatsapp-client.ts` |
+| LLM calls | auto-instrumented with `gen_ai.*` attributes | `instrumentation-openai` |
+| Outgoing HTTP (fetch) | auto-instrumented | `instrumentation-undici` |
 
-### HTTP API (frontend)
+### Example trace — send message
 
 ```
 HTTP POST /api/conversations/:id/messages       ← auto (Express)
-  └─ SendMessageUseCase.execute                 ← @Span() decorator
+  └─ SendMessageUseCase.execute                 ← withTracing() proxy
         └─ OllamaTutorService.generateResponse  ← @Span() decorator
         │     └─ chat openai                    ← auto (openai SDK)
         │           gen_ai.request.model        = "hf.co/..."
@@ -18,33 +24,15 @@ HTTP POST /api/conversations/:id/messages       ← auto (Express)
         │           gen_ai.request.max_tokens   = 120
         │           gen_ai.usage.input_tokens   = …
         │           gen_ai.usage.output_tokens  = …
-        ├─ GenerateTitleUseCase.execute          ← @Span() — fire-and-forget after 2nd student message
+        ├─ GenerateTitleUseCase.execute          ← withTracing() — fire-and-forget after 2nd student message
         │     └─ OllamaTitleService.generateTitle ← @Span() decorator
         │           └─ chat openai               ← auto (openai SDK)
-        │                 gen_ai.request.max_tokens = 20
-        └─ ExtractTopicUseCase.execute           ← @Span() — fire-and-forget after 4th student message
+        └─ ExtractTopicUseCase.execute           ← withTracing() — fire-and-forget after 4th student message
               └─ OllamaTutorService.extractTopic ← @Span() decorator
                     └─ chat openai               ← auto (openai SDK)
-                          gen_ai.request.max_tokens = 20
 ```
 
-### WhatsApp webhook (Meta Cloud API)
-
-```
-HTTP POST /api/webhook/whatsapp                         ← auto (Express)
-  └─ HandleWhatsAppMessageUseCase.execute               ← @Span() decorator
-        └─ SendMessageUseCase.execute                   ← @Span() decorator (existing conversation)
-        │     └─ OllamaTutorService.generateResponse    ← @Span() decorator
-        │     │     └─ chat openai                      ← auto (openai SDK)
-        │     ├─ GenerateTitleUseCase.execute            ← @Span() fire-and-forget
-        │     └─ ExtractTopicUseCase.execute             ← @Span() fire-and-forget
-        └─ MetaWhatsAppClient.sendMessage               ← @Span() decorator
-              └─ POST graph.facebook.com/v25.0/…        ← auto (undici — native fetch)
-```
-
-One conversation is created per phone number on first contact and reused for all subsequent messages (no session reset). New conversations emit the initial greeting via `CreateConversationUseCase` before the first `SendMessageUseCase` call.
-
-Errors are automatically captured as span **exception events** with a full stack trace and the span status is set to `ERROR`. The `@Span()` decorator handles both thrown exceptions and neverthrow `Result.Err` returns — no extra code needed in error handlers.
+Errors are automatically captured as span **exception events** with a full stack trace and the span status is set to `ERROR`. Both `withTracing()` and `@Span()` handle thrown exceptions and neverthrow `Result.Err` returns — no extra code needed in error handlers.
 
 ## Selecting an exporter
 
@@ -126,41 +114,40 @@ docker compose down
 
 Data is not persisted — traces and logs are lost on shutdown.
 
-## Adding spans to new classes
+## Adding spans to new code
 
-Use the `@Span()` decorator — it creates a named span and sets the span status to `ERROR` automatically. It handles both error patterns used in this codebase:
+Two mechanisms are in use — choose based on the layer:
 
-**Classic async (throws):**
+### Use cases → `withTracing()` at the composition root
+
+New use cases get tracing for free — `withTracing()` is applied to every use case in `src/index.ts`. No import needed in the use case itself.
+
 ```ts
-import { Span } from '../infrastructure/telemetry/decorators';
+// src/index.ts
+const myUseCase = withTracing(new MyUseCase(repository));
+```
 
-class MyUseCase {
+### Infrastructure services → `@Span()` decorator
+
+For service methods that call external I/O (LLM, HTTP), apply `@Span()` directly. Handles both `async` (throws) and `ResultAsync` (neverthrow) return types:
+
+```ts
+import { Span } from '../telemetry/decorators';
+
+class MyService {
   @Span()
-  async execute(): Promise<Result> {
-    if (!found) throw new NotFoundError('...');  // ← span marked ERROR + exception recorded
-    return result;
+  async call(): Promise<string> {
+    // thrown errors → span marked ERROR + exception recorded
+  }
+
+  @Span()
+  query(): ResultAsync<string, ServiceUnavailableError> {
+    // Err results → span marked ERROR + exception recorded
   }
 }
 ```
 
-**neverthrow (returns `ResultAsync`):**
-```ts
-import { Span } from '../infrastructure/telemetry/decorators';
-
-class MyUseCase {
-  @Span()
-  execute(): ResultAsync<Result, NotFoundError | ServiceUnavailableError> {
-    return ResultAsync.fromPromise(...).andThen((value) => {
-      if (!value) return errAsync(new NotFoundError('...'));  // ← span marked ERROR + exception recorded
-      return okAsync(value);
-    });
-  }
-}
-```
-
-The decorator duck-types the return value via `.andThen` presence. For `ResultAsync` methods it chains `.map` / `.mapErr` to end the span; for `async` methods it chains `.then` / `.catch`. In both cases an error is recorded as a span exception and the status is set to `ERROR`. A successful result leaves the span status as `OK`.
-
-> Always add `@Span()` to use case `execute()` methods and service methods that call external I/O (LLM, repository). This keeps the trace tree complete for every request.
+In both cases the span status is set to `ERROR` automatically on failure. A successful result leaves the status as `OK`.
 
 ---
 

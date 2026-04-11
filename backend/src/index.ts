@@ -23,6 +23,7 @@ import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
 import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
 import { MetaWhatsAppClient } from './infrastructure/whatsapp/meta-whatsapp-client';
+import { withTracing } from './infrastructure/telemetry/tracing-proxy';
 
 function ensureOllamaConfig(): void {
   const model = process.env.OLLAMA_MODEL?.trim();
@@ -66,27 +67,23 @@ function createApp(): express.Application {
   const vocabularyService = new OllamaVocabularyService(ollamaConfig);
   const titleService = new OllamaTitleService(ollamaConfig);
 
-  const createConversationUseCase = new CreateConversationUseCase(
+  const createConversationUseCase = withTracing(new CreateConversationUseCase(
     conversationRepository,
     tutorService,
-  );
-  const generateTitleUseCase = new GenerateTitleUseCase(conversationRepository, titleService);
-  const extractTopicUseCase = new ExtractTopicUseCase(conversationRepository, tutorService);
-  const sendMessageUseCase = new SendMessageUseCase(
+  ));
+  const generateTitleUseCase = withTracing(new GenerateTitleUseCase(conversationRepository, titleService));
+  const extractTopicUseCase = withTracing(new ExtractTopicUseCase(conversationRepository, tutorService));
+  const sendMessageUseCase = withTracing(new SendMessageUseCase(
     conversationRepository,
     tutorService,
     generateTitleUseCase,
     extractTopicUseCase,
-  );
-  const getConversationUseCase = new GetConversationUseCase(
-    conversationRepository,
-  );
-  const getAllConversationsUseCase = new GetAllConversationsUseCase(
-    conversationRepository,
-  );
-  const explainVocabularyUseCase = new ExplainVocabularyUseCase(vocabularyService);
-  const saveVocabularyUseCase = new SaveVocabularyUseCase(vocabularyRepository);
-  const getVocabularyUseCase = new GetVocabularyUseCase(vocabularyRepository);
+  ));
+  const getConversationUseCase = withTracing(new GetConversationUseCase(conversationRepository));
+  const getAllConversationsUseCase = withTracing(new GetAllConversationsUseCase(conversationRepository));
+  const explainVocabularyUseCase = withTracing(new ExplainVocabularyUseCase(vocabularyService));
+  const saveVocabularyUseCase = withTracing(new SaveVocabularyUseCase(vocabularyRepository));
+  const getVocabularyUseCase = withTracing(new GetVocabularyUseCase(vocabularyRepository));
 
   app.use(
     '/api',
@@ -104,12 +101,12 @@ function createApp(): express.Application {
   if (whatsAppConfig) {
     const phoneSessionRepository = new InMemoryPhoneSessionRepository();
     const whatsAppSender = new MetaWhatsAppClient(whatsAppConfig.accessToken, whatsAppConfig.phoneNumberId);
-    const handleWhatsAppMessageUseCase = new HandleWhatsAppMessageUseCase(
+    const handleWhatsAppMessageUseCase = withTracing(new HandleWhatsAppMessageUseCase(
       phoneSessionRepository,
       createConversationUseCase,
       sendMessageUseCase,
       whatsAppSender,
-    );
+    ));
     app.use('/api', createWhatsAppRoutes(whatsAppConfig.verifyToken, handleWhatsAppMessageUseCase));
   }
 

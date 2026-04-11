@@ -1,5 +1,4 @@
 import { ResultAsync, errAsync } from 'neverthrow';
-import { Span } from '../../infrastructure/telemetry/decorators';
 import { Message, MessageSender } from '../../domain/entities/message';
 import type { Conversation } from '../../domain/entities/conversation';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
@@ -19,7 +18,6 @@ export class SendMessageUseCase {
     private extractTopicUseCase: ExtractTopicUseCase,
   ) {}
 
-  @Span()
   execute(
     conversationId: string,
     userMessage: string,

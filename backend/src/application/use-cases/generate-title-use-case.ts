@@ -1,5 +1,4 @@
 import { ResultAsync, errAsync } from 'neverthrow';
-import { Span } from '../../infrastructure/telemetry/decorators';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import type { TitleService } from '../../domain/services/title-service';
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
@@ -10,7 +9,6 @@ export class GenerateTitleUseCase {
     private titleService: TitleService,
   ) {}
 
-  @Span()
   execute(conversationId: string): ResultAsync<void, NotFoundError | ServiceUnavailableError> {
     return ResultAsync.fromPromise(
       this.conversationRepository.findById(conversationId),

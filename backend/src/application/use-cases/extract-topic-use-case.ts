@@ -1,5 +1,4 @@
 import { ResultAsync, errAsync } from 'neverthrow';
-import { Span } from '../../infrastructure/telemetry/decorators';
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository';
 import type { TutorService } from '../../domain/services/tutor-service';
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
@@ -10,7 +9,6 @@ export class ExtractTopicUseCase {
     private tutorService: TutorService,
   ) {}
 
-  @Span()
   execute(conversationId: string): ResultAsync<void, NotFoundError | ServiceUnavailableError> {
     return ResultAsync.fromPromise(
       this.conversationRepository.findById(conversationId),

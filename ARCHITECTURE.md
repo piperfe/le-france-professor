@@ -26,6 +26,8 @@ frontend/src/
 
 Layer order is strict — no skipping. A component may not import from `application/` directly; it goes through `app/api/` route handlers.
 
+Backend layer boundaries are enforced automatically by `eslint-plugin-boundaries` — violations fail `npm run lint` and CI. See [ADR-0031](./docs/decisions/arch-2026-04-11-eslint-boundaries-hexagonal-enforcement.md).
+
 ## BFF pattern
 
 The browser never calls the Express backend directly. All requests flow through Next.js as a Backend for Frontend:
@@ -83,3 +85,5 @@ The decisions that shaped this architecture are recorded in [`docs/decisions/`](
 | [ADR-0008](./docs/decisions/frontend-2026-03-09-ssr-guard-lazy-usestate.md) | SSR guard for browser-only globals via lazy useState initialiser |
 | [ADR-0014](./docs/decisions/errors-2026-03-15-neverthrow-resultasync-typed-errors.md) | neverthrow ResultAsync for use cases — typed errors at the boundary |
 | [ADR-0015](./docs/decisions/errors-2026-03-15-fire-and-forget-void-not-match.md) | Fire-and-forget ResultAsync: use `void`, not `.match()` |
+| [ADR-0030](./docs/decisions/arch-2026-04-10-whatsapp-cloud-api-webhook.md) | WhatsApp via Meta Cloud API webhook — one conversation per phone number |
+| [ADR-0031](./docs/decisions/arch-2026-04-11-eslint-boundaries-hexagonal-enforcement.md) | eslint-plugin-boundaries — automated hexagonal layer enforcement |
