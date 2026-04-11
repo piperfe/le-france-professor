@@ -128,11 +128,14 @@ integration/
 `post-vocabulary.integration.test.ts` includes a key assertion: vocabulary lookups do **not** add messages to conversation history (`messages.length` stays at 1 after a vocabulary call). This guards against the vocabulary endpoint accidentally mutating conversation state.
 
 **Testing fire-and-forget background tasks:**
-Two tasks run after the HTTP response is returned:
+Several tasks run after the HTTP response is returned:
 - **Title generation** — triggered after the 2nd student message (`GenerateTitleUseCase`)
 - **Topic extraction** — triggered after the 4th student message (`ExtractTopicUseCase`)
+- **WhatsApp message processing** — the webhook handler responds 200 immediately; the full use case (LLM + Meta API send) runs async
 
-Both use the same pattern: a short `setTimeout` in the integration test allows the background task to complete before asserting on the stored result.
+All use the same pattern: a short `setTimeout` in the integration test allows the background chain to complete before asserting on the result.
+
+> **Why not `setImmediate` loop?** The OpenAI SDK (used by `OllamaTutorService`) adds async layers between the nock intercept and the Promise chain that require real event loop time. A `setImmediate` loop drains microtasks but not those layers. `setTimeout(resolve, 50)` is a safe ceiling — with nock (in-memory, no network), the entire chain completes in < 1ms.
 
 ```ts
 await request(app).post(`/api/conversations/${id}/messages`).send({ message: '...' })

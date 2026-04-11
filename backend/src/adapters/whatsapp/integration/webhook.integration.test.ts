@@ -25,6 +25,8 @@ function metaPayload(from: string, body: string) {
   };
 }
 
+const flushAsync = () => new Promise((resolve) => setTimeout(resolve, 50));
+
 describe('WhatsApp webhook (integration)', () => {
   let app: express.Application;
 
@@ -56,6 +58,7 @@ describe('WhatsApp webhook (integration)', () => {
       .send(metaPayload('+56967022669', 'Salut'));
 
     expect(res.status).toBe(200);
+    await flushAsync();
     expect(meta.isDone()).toBe(true);
   });
 
@@ -63,6 +66,7 @@ describe('WhatsApp webhook (integration)', () => {
     chatCompletionsMock('Bonjour !');
     metaApiMock();
     await request(app).post('/api/webhook/whatsapp').send(metaPayload('+15551111111', 'Salut'));
+    await flushAsync();
 
     chatCompletionsMock('Très bien ! Qu\'est-ce que tu veux apprendre ?');
     const meta = metaApiMock();
@@ -72,6 +76,7 @@ describe('WhatsApp webhook (integration)', () => {
       .send(metaPayload('+15551111111', 'Ça va bien !'));
 
     expect(res.status).toBe(200);
+    await flushAsync();
     expect(meta.isDone()).toBe(true);
   });
 });
