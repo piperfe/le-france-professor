@@ -1,6 +1,11 @@
 import nock from 'nock';
+import { logInfo } from '../telemetry/logger';
 import { WhisperTranscriptionService } from './whisper-transcription-service';
 import { ServiceUnavailableError } from '../../domain/errors';
+
+jest.mock('../telemetry/logger', () => ({
+  logInfo: jest.fn(),
+}));
 
 const WHISPER_URL = 'http://127.0.0.1:7600';
 const fakeAudio = Buffer.from('ogg-audio-data');
@@ -18,9 +23,7 @@ describe('WhisperTranscriptionService', () => {
   });
 
   it('converts the audio format before sending to whisper', async () => {
-    nock(WHISPER_URL)
-      .post('/inference')
-      .reply(200, { text: 'Bonjour !' });
+    nock(WHISPER_URL).post('/inference').reply(200, { text: 'Bonjour !' });
 
     await service.transcribe(fakeAudio);
 
@@ -34,9 +37,15 @@ describe('WhisperTranscriptionService', () => {
   });
 
   it('returns the transcribed text', async () => {
-    nock(WHISPER_URL)
-      .post('/inference')
-      .reply(200, { text: 'Je veux parler de cuisine.' });
+    nock(WHISPER_URL).post('/inference').reply(200, { text: 'Je veux parler de cuisine.' });
+
+    const result = await service.transcribe(fakeAudio);
+
+    expect(result).toBe('Je veux parler de cuisine.');
+  });
+
+  it('trims leading and trailing whitespace from the whisper response', async () => {
+    nock(WHISPER_URL).post('/inference').reply(200, { text: '  Je veux parler de cuisine.  ' });
 
     const result = await service.transcribe(fakeAudio);
 
@@ -44,10 +53,31 @@ describe('WhisperTranscriptionService', () => {
   });
 
   it('throws ServiceUnavailableError when whisper responds with an error', async () => {
-    nock(WHISPER_URL)
-      .post('/inference')
-      .reply(503);
+    nock(WHISPER_URL).post('/inference').reply(503);
 
     await expect(service.transcribe(fakeAudio)).rejects.toBeInstanceOf(ServiceUnavailableError);
+  });
+
+  describe('transcription content capture', () => {
+    afterEach(() => {
+      delete process.env.OTEL_WHATSAPP_CAPTURE_TRANSCRIPTION;
+    });
+
+    it('emits the transcribed text as an OTel log record when capture is enabled', async () => {
+      process.env.OTEL_WHATSAPP_CAPTURE_TRANSCRIPTION = 'true';
+      nock(WHISPER_URL).post('/inference').reply(200, { text: 'Je veux parler de cuisine.' });
+
+      await service.transcribe(fakeAudio);
+
+      expect(logInfo).toHaveBeenCalledWith('Je veux parler de cuisine.', { 'event.name': 'whatsapp.transcription' });
+    });
+
+    it('does not emit a log record when capture is disabled', async () => {
+      nock(WHISPER_URL).post('/inference').reply(200, { text: 'Je veux parler de cuisine.' });
+
+      await service.transcribe(fakeAudio);
+
+      expect(logInfo).not.toHaveBeenCalled();
+    });
   });
 });

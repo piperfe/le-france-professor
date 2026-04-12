@@ -1,3 +1,4 @@
+import { logInfo } from '../telemetry/logger';
 import type { AudioTranscriber } from '../../domain/services/audio-transcriber';
 import { ServiceUnavailableError } from '../../domain/errors';
 import { convertOggToWav } from './ogg-to-wav-converter';
@@ -28,6 +29,15 @@ export class WhisperTranscriptionService implements AudioTranscriber {
     }
 
     const { text } = (await response.json()) as { text: string };
-    return text;
+    const transcription = text.trim();
+
+    // Transcription text is content (variable-length), not metadata — emitted as an
+    // OTel log record correlated to the active span, consistent with how
+    // OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT captures LLM prompt/response content.
+    if (process.env.OTEL_WHATSAPP_CAPTURE_TRANSCRIPTION === 'true') {
+      logInfo(transcription, { 'event.name': 'whatsapp.transcription' });
+    }
+
+    return transcription;
   }
 }

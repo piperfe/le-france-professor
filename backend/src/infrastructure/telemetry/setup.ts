@@ -6,13 +6,14 @@ import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { logs } from '@opentelemetry/api-logs';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
+import { SERVICE_NAME } from './constants';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { OpenAIInstrumentation } from '@opentelemetry/instrumentation-openai';
 import { UndiciInstrumentation } from '@opentelemetry/instrumentation-undici';
 
 const resource = resourceFromAttributes({
-  [ATTR_SERVICE_NAME]: 'le-france-professor',
+  [ATTR_SERVICE_NAME]: SERVICE_NAME,
 });
 
 // OTEL_TRACES_EXPORTER=console  → stdout (default for development)

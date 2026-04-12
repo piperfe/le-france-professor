@@ -149,6 +149,35 @@ class MyService {
 
 In both cases the span status is set to `ERROR` automatically on failure. A successful result leaves the status as `OK`.
 
+### Content logs → `logInfo()` helper
+
+When a service produces **content** (variable-length text output from an AI model — not metadata), emit it as an OTel log record so it lands in Loki correlated to the active span. Do not use span attributes for content — they are size-limited and indexed.
+
+Use the shared `logInfo()` helper from `infrastructure/telemetry/logger.ts`:
+
+```ts
+import { logInfo } from '../telemetry/logger';
+
+// Inside a @Span()-decorated method, while the span is active:
+if (process.env.OTEL_WHATSAPP_CAPTURE_TRANSCRIPTION === 'true') {
+  logInfo(transcription, { 'event.name': 'whatsapp.transcription' });
+}
+```
+
+`logInfo()` handles:
+- **Format** — body is wrapped as `{"content": "..."}`, matching the LLM log convention so both are queryable the same way in Loki (`| json | line_format "{{.content}}"`)
+- **Severity** — `INFO` / `SeverityNumber.INFO`
+- **Correlation** — the OTel SDK automatically injects `traceId` and `spanId` from the active span context into the log record
+
+The pattern mirrors `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT` for LLM content — each content type has its own env var gate, but all records share the same format and correlation mechanism. See `WhisperTranscriptionService.transcribe()` for a reference implementation.
+
+To enable content capture, set in `backend/.env`:
+
+| Content type | Env var |
+|---|---|
+| LLM prompt / response | `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true` |
+| WhatsApp voice transcription | `OTEL_WHATSAPP_CAPTURE_TRANSCRIPTION=true` |
+
 ---
 
 ## Architecture Decisions
@@ -159,6 +188,6 @@ The decisions that shaped the observability setup are recorded in [`docs/decisio
 |-----|----------|
 | [ADR-0016](./docs/decisions/observability-2026-02-26-span-decorator-tracing.md) | `@Span()` decorator — tracing without polluting business logic |
 | [ADR-0017](./docs/decisions/observability-2026-02-26-dual-exporter-console-or-otlp.md) | Dual exporter — console (default) or OTLP via env var |
-| [ADR-0018](./docs/decisions/observability-2026-02-26-llm-content-as-otel-log-records.md) | LLM content captured as OTel log records — not span events |
+| [ADR-0018](./docs/decisions/observability-2026-02-26-llm-content-as-otel-log-records.md) | AI model content as OTel log records — `logInfo()` helper, `{"content": ...}` format, env var gate per content type |
 | [ADR-0015](./docs/decisions/errors-2026-03-15-fire-and-forget-void-not-match.md) | Fire-and-forget ResultAsync: use `void`, not `.match()` |
 | [ADR-0030](./docs/decisions/arch-2026-04-10-whatsapp-cloud-api-webhook.md) | WhatsApp via Meta Cloud API webhook — one conversation per phone number |
