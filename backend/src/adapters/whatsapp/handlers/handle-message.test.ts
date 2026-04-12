@@ -1,56 +1,107 @@
 import { Request, Response } from 'express';
-import { okAsync } from 'neverthrow';
+import { okAsync, errAsync } from 'neverthrow';
 import { HandleWhatsAppMessageUseCase } from '../../../application/use-cases/handle-whatsapp-message-use-case';
+import { HandleWhatsAppVoiceUseCase } from '../../../application/use-cases/handle-whatsapp-voice-use-case';
+import { ServiceUnavailableError } from '../../../domain/errors';
 import { createHandleMessageHandler } from './handle-message';
 
-function metaBody(from: string, body: string) {
+function textBody(from: string, body: string) {
   return {
     entry: [{ changes: [{ value: { messages: [{ from, type: 'text', text: { body } }] } }] }],
   };
 }
 
+function audioBody(from: string, mediaId: string) {
+  return {
+    entry: [{ changes: [{ value: { messages: [{ from, type: 'audio', audio: { id: mediaId } }] } }] }],
+  };
+}
+
 describe('createHandleMessageHandler', () => {
-  let mockUseCase: jest.Mocked<HandleWhatsAppMessageUseCase>;
+  let mockMessageUseCase: jest.Mocked<HandleWhatsAppMessageUseCase>;
+  let mockVoiceUseCase: jest.Mocked<HandleWhatsAppVoiceUseCase>;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let handler: ReturnType<typeof createHandleMessageHandler>;
 
   beforeEach(() => {
-    mockUseCase = { execute: jest.fn() } as any;
+    mockMessageUseCase = { execute: jest.fn() } as any;
+    mockVoiceUseCase = { execute: jest.fn() } as any;
     mockRequest = { body: {} };
     mockResponse = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn().mockReturnThis(),
     };
-    handler = createHandleMessageHandler(mockUseCase);
+    handler = createHandleMessageHandler(mockMessageUseCase, mockVoiceUseCase);
   });
 
-  it('returns 200 immediately and fires use case without awaiting', () => {
-    mockRequest.body = metaBody('+56967022669', 'Bonjour');
-    mockUseCase.execute.mockReturnValue(okAsync(undefined));
+  describe('text messages', () => {
+    it('returns 200 immediately and fires the text use case', () => {
+      mockRequest.body = textBody('+56967022669', 'Bonjour');
+      mockMessageUseCase.execute.mockReturnValue(okAsync(undefined));
 
-    handler(mockRequest as Request, mockResponse as Response);
+      handler(mockRequest as Request, mockResponse as Response);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(200);
-    expect(mockResponse.json).toHaveBeenCalledWith({ status: 'ok' });
-    expect(mockUseCase.execute).toHaveBeenCalledWith('+56967022669', 'Bonjour');
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({ status: 'ok' });
+      expect(mockMessageUseCase.execute).toHaveBeenCalledWith('+56967022669', 'Bonjour');
+      expect(mockVoiceUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('still returns 200 when the text use case fails — Meta must not retry', () => {
+      mockRequest.body = textBody('+56967022669', 'Bonjour');
+      mockMessageUseCase.execute.mockReturnValue(errAsync(new ServiceUnavailableError('LLM down')));
+
+      handler(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockMessageUseCase.execute).toHaveBeenCalledWith('+56967022669', 'Bonjour');
+    });
   });
 
-  it('returns 200 for Meta status update events', () => {
-    mockRequest.body = { entry: [{ changes: [{ value: { statuses: [{ id: 'wamid.xxx', status: 'delivered' }] } }] }] };
+  describe('audio messages', () => {
+    it('returns 200 immediately and fires the voice use case', () => {
+      mockRequest.body = audioBody('+56967022669', 'media-id-abc123');
+      mockVoiceUseCase.execute.mockReturnValue(okAsync(undefined));
 
-    handler(mockRequest as Request, mockResponse as Response);
+      handler(mockRequest as Request, mockResponse as Response);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(200);
-    expect(mockUseCase.execute).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({ status: 'ok' });
+      expect(mockVoiceUseCase.execute).toHaveBeenCalledWith('+56967022669', 'media-id-abc123');
+      expect(mockMessageUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('still returns 200 when the voice use case fails — Meta must not retry', () => {
+      mockRequest.body = audioBody('+56967022669', 'media-id-abc123');
+      mockVoiceUseCase.execute.mockReturnValue(errAsync(new ServiceUnavailableError('whisper down')));
+
+      handler(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockVoiceUseCase.execute).toHaveBeenCalledWith('+56967022669', 'media-id-abc123');
+    });
   });
 
-  it('returns 200 for non-text messages such as images', () => {
-    mockRequest.body = { entry: [{ changes: [{ value: { messages: [{ from: '+56967022669', type: 'image' }] } }] }] };
+  describe('ignored events', () => {
+    it('returns 200 for Meta status update events', () => {
+      mockRequest.body = { entry: [{ changes: [{ value: { statuses: [{ id: 'wamid.xxx', status: 'delivered' }] } }] }] };
 
-    handler(mockRequest as Request, mockResponse as Response);
+      handler(mockRequest as Request, mockResponse as Response);
 
-    expect(mockResponse.status).toHaveBeenCalledWith(200);
-    expect(mockUseCase.execute).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockMessageUseCase.execute).not.toHaveBeenCalled();
+      expect(mockVoiceUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('returns 200 for unsupported message types such as images', () => {
+      mockRequest.body = { entry: [{ changes: [{ value: { messages: [{ from: '+56967022669', type: 'image' }] } }] }] };
+
+      handler(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockMessageUseCase.execute).not.toHaveBeenCalled();
+      expect(mockVoiceUseCase.execute).not.toHaveBeenCalled();
+    });
   });
 });

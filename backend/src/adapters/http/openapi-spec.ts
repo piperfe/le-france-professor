@@ -1,3 +1,11 @@
+// TODO: WhatsApp webhook documentation
+// The webhook endpoints (GET/POST /api/webhook/whatsapp) are intentionally excluded from
+// this OpenAPI spec — they are Meta-facing (Meta calls us, not the other way around) and
+// follow an event-driven contract rather than a REST request/response pattern.
+// If formal webhook documentation is ever needed, use AsyncAPI (https://www.asyncapi.com/)
+// which is designed for event-driven APIs. See ADR-0030 and QUICKSTART.md for the current
+// webhook contract documentation.
+
 export const openApiSpec = {
   openapi: '3.0.3',
   info: {
@@ -275,6 +283,15 @@ export const openApiSpec = {
               },
             },
           },
+          '404': {
+            description: 'Conversation not found',
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/ErrorResponse' },
+                example: { error: 'Conversation not found' },
+              },
+            },
+          },
           '500': {
             $ref: '#/components/responses/InternalServerError',
           },
@@ -540,7 +557,7 @@ export const openApiSpec = {
               $ref: '#/components/schemas/ErrorResponse',
             },
             example: {
-              error: 'Conversation not found',
+              error: 'An unexpected error occurred',
             },
           },
         },

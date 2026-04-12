@@ -113,7 +113,10 @@ export const HTTP_STATUS: Record<string, number> = {
 
 ### Integration tests
 
-Integration tests live in `adapters/http/integration/` and are named `*.integration.test.ts`.
+Integration tests are named `*.integration.test.ts` and live in two locations depending on what they test:
+
+- **HTTP integration** — `adapters/http/integration/`: full Express stack via supertest + nock (LLM mocked)
+- **Infrastructure integration** — alongside source in `infrastructure/`: real external dependency exercised against a file fixture, no HTTP (e.g. `ogg-to-wav-converter.integration.test.ts` runs real ffmpeg against `src/test/fixtures/silence.ogg` and validates the WAV header output)
 
 ```
 integration/

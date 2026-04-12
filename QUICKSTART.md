@@ -97,9 +97,12 @@ To receive and respond to WhatsApp messages, add these vars to `backend/.env`:
 WHATSAPP_VERIFY_TOKEN=your-verify-token       # any string you choose — used when registering the webhook
 WHATSAPP_ACCESS_TOKEN=your-access-token       # Meta Cloud API permanent token
 WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id # from Meta → WhatsApp → API Setup
+WHISPER_URL=http://127.0.0.1:7600             # optional — defaults to 7600; required for voice note transcription
 ```
 
-The webhook endpoint is `POST /api/webhook/whatsapp`. Register it in the Meta Developer Portal with the same `WHATSAPP_VERIFY_TOKEN`. Without these vars the WhatsApp routes are simply not registered and the rest of the app works normally.
+The webhook endpoint is `POST /api/webhook/whatsapp`. Register it in the Meta Developer Portal with the same `WHATSAPP_VERIFY_TOKEN`. Without the WhatsApp vars the routes are simply not registered and the rest of the app works normally.
+
+Voice notes sent by students are automatically downloaded from Meta, converted from OGG/Opus to 16 kHz mono WAV, and transcribed by whisper.cpp — the same pipeline used by the web front-end. If whisper is not running, voice notes are silently dropped (see the retry strategy Notion card).
 
 ## 5. (Optional) Start observability stack
 

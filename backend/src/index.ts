@@ -16,6 +16,7 @@ import { GetVocabularyUseCase } from './application/use-cases/get-vocabulary-use
 import { GenerateTitleUseCase } from './application/use-cases/generate-title-use-case';
 import { ExtractTopicUseCase } from './application/use-cases/extract-topic-use-case';
 import { HandleWhatsAppMessageUseCase } from './application/use-cases/handle-whatsapp-message-use-case';
+import { HandleWhatsAppVoiceUseCase } from './application/use-cases/handle-whatsapp-voice-use-case';
 import { InMemoryConversationRepository } from './infrastructure/repositories/in-memory-conversation-repository';
 import { InMemoryVocabularyRepository } from './infrastructure/repositories/in-memory-vocabulary-repository';
 import { InMemoryPhoneSessionRepository } from './infrastructure/repositories/in-memory-phone-session-repository';
@@ -23,6 +24,8 @@ import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
 import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
 import { MetaWhatsAppClient } from './infrastructure/whatsapp/meta-whatsapp-client';
+import { MetaMediaDownloader } from './infrastructure/whatsapp/meta-media-downloader';
+import { WhisperTranscriptionService } from './infrastructure/whatsapp/whisper-transcription-service';
 import { withTracing } from './infrastructure/telemetry/tracing-proxy';
 
 function ensureOllamaConfig(): void {
@@ -107,7 +110,15 @@ function createApp(): express.Application {
       sendMessageUseCase,
       whatsAppSender,
     ));
-    app.use('/api', createWhatsAppRoutes(whatsAppConfig.verifyToken, handleWhatsAppMessageUseCase));
+    const mediaDownloader = new MetaMediaDownloader(whatsAppConfig.accessToken);
+    const whisperUrl = process.env.WHISPER_URL || 'http://127.0.0.1:7600';
+    const audioTranscriber = new WhisperTranscriptionService(whisperUrl);
+    const handleWhatsAppVoiceUseCase = withTracing(new HandleWhatsAppVoiceUseCase(
+      mediaDownloader,
+      audioTranscriber,
+      handleWhatsAppMessageUseCase,
+    ));
+    app.use('/api', createWhatsAppRoutes(whatsAppConfig.verifyToken, handleWhatsAppMessageUseCase, handleWhatsAppVoiceUseCase));
   }
 
   app.use('/docs', apiReference({ spec: { content: openApiSpec } }));

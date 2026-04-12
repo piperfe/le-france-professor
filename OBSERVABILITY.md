@@ -8,7 +8,7 @@ The backend is instrumented with [OpenTelemetry](https://opentelemetry.io/) and 
 |---|---|---|
 | Incoming HTTP requests | auto-instrumented | `instrumentation-express`, `instrumentation-http` |
 | Use cases | `withTracing()` proxy at composition root | `infrastructure/telemetry/tracing-proxy.ts`, `src/index.ts` |
-| Infrastructure services (LLM, WhatsApp) | `@Span()` decorator | `infrastructure/telemetry/decorators.ts`, `infrastructure/llm/ollama-*.ts`, `infrastructure/whatsapp/meta-whatsapp-client.ts` |
+| Infrastructure services (LLM, WhatsApp) | `@Span()` decorator | `infrastructure/telemetry/decorators.ts`, `infrastructure/llm/ollama-*.ts`, `infrastructure/whatsapp/meta-whatsapp-client.ts`, `infrastructure/whatsapp/meta-media-downloader.ts`, `infrastructure/whatsapp/whisper-transcription-service.ts` |
 | LLM calls | auto-instrumented with `gen_ai.*` attributes | `instrumentation-openai` |
 | Outgoing HTTP (fetch) | auto-instrumented | `instrumentation-undici` |
 
