@@ -2,7 +2,7 @@ import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleLogRecordExporter } from '@opentelemetry/sdk-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
-import { createTraceExporter, createLogExporter } from './setup';
+import { createTraceExporter, createLogExporter } from './exporters';
 
 describe('createTraceExporter', () => {
   const originalEnv = process.env.OTEL_TRACES_EXPORTER;
