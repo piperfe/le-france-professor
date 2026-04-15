@@ -66,7 +66,7 @@ describe('WhatsApp webhook (integration)', () => {
 
     const res = await request(app)
       .post('/api/webhook/whatsapp')
-      .send(textPayload('+56967022669', 'Salut'));
+      .send(textPayload('+10000000001', 'Salut'));
 
     expect(res.status).toBe(200);
     await flushAsync();

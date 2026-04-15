@@ -17,6 +17,7 @@ npm install
 Create `backend/.env`:
 ```
 PORT=3001
+DATABASE_URL=./le-france.db
 NODE_ENV=development
 OLLAMA_MODEL=gemma3:4b
 OLLAMA_BASE_URL=http://localhost:11434/v1
@@ -125,6 +126,12 @@ Starts backend (port 3001) and frontend (port 3000) in a single terminal with co
 Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment variables
+
+`backend/.env` (required vars shown in step 2; optional vars and their defaults):
+```
+DATABASE_URL=./le-france.db   # SQLite file path — omit to use in-memory (data lost on restart)
+WHISPER_URL=http://127.0.0.1:7600
+```
 
 `frontend/.env.local` (optional — defaults shown):
 ```

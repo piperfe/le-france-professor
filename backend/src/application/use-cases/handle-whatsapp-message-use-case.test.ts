@@ -41,11 +41,11 @@ describe('HandleWhatsAppMessageUseCase', () => {
       );
       mockPhoneSessionRepository.save.mockResolvedValue(undefined);
 
-      const result = await useCase.execute('+56967022669', 'Salut');
+      const result = await useCase.execute('+10000000001', 'Salut');
 
       expect(result.isOk()).toBe(true);
-      expect(mockPhoneSessionRepository.save).toHaveBeenCalledWith('+56967022669', 'conv-123');
-      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith('+56967022669', 'Bonjour ! Je suis Sophie.');
+      expect(mockPhoneSessionRepository.save).toHaveBeenCalledWith('+10000000001', 'conv-123');
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith('+10000000001', 'Bonjour ! Je suis Sophie.');
       expect(mockSendMessageUseCase.execute).not.toHaveBeenCalled();
     });
 
@@ -56,7 +56,7 @@ describe('HandleWhatsAppMessageUseCase', () => {
       );
       mockPhoneSessionRepository.save.mockRejectedValue(new Error('DB write failed'));
 
-      const result = await useCase.execute('+56967022669', 'Salut');
+      const result = await useCase.execute('+10000000001', 'Salut');
 
       expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().message).toBe('DB write failed');
@@ -71,7 +71,7 @@ describe('HandleWhatsAppMessageUseCase', () => {
       mockPhoneSessionRepository.save.mockResolvedValue(undefined);
       mockWhatsAppSender.sendMessage.mockRejectedValue(new Error('Meta API error 503'));
 
-      const result = await useCase.execute('+56967022669', 'Salut');
+      const result = await useCase.execute('+10000000001', 'Salut');
 
       expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().message).toBe('Meta API error 503');
@@ -83,7 +83,7 @@ describe('HandleWhatsAppMessageUseCase', () => {
         errAsync(new ServiceUnavailableError('LLM down')),
       );
 
-      const result = await useCase.execute('+56967022669', 'Salut');
+      const result = await useCase.execute('+10000000001', 'Salut');
 
       expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().message).toBe('LLM down');
@@ -98,11 +98,11 @@ describe('HandleWhatsAppMessageUseCase', () => {
         okAsync({ message: 'Je veux parler de cuisine', tutorResponse: 'Super ! La cuisine française est délicieuse.', messageId: 'msg-1' }),
       );
 
-      const result = await useCase.execute('+56967022669', 'Je veux parler de cuisine');
+      const result = await useCase.execute('+10000000001', 'Je veux parler de cuisine');
 
       expect(result.isOk()).toBe(true);
       expect(mockSendMessageUseCase.execute).toHaveBeenCalledWith('conv-456', 'Je veux parler de cuisine');
-      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith('+56967022669', 'Super ! La cuisine française est délicieuse.');
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith('+10000000001', 'Super ! La cuisine française est délicieuse.');
       expect(mockCreateConversationUseCase.execute).not.toHaveBeenCalled();
     });
 
@@ -112,7 +112,7 @@ describe('HandleWhatsAppMessageUseCase', () => {
         errAsync(new NotFoundError('Conversation not found')),
       );
 
-      const result = await useCase.execute('+56967022669', 'Bonjour');
+      const result = await useCase.execute('+10000000001', 'Bonjour');
 
       expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr()).toBeInstanceOf(ServiceUnavailableError);
@@ -126,7 +126,7 @@ describe('HandleWhatsAppMessageUseCase', () => {
       );
       mockWhatsAppSender.sendMessage.mockRejectedValue(new Error('Meta API error 503'));
 
-      const result = await useCase.execute('+56967022669', 'Bonjour');
+      const result = await useCase.execute('+10000000001', 'Bonjour');
 
       expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().message).toBe('Meta API error 503');
@@ -137,7 +137,7 @@ describe('HandleWhatsAppMessageUseCase', () => {
     it('returns ServiceUnavailableError when phone lookup fails', async () => {
       mockPhoneSessionRepository.findConversationId.mockRejectedValue(new Error('DB down'));
 
-      const result = await useCase.execute('+56967022669', 'Bonjour');
+      const result = await useCase.execute('+10000000001', 'Bonjour');
 
       expect(result.isErr()).toBe(true);
       expect(result._unsafeUnwrapErr().message).toBe('DB down');

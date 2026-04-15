@@ -37,49 +37,49 @@ describe('createHandleMessageHandler', () => {
 
   describe('text messages', () => {
     it('returns 200 immediately and fires the text use case', () => {
-      mockRequest.body = textBody('+56967022669', 'Bonjour');
+      mockRequest.body = textBody('+10000000001', 'Bonjour');
       mockMessageUseCase.execute.mockReturnValue(okAsync(undefined));
 
       handler(mockRequest as Request, mockResponse as Response);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ status: 'ok' });
-      expect(mockMessageUseCase.execute).toHaveBeenCalledWith('+56967022669', 'Bonjour');
+      expect(mockMessageUseCase.execute).toHaveBeenCalledWith('+10000000001', 'Bonjour');
       expect(mockVoiceUseCase.execute).not.toHaveBeenCalled();
     });
 
     it('still returns 200 when the text use case fails — Meta must not retry', () => {
-      mockRequest.body = textBody('+56967022669', 'Bonjour');
+      mockRequest.body = textBody('+10000000001', 'Bonjour');
       mockMessageUseCase.execute.mockReturnValue(errAsync(new ServiceUnavailableError('LLM down')));
 
       handler(mockRequest as Request, mockResponse as Response);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockMessageUseCase.execute).toHaveBeenCalledWith('+56967022669', 'Bonjour');
+      expect(mockMessageUseCase.execute).toHaveBeenCalledWith('+10000000001', 'Bonjour');
     });
   });
 
   describe('audio messages', () => {
     it('returns 200 immediately and fires the voice use case', () => {
-      mockRequest.body = audioBody('+56967022669', 'media-id-abc123');
+      mockRequest.body = audioBody('+10000000001', 'media-id-abc123');
       mockVoiceUseCase.execute.mockReturnValue(okAsync(undefined));
 
       handler(mockRequest as Request, mockResponse as Response);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({ status: 'ok' });
-      expect(mockVoiceUseCase.execute).toHaveBeenCalledWith('+56967022669', 'media-id-abc123');
+      expect(mockVoiceUseCase.execute).toHaveBeenCalledWith('+10000000001', 'media-id-abc123');
       expect(mockMessageUseCase.execute).not.toHaveBeenCalled();
     });
 
     it('still returns 200 when the voice use case fails — Meta must not retry', () => {
-      mockRequest.body = audioBody('+56967022669', 'media-id-abc123');
+      mockRequest.body = audioBody('+10000000001', 'media-id-abc123');
       mockVoiceUseCase.execute.mockReturnValue(errAsync(new ServiceUnavailableError('whisper down')));
 
       handler(mockRequest as Request, mockResponse as Response);
 
       expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockVoiceUseCase.execute).toHaveBeenCalledWith('+56967022669', 'media-id-abc123');
+      expect(mockVoiceUseCase.execute).toHaveBeenCalledWith('+10000000001', 'media-id-abc123');
     });
   });
 
@@ -95,7 +95,7 @@ describe('createHandleMessageHandler', () => {
     });
 
     it('returns 200 for unsupported message types such as images', () => {
-      mockRequest.body = { entry: [{ changes: [{ value: { messages: [{ from: '+56967022669', type: 'image' }] } }] }] };
+      mockRequest.body = { entry: [{ changes: [{ value: { messages: [{ from: '+10000000001', type: 'image' }] } }] }] };
 
       handler(mockRequest as Request, mockResponse as Response);
 

@@ -24,18 +24,18 @@ describe('HandleWhatsAppVoiceUseCase', () => {
     mockAudioTranscriber.transcribe.mockResolvedValue('Bonjour !');
     mockHandleWhatsAppMessageUseCase.execute.mockReturnValue(okAsync(undefined));
 
-    const result = await useCase.execute('+56967022669', 'media-id-123');
+    const result = await useCase.execute('+10000000001', 'media-id-123');
 
     expect(result.isOk()).toBe(true);
     expect(mockMediaDownloader.download).toHaveBeenCalledWith('media-id-123');
     expect(mockAudioTranscriber.transcribe).toHaveBeenCalledWith(audioBuffer);
-    expect(mockHandleWhatsAppMessageUseCase.execute).toHaveBeenCalledWith('+56967022669', 'Bonjour !');
+    expect(mockHandleWhatsAppMessageUseCase.execute).toHaveBeenCalledWith('+10000000001', 'Bonjour !');
   });
 
   it('returns ServiceUnavailableError when media download fails', async () => {
     mockMediaDownloader.download.mockRejectedValue(new Error('Meta API error 401'));
 
-    const result = await useCase.execute('+56967022669', 'media-id-123');
+    const result = await useCase.execute('+10000000001', 'media-id-123');
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr().message).toBe('Meta API error 401');
@@ -47,7 +47,7 @@ describe('HandleWhatsAppVoiceUseCase', () => {
     mockMediaDownloader.download.mockResolvedValue(Buffer.from('ogg-data'));
     mockAudioTranscriber.transcribe.mockRejectedValue(new ServiceUnavailableError('whisper down'));
 
-    const result = await useCase.execute('+56967022669', 'media-id-123');
+    const result = await useCase.execute('+10000000001', 'media-id-123');
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr().message).toBe('whisper down');
@@ -61,7 +61,7 @@ describe('HandleWhatsAppVoiceUseCase', () => {
       errAsync(new ServiceUnavailableError('LLM down')),
     );
 
-    const result = await useCase.execute('+56967022669', 'media-id-123');
+    const result = await useCase.execute('+10000000001', 'media-id-123');
 
     expect(result.isErr()).toBe(true);
     expect(result._unsafeUnwrapErr().message).toBe('LLM down');

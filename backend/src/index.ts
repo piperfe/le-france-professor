@@ -17,9 +17,10 @@ import { GenerateTitleUseCase } from './application/use-cases/generate-title-use
 import { ExtractTopicUseCase } from './application/use-cases/extract-topic-use-case';
 import { HandleWhatsAppMessageUseCase } from './application/use-cases/handle-whatsapp-message-use-case';
 import { HandleWhatsAppVoiceUseCase } from './application/use-cases/handle-whatsapp-voice-use-case';
-import { InMemoryConversationRepository } from './infrastructure/repositories/in-memory-conversation-repository';
-import { InMemoryVocabularyRepository } from './infrastructure/repositories/in-memory-vocabulary-repository';
-import { InMemoryPhoneSessionRepository } from './infrastructure/repositories/in-memory-phone-session-repository';
+import { createDatabase } from './infrastructure/db/client';
+import { SqliteConversationRepository } from './infrastructure/repositories/sqlite-conversation-repository';
+import { SqliteVocabularyRepository } from './infrastructure/repositories/sqlite-vocabulary-repository';
+import { SqlitePhoneSessionRepository } from './infrastructure/repositories/sqlite-phone-session-repository';
 import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
 import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
@@ -58,8 +59,9 @@ function createApp(): express.Application {
   app.use(cors());
   app.use(express.json());
 
-  const conversationRepository = new InMemoryConversationRepository();
-  const vocabularyRepository = new InMemoryVocabularyRepository();
+  const db = createDatabase(process.env.DATABASE_URL ?? ':memory:');
+  const conversationRepository = new SqliteConversationRepository(db);
+  const vocabularyRepository = new SqliteVocabularyRepository(db);
 
   const ollamaConfig = {
     baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1',
@@ -102,7 +104,7 @@ function createApp(): express.Application {
   );
 
   if (whatsAppConfig) {
-    const phoneSessionRepository = new InMemoryPhoneSessionRepository();
+    const phoneSessionRepository = new SqlitePhoneSessionRepository(db);
     const whatsAppSender = new MetaWhatsAppClient(whatsAppConfig.accessToken, whatsAppConfig.phoneNumberId);
     const handleWhatsAppMessageUseCase = withTracing(new HandleWhatsAppMessageUseCase(
       phoneSessionRepository,

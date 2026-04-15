@@ -88,7 +88,9 @@ Unit tests live alongside source files (`*.test.ts`). Each file covers one layer
 domain/entities/           → pure logic, zero mocks
 application/use-cases/     → mock ConversationRepository + TutorService
 adapters/http/handlers/    → mock UseCase, mock Express Request/Response
-infrastructure/            → mock external clients (OpenAI, telemetry)
+infrastructure/llm/        → mock OpenAI HTTP client (nock)
+infrastructure/telemetry/  → mock span exporters
+infrastructure/repositories/ → real SQLite via createDatabase(':memory:') — fresh db per test, no mocks
 ```
 
 #### Error path coverage
@@ -382,3 +384,4 @@ The decisions that shaped the testing strategy are recorded in [`docs/decisions/
 | [ADR-0012](./docs/decisions/testing-2026-03-15-e2e-one-spec-per-feature.md) | E2E: one spec file per feature + shared helpers.ts |
 | [ADR-0013](./docs/decisions/testing-2026-03-12-tests-same-step-as-code.md) | Tests are written in the same step as code — never deferred |
 | [ADR-0031](./docs/decisions/arch-2026-04-11-eslint-boundaries-hexagonal-enforcement.md) | eslint-plugin-boundaries — hexagonal layer violations caught at lint time |
+| [ADR-0032](./docs/decisions/arch-2026-04-14-sqlite-drizzle-backend-persistence.md) | SQLite + Drizzle ORM — repository unit tests use `:memory:` SQLite, no mocks |
