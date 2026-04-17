@@ -5,6 +5,7 @@ import type { MessageSender } from '../../domain/entities/message'
 import type { ConversationRepository } from '../../domain/repositories/conversation-repository'
 import type { DrizzleDb } from '../db/client'
 import { conversations, messages } from '../db/schema'
+import { Span } from '../telemetry/decorators'
 
 type ConversationRow = typeof conversations.$inferSelect
 type MessageRow = typeof messages.$inferSelect
@@ -19,6 +20,7 @@ function toConversation(row: ConversationRow, messageRows: MessageRow[]): Conver
 export class SqliteConversationRepository implements ConversationRepository {
   constructor(private readonly db: DrizzleDb) {}
 
+  @Span()
   async save(conversation: Conversation): Promise<void> {
     const msgs = conversation.getMessages()
     this.db.transaction((tx) => {
@@ -52,6 +54,7 @@ export class SqliteConversationRepository implements ConversationRepository {
     })
   }
 
+  @Span()
   async findById(id: string): Promise<Conversation | null> {
     const row = this.db.select().from(conversations).where(eq(conversations.id, id)).get()
     if (!row) return null
@@ -62,6 +65,7 @@ export class SqliteConversationRepository implements ConversationRepository {
     return toConversation(row, msgs)
   }
 
+  @Span()
   async findAll(): Promise<Conversation[]> {
     const rows = this.db.select().from(conversations)
       .orderBy(asc(conversations.createdAt))

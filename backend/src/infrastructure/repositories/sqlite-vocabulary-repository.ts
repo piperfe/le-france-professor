@@ -3,6 +3,7 @@ import { VocabularyEntry } from '../../domain/entities/vocabulary-entry'
 import type { VocabularyRepository } from '../../domain/repositories/vocabulary-repository'
 import type { DrizzleDb } from '../db/client'
 import { vocabularyEntries } from '../db/schema'
+import { Span } from '../telemetry/decorators'
 
 type VocabularyEntryRow = typeof vocabularyEntries.$inferSelect
 
@@ -20,6 +21,7 @@ function toVocabularyEntry(row: VocabularyEntryRow): VocabularyEntry {
 export class SqliteVocabularyRepository implements VocabularyRepository {
   constructor(private readonly db: DrizzleDb) {}
 
+  @Span()
   async save(entry: VocabularyEntry): Promise<void> {
     this.db.insert(vocabularyEntries).values({
       id: entry.id,
@@ -31,6 +33,7 @@ export class SqliteVocabularyRepository implements VocabularyRepository {
     }).run()
   }
 
+  @Span()
   async findByConversationId(conversationId: string): Promise<VocabularyEntry[]> {
     const rows = this.db
       .select()

@@ -2,10 +2,12 @@ import { eq } from 'drizzle-orm'
 import type { PhoneSessionRepository } from '../../domain/repositories/phone-session-repository'
 import type { DrizzleDb } from '../db/client'
 import { phoneSessions } from '../db/schema'
+import { Span } from '../telemetry/decorators'
 
 export class SqlitePhoneSessionRepository implements PhoneSessionRepository {
   constructor(private readonly db: DrizzleDb) {}
 
+  @Span()
   async findConversationId(phone: string): Promise<string | null> {
     const row = this.db
       .select()
@@ -15,6 +17,7 @@ export class SqlitePhoneSessionRepository implements PhoneSessionRepository {
     return row?.conversationId ?? null
   }
 
+  @Span()
   async save(phone: string, conversationId: string): Promise<void> {
     this.db.insert(phoneSessions)
       .values({ phoneNumber: phone, conversationId })

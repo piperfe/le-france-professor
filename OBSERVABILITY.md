@@ -8,28 +8,34 @@ The backend is instrumented with [OpenTelemetry](https://opentelemetry.io/) and 
 |---|---|---|
 | Incoming HTTP requests | auto-instrumented | `instrumentation-express`, `instrumentation-http` |
 | Use cases | `withTracing()` proxy at composition root | `infrastructure/telemetry/tracing-proxy.ts`, `src/index.ts` |
-| Infrastructure services (LLM, WhatsApp) | `@Span()` decorator | `infrastructure/telemetry/decorators.ts`, `infrastructure/llm/ollama-*.ts`, `infrastructure/whatsapp/meta-whatsapp-client.ts`, `infrastructure/whatsapp/meta-media-downloader.ts`, `infrastructure/whatsapp/whisper-transcription-service.ts` |
+| Infrastructure services (LLM, WhatsApp, repositories) | `@Span()` decorator | `infrastructure/telemetry/decorators.ts`, `infrastructure/llm/ollama-*.ts`, `infrastructure/whatsapp/meta-whatsapp-client.ts`, `infrastructure/whatsapp/meta-media-downloader.ts`, `infrastructure/whatsapp/whisper-transcription-service.ts`, `infrastructure/repositories/sqlite-*.ts` |
 | LLM calls | auto-instrumented with `gen_ai.*` attributes | `instrumentation-openai` |
 | Outgoing HTTP (fetch) | auto-instrumented | `instrumentation-undici` |
 
 ### Example trace — send message
 
 ```
-HTTP POST /api/conversations/:id/messages       ← auto (Express)
-  └─ SendMessageUseCase.execute                 ← withTracing() proxy
-        └─ OllamaTutorService.generateResponse  ← @Span() decorator
-        │     └─ chat openai                    ← auto (openai SDK)
+HTTP POST /api/conversations/:id/messages            ← auto (Express)
+  └─ SendMessageUseCase.execute                      ← withTracing() proxy
+        ├─ SqliteConversationRepository.findById     ← @Span() decorator
+        ├─ OllamaTutorService.generateResponse       ← @Span() decorator
+        │     └─ chat openai                         ← auto (openai SDK)
         │           gen_ai.request.model        = "hf.co/..."
         │           gen_ai.request.temperature  = 0.7
         │           gen_ai.request.max_tokens   = 120
         │           gen_ai.usage.input_tokens   = …
         │           gen_ai.usage.output_tokens  = …
-        ├─ GenerateTitleUseCase.execute          ← withTracing() — fire-and-forget after 2nd student message
-        │     └─ OllamaTitleService.generateTitle ← @Span() decorator
-        │           └─ chat openai               ← auto (openai SDK)
-        └─ ExtractTopicUseCase.execute           ← withTracing() — fire-and-forget after 4th student message
-              └─ OllamaTutorService.extractTopic ← @Span() decorator
-                    └─ chat openai               ← auto (openai SDK)
+        ├─ SqliteConversationRepository.save         ← @Span() decorator
+        ├─ GenerateTitleUseCase.execute              ← withTracing() — fire-and-forget after 2nd student message
+        │     ├─ SqliteConversationRepository.findById ← @Span() decorator
+        │     ├─ OllamaTitleService.generateTitle    ← @Span() decorator
+        │     │     └─ chat openai                   ← auto (openai SDK)
+        │     └─ SqliteConversationRepository.save   ← @Span() decorator
+        └─ ExtractTopicUseCase.execute               ← withTracing() — fire-and-forget after 4th student message
+              ├─ SqliteConversationRepository.findById ← @Span() decorator
+              ├─ OllamaTutorService.extractTopic     ← @Span() decorator
+              │     └─ chat openai                   ← auto (openai SDK)
+              └─ SqliteConversationRepository.save   ← @Span() decorator
 ```
 
 Errors are automatically captured as span **exception events** with a full stack trace and the span status is set to `ERROR`. Both `withTracing()` and `@Span()` handle thrown exceptions and neverthrow `Result.Err` returns — no extra code needed in error handlers.
