@@ -1,5 +1,3 @@
-import 'dotenv/config'; // must be first — loads .env before telemetry reads env vars
-import './infrastructure/telemetry/setup'; // must be second — patches openai before it loads
 import express from 'express';
 import cors from 'cors';
 import { apiReference } from '@scalar/express-api-reference';
@@ -52,7 +50,6 @@ function getWhatsAppConfig(): { verifyToken: string; accessToken: string; phoneN
 }
 
 function createApp(): express.Application {
-  ensureOllamaConfig();
   const whatsAppConfig = getWhatsAppConfig();
 
   const app = express();
@@ -131,6 +128,11 @@ function createApp(): express.Application {
 export { createApp };
 
 if (require.main === module) {
+  // dotenv and telemetry are startup concerns — load only when running as server,
+  // not when imported by tests (dotenv would leak DATABASE_URL into test processes)
+  require('dotenv/config');
+  require('./infrastructure/telemetry/setup');
+  ensureOllamaConfig();
   const app = createApp();
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
