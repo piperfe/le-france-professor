@@ -14,7 +14,7 @@ module.exports = {
     '!src/**/*.test.ts',
     '!src/**/*.spec.ts',
     '!src/**/*.integration.test.ts',
-    '!src/**/integration/llmMock.ts',
+    '!src/test/**',
     '!src/index.ts',
   ],
   coverageThreshold: {

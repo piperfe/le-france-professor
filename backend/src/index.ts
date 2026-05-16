@@ -26,48 +26,20 @@ import { MetaWhatsAppClient } from './infrastructure/whatsapp/meta-whatsapp-clie
 import { MetaMediaDownloader } from './infrastructure/whatsapp/meta-media-downloader';
 import { WhisperTranscriptionService } from './infrastructure/whatsapp/whisper-transcription-service';
 import { withTracing } from './infrastructure/telemetry/tracing-proxy';
+import type { Env } from './env';
 
-function ensureOllamaConfig(): void {
-  const model = process.env.OLLAMA_MODEL?.trim();
-  if (!model) {
-    console.error(
-      'OLLAMA_MODEL is required. Set it in backend/.env, e.g.:\n' +
-        '  OLLAMA_MODEL=gemma3:4b\n' +
-        '  OLLAMA_BASE_URL=http://localhost:11434/v1',
-    );
-    process.exit(1);
-  }
-}
-
-function getWhatsAppConfig(): { verifyToken: string; accessToken: string; phoneNumberId: string } | null {
-  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN?.trim();
-  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN?.trim();
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID?.trim();
-
-  if (!verifyToken || !accessToken || !phoneNumberId) return null;
-
-  return { verifyToken, accessToken, phoneNumberId };
-}
-
-function createApp(): express.Application {
-  const whatsAppConfig = getWhatsAppConfig();
-
+export function createApp(env: Env): express.Application {
   const app = express();
   app.use(cors());
   app.use(express.json());
 
-  const db = createDatabase(process.env.DATABASE_URL ?? ':memory:');
+  const db = createDatabase(env.db.url);
   const conversationRepository = new SqliteConversationRepository(db);
   const vocabularyRepository = new SqliteVocabularyRepository(db);
 
-  const ollamaConfig = {
-    baseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1',
-    model: process.env.OLLAMA_MODEL!,
-  };
-
-  const tutorService = new OllamaTutorService(ollamaConfig);
-  const vocabularyService = new OllamaVocabularyService(ollamaConfig);
-  const titleService = new OllamaTitleService(ollamaConfig);
+  const tutorService = new OllamaTutorService(env.ollama);
+  const vocabularyService = new OllamaVocabularyService(env.ollama);
+  const titleService = new OllamaTitleService(env.ollama);
 
   const createConversationUseCase = withTracing(new CreateConversationUseCase(
     conversationRepository,
@@ -100,42 +72,26 @@ function createApp(): express.Application {
     ),
   );
 
-  if (whatsAppConfig) {
+  if (env.whatsapp) {
     const phoneSessionRepository = new SqlitePhoneSessionRepository(db);
-    const whatsAppSender = new MetaWhatsAppClient(whatsAppConfig.accessToken, whatsAppConfig.phoneNumberId);
+    const whatsAppSender = new MetaWhatsAppClient(env.whatsapp.accessToken, env.whatsapp.phoneNumberId);
     const handleWhatsAppMessageUseCase = withTracing(new HandleWhatsAppMessageUseCase(
       phoneSessionRepository,
       createConversationUseCase,
       sendMessageUseCase,
       whatsAppSender,
     ));
-    const mediaDownloader = new MetaMediaDownloader(whatsAppConfig.accessToken);
-    const whisperUrl = process.env.WHISPER_URL || 'http://127.0.0.1:7600';
-    const audioTranscriber = new WhisperTranscriptionService(whisperUrl);
+    const mediaDownloader = new MetaMediaDownloader(env.whatsapp.accessToken);
+    const audioTranscriber = new WhisperTranscriptionService(env.whisper.url);
     const handleWhatsAppVoiceUseCase = withTracing(new HandleWhatsAppVoiceUseCase(
       mediaDownloader,
       audioTranscriber,
       handleWhatsAppMessageUseCase,
     ));
-    app.use('/api', createWhatsAppRoutes(whatsAppConfig.verifyToken, handleWhatsAppMessageUseCase, handleWhatsAppVoiceUseCase));
+    app.use('/api', createWhatsAppRoutes(env.whatsapp.verifyToken, handleWhatsAppMessageUseCase, handleWhatsAppVoiceUseCase));
   }
 
   app.use('/docs', apiReference({ spec: { content: openApiSpec } }));
 
   return app;
-}
-
-export { createApp };
-
-if (require.main === module) {
-  // dotenv and telemetry are startup concerns — load only when running as server,
-  // not when imported by tests (dotenv would leak DATABASE_URL into test processes)
-  require('dotenv/config');
-  require('./infrastructure/telemetry/setup');
-  ensureOllamaConfig();
-  const app = createApp();
-  const PORT = process.env.PORT || 3001;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
 }

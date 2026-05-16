@@ -4,18 +4,11 @@ import express from 'express';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createApp } from '../../../index';
-import { chatCompletionsMock, setIntegrationLlmEnv } from '../../http/integration/llmMock';
+import { chatCompletionsMock } from '../../../test/integration/llm-mock';
+import { testEnv } from '../../../test/integration/test-env';
 
 const VERIFY_TOKEN = 'test-verify-token';
 const PHONE_NUMBER_ID = 'test-phone-id';
-const WHISPER_URL = 'http://127.0.0.1:7600';
-
-function setWhatsAppEnv(): void {
-  process.env.WHATSAPP_VERIFY_TOKEN = VERIFY_TOKEN;
-  process.env.WHATSAPP_ACCESS_TOKEN = 'test-access-token';
-  process.env.WHATSAPP_PHONE_NUMBER_ID = PHONE_NUMBER_ID;
-  process.env.WHISPER_URL = WHISPER_URL;
-}
 
 function metaApiMock() {
   return nock('https://graph.facebook.com')
@@ -42,9 +35,13 @@ describe('WhatsApp webhook (integration)', () => {
   let app: express.Application;
 
   beforeAll(() => {
-    setIntegrationLlmEnv();
-    setWhatsAppEnv();
-    app = createApp();
+    app = createApp(testEnv({
+      whatsapp: {
+        verifyToken: VERIFY_TOKEN,
+        accessToken: 'test-access-token',
+        phoneNumberId: PHONE_NUMBER_ID,
+      },
+    }));
   });
 
   beforeEach(() => {
@@ -108,7 +105,7 @@ describe('WhatsApp webhook (integration)', () => {
       .reply(200, audioBytes);
 
     // 3. whisper.cpp transcription
-    nock(WHISPER_URL)
+    nock('http://127.0.0.1:7600')
       .post('/inference')
       .reply(200, { text: 'Je voudrais parler de musique.' });
 

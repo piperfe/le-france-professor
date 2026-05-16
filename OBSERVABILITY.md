@@ -188,12 +188,5 @@ To enable content capture, set in `backend/.env`:
 
 ## Architecture Decisions
 
-The decisions that shaped the observability setup are recorded in [`docs/decisions/`](./docs/decisions/):
-
-| ADR | Decision |
-|-----|----------|
-| [ADR-0016](./docs/decisions/observability-2026-02-26-span-decorator-tracing.md) | `@Span()` decorator — tracing without polluting business logic |
-| [ADR-0017](./docs/decisions/observability-2026-02-26-dual-exporter-console-or-otlp.md) | Dual exporter — console (default) or OTLP via env var |
-| [ADR-0018](./docs/decisions/observability-2026-02-26-llm-content-as-otel-log-records.md) | AI model content as OTel log records — `logInfo()` helper, `{"content": ...}` format, env var gate per content type |
-| [ADR-0015](./docs/decisions/errors-2026-03-15-fire-and-forget-void-not-match.md) | Fire-and-forget ResultAsync: use `void`, not `.match()` |
-| [ADR-0030](./docs/decisions/arch-2026-04-10-whatsapp-cloud-api-webhook.md) | WhatsApp via Meta Cloud API webhook — one conversation per phone number |
+See the ADR index for the full list:
+[📡 Observability](./docs/decisions/README.md#observability)

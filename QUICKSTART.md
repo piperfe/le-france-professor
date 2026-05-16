@@ -21,6 +21,7 @@ DATABASE_URL=./le-france.db
 NODE_ENV=development
 OLLAMA_MODEL=gemma3:4b
 OLLAMA_BASE_URL=http://localhost:11434/v1
+WHISPER_URL=http://127.0.0.1:7600
 ```
 
 Pull the model:
@@ -98,7 +99,6 @@ To receive and respond to WhatsApp messages, add these vars to `backend/.env`:
 WHATSAPP_VERIFY_TOKEN=your-verify-token       # any string you choose — used when registering the webhook
 WHATSAPP_ACCESS_TOKEN=your-access-token       # Meta Cloud API permanent token
 WHATSAPP_PHONE_NUMBER_ID=your-phone-number-id # from Meta → WhatsApp → API Setup
-WHISPER_URL=http://127.0.0.1:7600             # optional — defaults to 7600; required for voice note transcription
 ```
 
 The webhook endpoint is `POST /api/webhook/whatsapp`. Register it in the Meta Developer Portal with the same `WHATSAPP_VERIFY_TOKEN`. Without the WhatsApp vars the routes are simply not registered and the rest of the app works normally.
@@ -127,10 +127,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment variables
 
-`backend/.env` (required vars shown in step 2; optional vars and their defaults):
+`backend/.env` (all required vars shown in step 2; optional vars):
 ```
-DATABASE_URL=./le-france.db   # SQLite file path — omit to use in-memory (data lost on restart)
-WHISPER_URL=http://127.0.0.1:7600
+NODE_ENV=development          # omit in production
 ```
 
 `frontend/.env.local` (optional — defaults shown):

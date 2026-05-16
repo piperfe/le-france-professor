@@ -4,9 +4,9 @@
   "description": "Backend for French learning application",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/server.js",
     "test": "jest --watchAll=false",
     "test:unit": "jest --testPathIgnorePatterns='integration'",
     "test:integration": "jest --testPathPattern='integration'",
@@ -39,7 +39,8 @@
     "express": "^4.18.2",
     "ffmpeg-static": "^5.3.0",
     "neverthrow": "^8.2.0",
-    "openai": "^4.20.1"
+    "openai": "^4.20.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

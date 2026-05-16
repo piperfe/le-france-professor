@@ -16,7 +16,7 @@ OTEL_TRACES_EXPORTER env var selects the exporter: default → ConsoleSpanExport
 
 ## Consequences
 
-- import "dotenv/config" MUST be the first import in index.ts — setup.ts reads env vars in its constructor.
+- `dotenv/config` and `setup.ts` are loaded inside `if (require.main === module)` in index.ts, so they only run when the server boots — not when `createApp()` is imported by tests. `setup.ts` still reads env vars before OpenAI is loaded (correct order is preserved within the boot block).
 - Jaeger was replaced by Grafana + Tempo + Loki + OTel Collector for the full stack.
 - Tests use instanceof checks on real exporter instances — no mocks.
 

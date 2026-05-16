@@ -2,14 +2,14 @@ import nock from 'nock';
 import request from 'supertest';
 import express from 'express';
 import { createApp } from '../../../index';
-import { chatCompletionsMock, setIntegrationLlmEnv } from './llmMock';
+import { chatCompletionsMock } from '../../../test/integration/llm-mock';
+import { testEnv } from '../../../test/integration/test-env';
 
 describe('GET /api/conversations/:conversationId (integration)', () => {
   let app: express.Application;
 
   beforeAll(() => {
-    setIntegrationLlmEnv();
-    app = createApp();
+    app = createApp(testEnv());
   });
 
   beforeEach(() => {

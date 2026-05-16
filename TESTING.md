@@ -121,13 +121,16 @@ Integration tests are named `*.integration.test.ts` and live in two locations de
 - **Infrastructure integration** — alongside source in `infrastructure/`: real external dependency exercised against a file fixture, no HTTP (e.g. `ogg-to-wav-converter.integration.test.ts` runs real ffmpeg against `src/test/fixtures/silence.ogg` and validates the WAV header output)
 
 ```
-integration/
+adapters/http/integration/
 ├── post-conversations.integration.test.ts
 ├── post-message.integration.test.ts
 ├── get-conversation.integration.test.ts
 ├── get-all-conversations.integration.test.ts
-├── post-vocabulary.integration.test.ts
-└── llmMock.ts
+└── post-vocabulary.integration.test.ts
+
+test/integration/              # shared helpers used across adapter integration suites
+├── llm-mock.ts                # nock LLM intercept helper (chatCompletionsMock)
+└── test-env.ts                # testEnv() — typed Env with :memory: DB
 ```
 
 `post-vocabulary.integration.test.ts` includes a key assertion: vocabulary lookups do **not** add messages to conversation history (`messages.length` stays at 1 after a vocabulary call). This guards against the vocabulary endpoint accidentally mutating conversation state.
@@ -150,7 +153,7 @@ const res = await request(app).get(`/api/conversations/${id}`)
 expect(res.body.title).toBe('La cuisine française avec Sophie')
 ```
 
-Each test spins up the real Express app via `createApp()`, sends HTTP requests using `supertest`, and mocks only the external LLM call using `nock`.
+Each test spins up the real Express app via `createApp(testEnv())`, sends HTTP requests using `supertest`, and mocks only the external LLM call using `nock`. `index.ts` has no side effects — `dotenv/config` and telemetry setup live exclusively in `server.ts` (the server entry point), so importing `createApp` from a Jest worker never touches them. `testEnv()` always passes `db: { url: ':memory:' }`, so every test suite gets a fresh isolated database.
 
 ```ts
 it('returns 200 with conversation when it exists', async () => {
@@ -375,13 +378,5 @@ Both test suites run on every push and pull request to `main` via GitHub Actions
 
 ## Architecture Decisions
 
-The decisions that shaped the testing strategy are recorded in [`docs/decisions/`](./docs/decisions/):
-
-| ADR | Decision |
-|-----|----------|
-| [ADR-0009](./docs/decisions/testing-2026-03-04-testing-trophy-integration-first.md) | Testing Trophy over Testing Pyramid — integration tests are the priority |
-| [ADR-0011](./docs/decisions/testing-2026-03-12-msw-inline-per-test-file.md) | MSW inline per test file — no shared handlers.ts |
-| [ADR-0012](./docs/decisions/testing-2026-03-15-e2e-one-spec-per-feature.md) | E2E: one spec file per feature + shared helpers.ts |
-| [ADR-0013](./docs/decisions/testing-2026-03-12-tests-same-step-as-code.md) | Tests are written in the same step as code — never deferred |
-| [ADR-0031](./docs/decisions/arch-2026-04-11-eslint-boundaries-hexagonal-enforcement.md) | eslint-plugin-boundaries — hexagonal layer violations caught at lint time |
-| [ADR-0032](./docs/decisions/arch-2026-04-14-sqlite-drizzle-backend-persistence.md) | SQLite + Drizzle ORM — repository unit tests use `:memory:` SQLite, no mocks |
+See the ADR index for the full list:
+[🧪 Testing Strategy](./docs/decisions/README.md#testing-strategy)
