@@ -94,13 +94,15 @@ const server = createServer(async (req, res) => {
 
   if (method === 'POST' && vocabMatch) {
     const convId = vocabMatch[1]
-    const { word, sourceMessageId } = await readBody(req)
+    const { word } = await readBody(req)
+    const conv = conversations.get(convId)
+    const lastTutorMsg = conv?.messages.slice().reverse().find((m) => m.sender === 'tutor')
     if (!vocabularies.has(convId)) vocabularies.set(convId, [])
     vocabularies.get(convId).push({
       id: `vocab-${Date.now()}`,
       word,
       explanation: VOCABULARY_EXPLANATION,
-      sourceMessageId: sourceMessageId ?? '',
+      sourceMessageId: lastTutorMsg?.id ?? '',
       conversationId: convId,
       createdAt: new Date().toISOString(),
     })

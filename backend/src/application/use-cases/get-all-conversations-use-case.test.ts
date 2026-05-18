@@ -13,6 +13,7 @@ describe('GetAllConversationsUseCase', () => {
       save: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      getLastTutorMessage: jest.fn(),
     };
     useCase = new GetAllConversationsUseCase(mockRepository);
   });

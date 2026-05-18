@@ -3,7 +3,7 @@ import { HandleWhatsAppMessageUseCase } from './handle-whatsapp-message-use-case
 import { NotFoundError, ServiceUnavailableError } from '../../domain/errors';
 
 const mockPhoneSessionRepository = {
-  findConversationId: jest.fn(),
+  findByPhone: jest.fn(),
   save: jest.fn(),
 };
 
@@ -12,6 +12,10 @@ const mockCreateConversationUseCase = {
 };
 
 const mockSendMessageUseCase = {
+  execute: jest.fn(),
+};
+
+const mockExplainVocabularyInConversationUseCase = {
   execute: jest.fn(),
 };
 
@@ -29,13 +33,14 @@ describe('HandleWhatsAppMessageUseCase', () => {
       mockPhoneSessionRepository,
       mockCreateConversationUseCase as any,
       mockSendMessageUseCase as any,
+      mockExplainVocabularyInConversationUseCase as any,
       mockWhatsAppSender,
     );
   });
 
-  describe('new phone number', () => {
-    it('creates a conversation, saves the session, and sends the initial greeting', async () => {
-      mockPhoneSessionRepository.findConversationId.mockResolvedValue(null);
+  describe('new phone — plain text', () => {
+    it('sends greeting to first-time sender', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue(null);
       mockCreateConversationUseCase.execute.mockReturnValue(
         okAsync({ conversationId: 'conv-123', initialMessage: 'Bonjour ! Je suis Sophie.' }),
       );
@@ -49,8 +54,8 @@ describe('HandleWhatsAppMessageUseCase', () => {
       expect(mockSendMessageUseCase.execute).not.toHaveBeenCalled();
     });
 
-    it('returns ServiceUnavailableError when saving the phone session fails', async () => {
-      mockPhoneSessionRepository.findConversationId.mockResolvedValue(null);
+    it('returns an error when session save fails', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue(null);
       mockCreateConversationUseCase.execute.mockReturnValue(
         okAsync({ conversationId: 'conv-123', initialMessage: 'Bonjour ! Je suis Sophie.' }),
       );
@@ -63,8 +68,8 @@ describe('HandleWhatsAppMessageUseCase', () => {
       expect(mockWhatsAppSender.sendMessage).not.toHaveBeenCalled();
     });
 
-    it('returns ServiceUnavailableError when sending the initial greeting fails', async () => {
-      mockPhoneSessionRepository.findConversationId.mockResolvedValue(null);
+    it('returns an error when greeting delivery fails', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue(null);
       mockCreateConversationUseCase.execute.mockReturnValue(
         okAsync({ conversationId: 'conv-123', initialMessage: 'Bonjour ! Je suis Sophie.' }),
       );
@@ -77,8 +82,8 @@ describe('HandleWhatsAppMessageUseCase', () => {
       expect(result._unsafeUnwrapErr().message).toBe('Meta API error 503');
     });
 
-    it('returns ServiceUnavailableError when conversation creation fails', async () => {
-      mockPhoneSessionRepository.findConversationId.mockResolvedValue(null);
+    it('returns an error when LLM is unavailable', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue(null);
       mockCreateConversationUseCase.execute.mockReturnValue(
         errAsync(new ServiceUnavailableError('LLM down')),
       );
@@ -91,9 +96,25 @@ describe('HandleWhatsAppMessageUseCase', () => {
     });
   });
 
-  describe('existing phone number', () => {
-    it('sends message to existing conversation and delivers tutor response', async () => {
-      mockPhoneSessionRepository.findConversationId.mockResolvedValue('conv-456');
+  describe('new phone — /vocabulary command', () => {
+    it('sends greeting and discards command for first-time sender', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue(null);
+      mockCreateConversationUseCase.execute.mockReturnValue(
+        okAsync({ conversationId: 'conv-123', initialMessage: 'Bonjour ! Je suis Sophie.' }),
+      );
+      mockPhoneSessionRepository.save.mockResolvedValue(undefined);
+
+      const result = await useCase.execute('+10000000001', '/vocabulary bonjour');
+
+      expect(result.isOk()).toBe(true);
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith('+10000000001', 'Bonjour ! Je suis Sophie.');
+      expect(mockExplainVocabularyInConversationUseCase.execute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('existing phone — plain text', () => {
+    it('delivers tutor response to returning sender', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue('conv-456');
       mockSendMessageUseCase.execute.mockReturnValue(
         okAsync({ message: 'Je veux parler de cuisine', tutorResponse: 'Super ! La cuisine française est délicieuse.', messageId: 'msg-1' }),
       );
@@ -106,8 +127,8 @@ describe('HandleWhatsAppMessageUseCase', () => {
       expect(mockCreateConversationUseCase.execute).not.toHaveBeenCalled();
     });
 
-    it('returns ServiceUnavailableError when the conversation is not found', async () => {
-      mockPhoneSessionRepository.findConversationId.mockResolvedValue('conv-456');
+    it('returns an error when conversation not found', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue('conv-456');
       mockSendMessageUseCase.execute.mockReturnValue(
         errAsync(new NotFoundError('Conversation not found')),
       );
@@ -119,8 +140,8 @@ describe('HandleWhatsAppMessageUseCase', () => {
       expect(mockWhatsAppSender.sendMessage).not.toHaveBeenCalled();
     });
 
-    it('returns ServiceUnavailableError when WhatsApp send fails', async () => {
-      mockPhoneSessionRepository.findConversationId.mockResolvedValue('conv-456');
+    it('returns an error when WhatsApp delivery fails', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue('conv-456');
       mockSendMessageUseCase.execute.mockReturnValue(
         okAsync({ message: 'Bonjour', tutorResponse: 'Salut !', messageId: 'msg-2' }),
       );
@@ -133,9 +154,65 @@ describe('HandleWhatsAppMessageUseCase', () => {
     });
   });
 
-  describe('repository failure', () => {
-    it('returns ServiceUnavailableError when phone lookup fails', async () => {
-      mockPhoneSessionRepository.findConversationId.mockRejectedValue(new Error('DB down'));
+  describe('existing phone — /vocabulary command', () => {
+    it('explains vocabulary for a known word and delivers the explanation', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue('conv-456');
+      mockExplainVocabularyInConversationUseCase.execute.mockReturnValue(
+        okAsync('«Cuisine» désigne l\'art de préparer des repas.'),
+      );
+
+      const result = await useCase.execute('+10000000001', '/vocabulary cuisine');
+
+      expect(result.isOk()).toBe(true);
+      expect(mockExplainVocabularyInConversationUseCase.execute).toHaveBeenCalledWith('conv-456', 'cuisine');
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(
+        '+10000000001',
+        '«Cuisine» désigne l\'art de préparer des repas.',
+      );
+      expect(mockSendMessageUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('explains multi-word phrase as a single expression', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue('conv-456');
+      mockExplainVocabularyInConversationUseCase.execute.mockReturnValue(okAsync('Explication.'));
+
+      await useCase.execute('+10000000001', '/vocabulary se passer');
+
+      expect(mockExplainVocabularyInConversationUseCase.execute).toHaveBeenCalledWith('conv-456', 'se passer');
+    });
+  });
+
+  describe('existing phone — unknown command', () => {
+    it('replies with usage hint for unrecognised command', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue('conv-456');
+
+      const result = await useCase.execute('+10000000001', '/notebook');
+
+      expect(result.isOk()).toBe(true);
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(
+        '+10000000001',
+        'Commande inconnue. Pour expliquer un mot, écrivez /vocabulary [mot].',
+      );
+      expect(mockSendMessageUseCase.execute).not.toHaveBeenCalled();
+      expect(mockExplainVocabularyInConversationUseCase.execute).not.toHaveBeenCalled();
+    });
+
+    it('replies with usage hint when /vocabulary has no word', async () => {
+      mockPhoneSessionRepository.findByPhone.mockResolvedValue('conv-456');
+
+      await useCase.execute('+10000000001', '/vocabulary');
+
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(
+        '+10000000001',
+        'Commande inconnue. Pour expliquer un mot, écrivez /vocabulary [mot].',
+      );
+      expect(mockExplainVocabularyInConversationUseCase.execute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('session lookup failure', () => {
+    it('returns an error when phone lookup fails', async () => {
+      mockPhoneSessionRepository.findByPhone.mockRejectedValue(new Error('DB down'));
 
       const result = await useCase.execute('+10000000001', 'Bonjour');
 

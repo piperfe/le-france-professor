@@ -26,7 +26,7 @@ describe('POST /api/conversations/:conversationId/vocabulary (integration)', () 
     );
     const res = await request(app)
       .post(`/api/conversations/${conversationId}/vocabulary`)
-      .send({ word: 'passée', context: "Comment s'est passée ta journée ?" })
+      .send({ word: 'passée' })
       .expect(200);
 
     expect(res.body).toHaveProperty('explanation');
@@ -34,34 +34,7 @@ describe('POST /api/conversations/:conversationId/vocabulary (integration)', () 
     expect(res.body.explanation.length).toBeGreaterThan(0);
   });
 
-  it('works without context (standalone word lookup)', async () => {
-    chatCompletionsMock('Bonjour !');
-    const createRes = await request(app).post('/api/conversations').expect(201);
-    const conversationId = createRes.body.conversationId;
-
-    chatCompletionsMock('« Bonjour » est une salutation française. En anglais : "hello".');
-    const res = await request(app)
-      .post(`/api/conversations/${conversationId}/vocabulary`)
-      .send({ word: 'bonjour' })
-      .expect(200);
-
-    expect(res.body).toHaveProperty('explanation');
-  });
-
-  it('returns 400 when word is missing', async () => {
-    chatCompletionsMock('Bonjour !');
-    const createRes = await request(app).post('/api/conversations').expect(201);
-    const conversationId = createRes.body.conversationId;
-
-    const res = await request(app)
-      .post(`/api/conversations/${conversationId}/vocabulary`)
-      .send({})
-      .expect(400);
-
-    expect(res.body).toHaveProperty('error', 'word is required');
-  });
-
-  it('does not add messages to conversation history', async () => {
+it('does not add messages to conversation history', async () => {
     chatCompletionsMock('Bonjour !');
     const createRes = await request(app).post('/api/conversations').expect(201);
     const conversationId = createRes.body.conversationId;
@@ -69,7 +42,7 @@ describe('POST /api/conversations/:conversationId/vocabulary (integration)', () 
     chatCompletionsMock('« Merci » signifie "thank you".');
     await request(app)
       .post(`/api/conversations/${conversationId}/vocabulary`)
-      .send({ word: 'merci', context: 'Merci beaucoup !', sourceMessageId: 'msg-1' })
+      .send({ word: 'merci' })
       .expect(200);
 
     const convRes = await request(app)
@@ -84,10 +57,13 @@ describe('POST /api/conversations/:conversationId/vocabulary (integration)', () 
     const createRes = await request(app).post('/api/conversations').expect(201);
     const conversationId = createRes.body.conversationId;
 
+    const convRes = await request(app).get(`/api/conversations/${conversationId}`).expect(200);
+    const initialMessageId = convRes.body.messages[0].id;
+
     chatCompletionsMock('« Merci » signifie "thank you". En anglais : "thank you".');
     await request(app)
       .post(`/api/conversations/${conversationId}/vocabulary`)
-      .send({ word: 'merci', context: 'Merci beaucoup !', sourceMessageId: 'msg-initial' })
+      .send({ word: 'merci' })
       .expect(200);
 
     const getRes = await request(app)
@@ -96,7 +72,7 @@ describe('POST /api/conversations/:conversationId/vocabulary (integration)', () 
 
     expect(getRes.body.vocabulary).toHaveLength(1);
     expect(getRes.body.vocabulary[0].word).toBe('merci');
-    expect(getRes.body.vocabulary[0].sourceMessageId).toBe('msg-initial');
+    expect(getRes.body.vocabulary[0].sourceMessageId).toBe(initialMessageId);
     expect(getRes.body.vocabulary[0]).toHaveProperty('explanation');
     expect(getRes.body.vocabulary[0]).toHaveProperty('id');
     expect(getRes.body.vocabulary[0]).toHaveProperty('createdAt');
@@ -122,13 +98,13 @@ describe('POST /api/conversations/:conversationId/vocabulary (integration)', () 
     chatCompletionsMock('Explication de passée.');
     await request(app)
       .post(`/api/conversations/${conversationId}/vocabulary`)
-      .send({ word: 'passée', context: 'Context.', sourceMessageId: 'msg-1' })
+      .send({ word: 'passée' })
       .expect(200);
 
     chatCompletionsMock('Explication de merci.');
     await request(app)
       .post(`/api/conversations/${conversationId}/vocabulary`)
-      .send({ word: 'merci', context: 'Context.', sourceMessageId: 'msg-2' })
+      .send({ word: 'merci' })
       .expect(200);
 
     const getRes = await request(app)

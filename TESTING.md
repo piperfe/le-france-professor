@@ -93,6 +93,8 @@ infrastructure/telemetry/  → mock span exporters
 infrastructure/repositories/ → real SQLite via createDatabase(':memory:') — fresh db per test, no mocks
 ```
 
+When a file under test exposes multiple public methods, group first by method (`describe('save', ...)`, `describe('findById', ...)`), then by scenario within each group. Single-method files use a flat structure.
+
 #### Error path coverage
 
 HTTP error status codes are verified at the handler layer by injecting typed domain errors:

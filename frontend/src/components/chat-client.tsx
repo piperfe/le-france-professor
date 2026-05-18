@@ -113,10 +113,6 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
   }
 
   async function handleVocabularyCommand(word: string) {
-    const lastTutorMessage = [...messages].reverse().find((m) => m.sender === MessageSender.TUTOR && m.type !== 'vocabulary')
-    const context = lastTutorMessage?.content ?? ''
-    const sourceMessageId = lastTutorMessage?.id ?? ''
-
     setInput('')
     setLoadingLabel('Analyse en cours…')
     setError(null)
@@ -124,7 +120,7 @@ export function ChatClient({ initialMessages, conversationId, conversations, ini
     const res = await fetch(`/api/conversations/${conversationId}/vocabulary`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word, context, sourceMessageId }),
+      body: JSON.stringify({ word }),
     })
 
     setLoadingLabel(null)

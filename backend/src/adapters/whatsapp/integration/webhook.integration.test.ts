@@ -88,6 +88,43 @@ describe('WhatsApp webhook (integration)', () => {
     expect(meta.isDone()).toBe(true);
   });
 
+  it('POST /api/webhook/whatsapp — /vocabulary explains word and sends explanation', async () => {
+    // Establish a session for the phone first
+    chatCompletionsMock('Bonjour ! Je suis Sophie.');
+    metaApiMock();
+    await request(app).post('/api/webhook/whatsapp').send(textPayload('+15553333333', 'Salut'));
+    await flushAsync();
+
+    // /vocabulary command: LLM generates explanation, Meta API delivers it
+    chatCompletionsMock('«Bonjour» est une salutation française courante.');
+    const meta = metaApiMock();
+
+    const res = await request(app)
+      .post('/api/webhook/whatsapp')
+      .send(textPayload('+15553333333', '/vocabulary bonjour'));
+
+    expect(res.status).toBe(200);
+    await flushAsync();
+    expect(meta.isDone()).toBe(true);
+  });
+
+  it('POST /api/webhook/whatsapp — unknown command sends usage hint', async () => {
+    chatCompletionsMock('Bonjour ! Je suis Sophie.');
+    metaApiMock();
+    await request(app).post('/api/webhook/whatsapp').send(textPayload('+15554444444', 'Salut'));
+    await flushAsync();
+
+    const meta = metaApiMock();
+
+    const res = await request(app)
+      .post('/api/webhook/whatsapp')
+      .send(textPayload('+15554444444', '/notebook'));
+
+    expect(res.status).toBe(200);
+    await flushAsync();
+    expect(meta.isDone()).toBe(true);
+  });
+
   it('POST /api/webhook/whatsapp — voice note is transcribed and tutor replies', async () => {
     const mediaId = 'media-id-voice-123';
     const audioDownloadUrl = 'https://cdn.whatsapp.example.com/voice/file.ogg';

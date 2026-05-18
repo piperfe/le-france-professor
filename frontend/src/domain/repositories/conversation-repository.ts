@@ -17,8 +17,6 @@ export interface ConversationRepository {
   explainVocabulary(
     conversationId: string,
     word: string,
-    context: string,
-    sourceMessageId: string,
   ): Promise<{ explanation: string }>
   getVocabulary(conversationId: string): Promise<VocabularyEntry[]>
   findAll(): Promise<ConversationSummary[]>

@@ -8,11 +8,10 @@ import { CreateConversationUseCase } from './application/use-cases/create-conver
 import { SendMessageUseCase } from './application/use-cases/send-message-use-case';
 import { GetConversationUseCase } from './application/use-cases/get-conversation-use-case';
 import { GetAllConversationsUseCase } from './application/use-cases/get-all-conversations-use-case';
-import { ExplainVocabularyUseCase } from './application/use-cases/explain-vocabulary-use-case';
-import { SaveVocabularyUseCase } from './application/use-cases/save-vocabulary-use-case';
 import { GetVocabularyUseCase } from './application/use-cases/get-vocabulary-use-case';
 import { GenerateTitleUseCase } from './application/use-cases/generate-title-use-case';
 import { ExtractTopicUseCase } from './application/use-cases/extract-topic-use-case';
+import { ExplainVocabularyInConversationUseCase } from './application/use-cases/explain-vocabulary-in-conversation-use-case';
 import { HandleWhatsAppMessageUseCase } from './application/use-cases/handle-whatsapp-message-use-case';
 import { HandleWhatsAppVoiceUseCase } from './application/use-cases/handle-whatsapp-voice-use-case';
 import { createDatabase } from './infrastructure/db/client';
@@ -55,9 +54,12 @@ export function createApp(env: Env): express.Application {
   ));
   const getConversationUseCase = withTracing(new GetConversationUseCase(conversationRepository));
   const getAllConversationsUseCase = withTracing(new GetAllConversationsUseCase(conversationRepository));
-  const explainVocabularyUseCase = withTracing(new ExplainVocabularyUseCase(vocabularyService));
-  const saveVocabularyUseCase = withTracing(new SaveVocabularyUseCase(vocabularyRepository));
   const getVocabularyUseCase = withTracing(new GetVocabularyUseCase(vocabularyRepository));
+  const explainVocabularyInConversationUseCase = withTracing(new ExplainVocabularyInConversationUseCase(
+    conversationRepository,
+    vocabularyService,
+    vocabularyRepository,
+  ));
 
   app.use(
     '/api',
@@ -66,8 +68,7 @@ export function createApp(env: Env): express.Application {
       sendMessageUseCase,
       getConversationUseCase,
       getAllConversationsUseCase,
-      explainVocabularyUseCase,
-      saveVocabularyUseCase,
+      explainVocabularyInConversationUseCase,
       getVocabularyUseCase,
     ),
   );
@@ -79,6 +80,7 @@ export function createApp(env: Env): express.Application {
       phoneSessionRepository,
       createConversationUseCase,
       sendMessageUseCase,
+      explainVocabularyInConversationUseCase,
       whatsAppSender,
     ));
     const mediaDownloader = new MetaMediaDownloader(env.whatsapp.accessToken);

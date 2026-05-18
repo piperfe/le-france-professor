@@ -25,34 +25,14 @@ describe('POST /api/conversations/[id]/vocabulary', () => {
     const req = new NextRequest('http://localhost/api/conversations/conv-1/vocabulary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: 'passée', context: "Comment s'est passée ta journée ?", sourceMessageId: 'msg-1' }),
+      body: JSON.stringify({ word: 'passée' }),
     })
     const res = await POST(req, { params: Promise.resolve({ id: 'conv-1' }) })
 
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.explanation).toBe('«Passée» est le participe passé féminin de «se passer».')
-    expect(explainVocabularyUseCase.execute).toHaveBeenCalledWith(
-      'conv-1',
-      'passée',
-      "Comment s'est passée ta journée ?",
-      'msg-1',
-    )
-  })
-
-  it('defaults context and sourceMessageId to empty string when not provided', async () => {
-    vi.mocked(explainVocabularyUseCase.execute).mockResolvedValue(
-      ok({ explanation: 'Bonjour est une salutation.' }),
-    )
-
-    const req = new NextRequest('http://localhost/api/conversations/conv-1/vocabulary', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: 'bonjour' }),
-    })
-    await POST(req, { params: Promise.resolve({ id: 'conv-1' }) })
-
-    expect(explainVocabularyUseCase.execute).toHaveBeenCalledWith('conv-1', 'bonjour', '', '')
+    expect(explainVocabularyUseCase.execute).toHaveBeenCalledWith('conv-1', 'passée')
   })
 
   it('returns 400 when word is missing', async () => {
@@ -77,7 +57,7 @@ describe('POST /api/conversations/[id]/vocabulary', () => {
     const req = new NextRequest('http://localhost/api/conversations/conv-1/vocabulary', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ word: 'passée', context: 'some phrase', sourceMessageId: 'msg-1' }),
+      body: JSON.stringify({ word: 'passée' }),
     })
     const res = await POST(req, { params: Promise.resolve({ id: 'conv-1' }) })
 

@@ -36,7 +36,7 @@ describe('createHandleMessageHandler', () => {
   });
 
   describe('text messages', () => {
-    it('returns 200 immediately and fires the text use case', () => {
+    it('routes text message to tutoring flow and responds immediately', () => {
       mockRequest.body = textBody('+10000000001', 'Bonjour');
       mockMessageUseCase.execute.mockReturnValue(okAsync(undefined));
 
@@ -60,7 +60,7 @@ describe('createHandleMessageHandler', () => {
   });
 
   describe('audio messages', () => {
-    it('returns 200 immediately and fires the voice use case', () => {
+    it('routes audio message to voice transcription and responds immediately', () => {
       mockRequest.body = audioBody('+10000000001', 'media-id-abc123');
       mockVoiceUseCase.execute.mockReturnValue(okAsync(undefined));
 

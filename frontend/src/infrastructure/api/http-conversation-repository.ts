@@ -39,15 +39,13 @@ export class HttpConversationRepository implements ConversationRepository {
   async explainVocabulary(
     conversationId: string,
     word: string,
-    context: string,
-    sourceMessageId: string,
   ): Promise<{ explanation: string }> {
     const response = await fetch(
       `${this.baseUrl}/conversations/${conversationId}/vocabulary`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word, context, sourceMessageId }),
+        body: JSON.stringify({ word }),
       },
     )
     if (!response.ok) {

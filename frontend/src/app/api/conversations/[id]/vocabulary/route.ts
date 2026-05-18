@@ -6,13 +6,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params
-  const { word, context, sourceMessageId } = await req.json()
+  const { word } = await req.json()
 
   if (!word) {
     return NextResponse.json({ error: 'word is required' }, { status: 400 })
   }
 
-  const result = await explainVocabularyUseCase.execute(id, word, context ?? '', sourceMessageId ?? '')
+  const result = await explainVocabularyUseCase.execute(id, word)
 
   if (result.isErr()) {
     return NextResponse.json({ error: result.error.message }, { status: 503 })

@@ -30,6 +30,7 @@ describe('SendMessageUseCase', () => {
       save: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      getLastTutorMessage: jest.fn(),
     };
     mockTutorService = {
       initiateConversation: jest.fn(),

@@ -8,11 +8,9 @@ export class ExplainVocabularyUseCase {
   execute(
     conversationId: string,
     word: string,
-    context: string,
-    sourceMessageId: string,
   ): ResultAsync<{ explanation: string }, ServiceUnavailableError> {
     return ResultAsync.fromPromise(
-      this.repository.explainVocabulary(conversationId, word, context, sourceMessageId),
+      this.repository.explainVocabulary(conversationId, word),
       (e) =>
         e instanceof ServiceUnavailableError
           ? e

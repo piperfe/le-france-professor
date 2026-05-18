@@ -206,7 +206,6 @@ export const openApiSpec = {
               },
               example: {
                 word: 'passée',
-                context: "Comment s'est passée ta journée jusqu'à présent ?",
               },
             },
           },
@@ -338,16 +337,6 @@ export const openApiSpec = {
             type: 'string',
             description: 'The French word to explain',
             example: 'passée',
-          },
-          context: {
-            type: 'string',
-            description: 'The sentence in which the word appears (last tutor message)',
-            example: "Comment s'est passée ta journée jusqu'à présent ?",
-          },
-          sourceMessageId: {
-            type: 'string',
-            description: 'ID of the tutor message that contains the word — stored on the vocabulary entry so the frontend can highlight the word in that message',
-            example: '1700000000001-xyz789',
           },
         },
       },

@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm'
+import { eq, asc, desc, and } from 'drizzle-orm'
 import { Conversation } from '../../domain/entities/conversation'
 import { Message } from '../../domain/entities/message'
 import type { MessageSender } from '../../domain/entities/message'
@@ -63,6 +63,19 @@ export class SqliteConversationRepository implements ConversationRepository {
       .orderBy(asc(messages.timestamp))
       .all()
     return toConversation(row, msgs)
+  }
+
+  @Span()
+  async getLastTutorMessage(conversationId: string): Promise<Message | null> {
+    const row = this.db
+      .select()
+      .from(messages)
+      .where(and(eq(messages.conversationId, conversationId), eq(messages.sender, 'tutor')))
+      .orderBy(desc(messages.timestamp))
+      .limit(1)
+      .get()
+    if (!row) return null
+    return new Message(row.id, row.content, row.sender as MessageSender, row.timestamp)
   }
 
   @Span()

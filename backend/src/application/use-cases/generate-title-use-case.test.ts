@@ -15,6 +15,7 @@ describe('GenerateTitleUseCase', () => {
       save: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      getLastTutorMessage: jest.fn(),
     };
     mockTitleService = { generateTitle: jest.fn() };
     useCase = new GenerateTitleUseCase(mockRepository, mockTitleService);

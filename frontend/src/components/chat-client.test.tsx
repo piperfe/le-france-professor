@@ -232,59 +232,7 @@ describe('ChatClient', () => {
       expect(screen.getByRole('textbox')).toHaveValue('/vocabulary ')
     })
 
-    it('uses the last tutor message as context when looking up a word', async () => {
-      const user = userEvent.setup()
-      let capturedBody: Record<string, unknown> | undefined
-      server.use(
-        http.post(VOCABULARY_PATH, async ({ request }) => {
-          capturedBody = await request.json() as Record<string, unknown>
-          return HttpResponse.json({ explanation: '«Passée» est le participe passé.' })
-        }),
-        http.get(VOCABULARY_PATH, () => HttpResponse.json({ vocabulary: [] })),
-      )
-
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
-      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
-      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
-
-      await waitFor(() =>
-        expect(capturedBody).toEqual({
-          word: 'passée',
-          context: 'Bonjour ! Comment puis-je vous aider ?',
-          sourceMessageId: 'msg-0',
-        }),
-      )
-    })
-
-    it('uses the original tutor message as context on the second /vocabulary command (not the vocab card)', async () => {
-      const user = userEvent.setup()
-      const bodies: Record<string, unknown>[] = []
-      server.use(
-        http.post(VOCABULARY_PATH, async ({ request }) => {
-          bodies.push(await request.json() as Record<string, unknown>)
-          return HttpResponse.json({ explanation: 'Explication.' })
-        }),
-        http.get(VOCABULARY_PATH, () => HttpResponse.json({ vocabulary: [] })),
-      )
-
-      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
-
-      await user.type(screen.getByRole('textbox'), '/vocabulary merci')
-      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
-      await waitFor(() => expect(bodies).toHaveLength(1))
-
-      await user.type(screen.getByRole('textbox'), '/vocabulary journée')
-      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
-      await waitFor(() => expect(bodies).toHaveLength(2))
-
-      expect(bodies[1]).toEqual({
-        word: 'journée',
-        context: 'Bonjour ! Comment puis-je vous aider ?',
-        sourceMessageId: 'msg-0',
-      })
-    })
-
-    it('does not show user bubble — only the vocabulary response appears', async () => {
+it('does not show user bubble — only the vocabulary response appears', async () => {
       const user = userEvent.setup()
       server.use(
         http.post(VOCABULARY_PATH, () =>
@@ -354,29 +302,29 @@ describe('ChatClient', () => {
         expect(screen.getByText('Erreur lors de la recherche du vocabulaire. Réessayez.')).toBeInTheDocument(),
       )
     })
-  })
 
-  it('badge count increments after a /vocabulary command succeeds', async () => {
-    const user = userEvent.setup()
-    const newEntry = {
-      id: 'v-2', word: 'passée', explanation: '«Passée» est le participe passé.',
-      sourceMessageId: 'msg-0', conversationId: CONVERSATION_ID, createdAt: '2026-01-01T00:00:00.000Z',
-    }
-    server.use(
-      http.post(VOCABULARY_PATH, () =>
-        HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),
-      ),
-      http.get(VOCABULARY_PATH, () =>
-        HttpResponse.json({ vocabulary: [newEntry] }),
-      ),
-    )
+    it('badge count increments after a /vocabulary command succeeds', async () => {
+      const user = userEvent.setup()
+      const newEntry = {
+        id: 'v-2', word: 'passée', explanation: '«Passée» est le participe passé.',
+        sourceMessageId: 'msg-0', conversationId: CONVERSATION_ID, createdAt: '2026-01-01T00:00:00.000Z',
+      }
+      server.use(
+        http.post(VOCABULARY_PATH, () =>
+          HttpResponse.json({ explanation: '«Passée» est le participe passé.' }),
+        ),
+        http.get(VOCABULARY_PATH, () =>
+          HttpResponse.json({ vocabulary: [newEntry] }),
+        ),
+      )
 
-    render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
+      render(<ChatClient initialMessages={initialMessages} conversationId={CONVERSATION_ID} conversations={[]} initialVocabulary={[]} />)
 
-    await user.type(screen.getByRole('textbox'), '/vocabulary passée')
-    await user.click(screen.getByRole('button', { name: 'Envoyer' }))
+      await user.type(screen.getByRole('textbox'), '/vocabulary passée')
+      await user.click(screen.getByRole('button', { name: 'Envoyer' }))
 
-    await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument())
+      await waitFor(() => expect(screen.getByText('1')).toBeInTheDocument())
+    })
   })
 
   it('opens the mobile sidebar drawer when the menu button is clicked', async () => {

@@ -24,7 +24,7 @@ describe('ExplainVocabularyUseCase', () => {
       explanation: '«Passée» est le participe passé féminin de «se passer».',
     })
 
-    const result = await useCase.execute('conv-1', 'passée', "Comment s'est passée ta journée ?", 'msg-1')
+    const result = await useCase.execute('conv-1', 'passée')
 
     expect(result.isOk()).toBe(true)
     if (result.isOk()) {
@@ -32,23 +32,18 @@ describe('ExplainVocabularyUseCase', () => {
     }
   })
 
-  it('forwards word, context and source message to the backend for explanation', async () => {
+  it('explains the given word in the conversation', async () => {
     vi.mocked(mockRepository.explainVocabulary).mockResolvedValue({ explanation: 'test' })
 
-    await useCase.execute('conv-1', 'passée', "Comment s'est passée ta journée ?", 'msg-1')
+    await useCase.execute('conv-1', 'passée')
 
-    expect(mockRepository.explainVocabulary).toHaveBeenCalledWith(
-      'conv-1',
-      'passée',
-      "Comment s'est passée ta journée ?",
-      'msg-1',
-    )
+    expect(mockRepository.explainVocabulary).toHaveBeenCalledWith('conv-1', 'passée')
   })
 
   it('returns err with ServiceUnavailableError when repository throws', async () => {
     vi.mocked(mockRepository.explainVocabulary).mockRejectedValue(new Error('LLM unavailable'))
 
-    const result = await useCase.execute('conv-1', 'passée', '', 'msg-1')
+    const result = await useCase.execute('conv-1', 'passée')
 
     expect(result.isErr()).toBe(true)
     if (result.isErr()) {
@@ -61,7 +56,7 @@ describe('ExplainVocabularyUseCase', () => {
     const original = new ServiceUnavailableError('already wrapped')
     vi.mocked(mockRepository.explainVocabulary).mockRejectedValue(original)
 
-    const result = await useCase.execute('conv-1', 'passée', '', 'msg-1')
+    const result = await useCase.execute('conv-1', 'passée')
 
     expect(result.isErr()).toBe(true)
     if (result.isErr()) {

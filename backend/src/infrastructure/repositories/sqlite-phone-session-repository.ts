@@ -8,7 +8,7 @@ export class SqlitePhoneSessionRepository implements PhoneSessionRepository {
   constructor(private readonly db: DrizzleDb) {}
 
   @Span()
-  async findConversationId(phone: string): Promise<string | null> {
+  async findByPhone(phone: string): Promise<string | null> {
     const row = this.db
       .select()
       .from(phoneSessions)
