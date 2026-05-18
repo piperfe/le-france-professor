@@ -320,7 +320,7 @@ E2E tests cover three user journeys:
 2. Clicking the button opens the drawer — saved entry visible inside a `<li>` (word + explanation)
 3. Clicking the `×` button closes the drawer
 4. Saved words persist across navigation — badge count and drawer entries reload from the server on return
-5. Saved word is highlighted (`<mark>`) in the source tutor message; highlight persists after navigation because the backend returns `messageId` on `POST /messages` and the frontend uses it directly for `sourceMessageId` matching
+5. Saved word is highlighted (`<mark>`) in the source tutor message; highlight persists after navigation because the backend links the vocabulary entry to the last tutor message by ID — the same ID the frontend received from `POST /messages`
 6. Clicking a highlighted word opens the drawer with that entry remarked (`li.bg-vocab-50`)
 
 **Sidebar multi-conversation flow:**

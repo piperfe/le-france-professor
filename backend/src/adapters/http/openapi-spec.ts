@@ -190,7 +190,7 @@ export const openApiSpec = {
         tags: ['Conversations'],
         summary: 'Explain a vocabulary word in context',
         description:
-          'Explains a French word in the context of the last tutor message. Returns the grammatical form, contextual meaning, and English translation. Does not affect conversation history.',
+          'Explains a French word using the last tutor message in the conversation as context. The backend resolves the context automatically — callers send only the word. The explanation is saved to the vocabulary notebook. Does not affect conversation history.',
         operationId: 'explainVocabulary',
         parameters: [
           {
@@ -346,7 +346,7 @@ export const openApiSpec = {
         properties: {
           explanation: {
             type: 'string',
-            description: 'Contextual explanation of the word in French, including grammatical form and English translation',
+            description: 'Contextual explanation of the word in French',
             example: "« Passée » est le participe passé féminin du verbe « se passer ».",
           },
         },
@@ -379,7 +379,7 @@ export const openApiSpec = {
           },
           messageId: {
             type: 'string',
-            description: 'Persisted ID of the tutor message — used as sourceMessageId when saving vocabulary entries so highlights survive navigation',
+            description: 'Persisted ID of the tutor message',
             example: '1700000000002-abc456',
           },
         },
