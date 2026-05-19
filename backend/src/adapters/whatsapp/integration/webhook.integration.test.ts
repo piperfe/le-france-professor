@@ -16,6 +16,12 @@ function metaApiMock() {
     .reply(200, { messaging_product: 'whatsapp' });
 }
 
+function metaMediaUploadMock(mediaId = 'media-upload-id') {
+  return nock('https://graph.facebook.com')
+    .post(`/v25.0/${PHONE_NUMBER_ID}/media`)
+    .reply(200, { id: mediaId });
+}
+
 function textPayload(from: string, body: string) {
   return {
     entry: [{ changes: [{ value: { messages: [{ from, type: 'text', text: { body } }] } }] }],
@@ -118,11 +124,40 @@ describe('WhatsApp webhook (integration)', () => {
 
     const res = await request(app)
       .post('/api/webhook/whatsapp')
-      .send(textPayload('+15554444444', '/notebook'));
+      .send(textPayload('+15554444444', '/aide'));
 
     expect(res.status).toBe(200);
     await flushAsync();
     expect(meta.isDone()).toBe(true);
+  });
+
+  it('POST /api/webhook/whatsapp — /notebook with entries sends text reply then PDF document', async () => {
+    // 1. Establish session
+    chatCompletionsMock('Bonjour ! Je suis Sophie.');
+    metaApiMock();
+    await request(app).post('/api/webhook/whatsapp').send(textPayload('+15556666666', 'Salut'));
+    await flushAsync();
+
+    // 2. Add a vocabulary entry via /vocabulary
+    chatCompletionsMock('«Bonjour» est une salutation française courante.');
+    metaApiMock();
+    await request(app).post('/api/webhook/whatsapp').send(textPayload('+15556666666', '/vocabulary bonjour'));
+    await flushAsync();
+
+    // 3. /notebook — text reply + media upload + document send
+    const textReply = metaApiMock();
+    const mediaUpload = metaMediaUploadMock();
+    const documentSend = metaApiMock();
+
+    const res = await request(app)
+      .post('/api/webhook/whatsapp')
+      .send(textPayload('+15556666666', '/notebook'));
+
+    expect(res.status).toBe(200);
+    await flushAsync();
+    expect(textReply.isDone()).toBe(true);
+    expect(mediaUpload.isDone()).toBe(true);
+    expect(documentSend.isDone()).toBe(true);
   });
 
   it('POST /api/webhook/whatsapp — voice note is transcribed and tutor replies', async () => {

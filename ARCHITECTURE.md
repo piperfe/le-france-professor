@@ -9,8 +9,25 @@ backend/
 ├── domain/          # Core business logic, entities, value objects
 ├── application/     # Use cases (neverthrow ResultAsync)
 ├── infrastructure/  # LLM integration, repositories, telemetry
-└── adapters/        # HTTP handlers, routes
+└── adapters/
+    ├── http/        # Express route handlers — parse HTTP, call use cases, map errors to status codes
+    └── whatsapp/    # WhatsApp message handlers — parse Meta payloads, command routing, PDF formatting
 ```
+
+### WhatsApp command pattern
+
+`HandleWhatsAppMessageUseCase` is a generic router. It accepts a `WhatsAppCommand[]` at construction time and routes incoming messages by regex:
+
+```ts
+export interface WhatsAppCommand {
+  readonly trigger: RegExp;  // broad match — "is this command for me?"
+  readonly pattern: RegExp;  // strict match — "are the args valid?"
+  readonly usage: string;    // shown when pattern fails: "Usage : /vocabulary [mot]"
+  execute(phone, conversationId, match): ResultAsync<void, ServiceUnavailableError>;
+}
+```
+
+Command implementations live in `adapters/whatsapp/handlers/` — same layer as HTTP handlers. They translate WhatsApp-specific input (regex match, phone number) into use case calls and own their own `WhatsAppSender` dependency. The use case has no knowledge of which commands are registered; new commands are wired in `index.ts`.
 
 ## Frontend
 

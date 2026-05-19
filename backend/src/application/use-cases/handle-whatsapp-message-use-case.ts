@@ -2,26 +2,30 @@ import { ResultAsync } from 'neverthrow';
 import type { PhoneSessionRepository } from '../../domain/repositories/phone-session-repository';
 import type { WhatsAppSender } from '../../domain/services/whatsapp-sender';
 import type { CreateConversationUseCase } from './create-conversation-use-case';
-import type { ExplainVocabularyInConversationUseCase } from './explain-vocabulary-in-conversation-use-case';
 import type { SendMessageUseCase } from './send-message-use-case';
 import { ServiceUnavailableError } from '../../domain/errors';
 
-const VOCABULARY_REGEX = /^\/vocabulary\s+(.+)$/i;
-const UNKNOWN_COMMAND_REPLY = 'Commande inconnue. Pour expliquer un mot, écrivez /vocabulary [mot].';
+const UNKNOWN_COMMAND_REPLY = 'Commande inconnue. Commandes disponibles : /vocabulary [mot] · /notebook';
+
+export interface WhatsAppCommand {
+  readonly regex: RegExp;
+  execute(
+    phone: string,
+    conversationId: string,
+    match: RegExpMatchArray,
+  ): ResultAsync<void, ServiceUnavailableError>;
+}
 
 export class HandleWhatsAppMessageUseCase {
   constructor(
     private readonly phoneSessionRepository: PhoneSessionRepository,
     private readonly createConversationUseCase: CreateConversationUseCase,
     private readonly sendMessageUseCase: SendMessageUseCase,
-    private readonly explainVocabularyInConversationUseCase: ExplainVocabularyInConversationUseCase,
     private readonly whatsAppSender: WhatsAppSender,
-  ) { }
+    private readonly commands: WhatsAppCommand[],
+  ) {}
 
-  execute(
-    phone: string,
-    messageText: string,
-  ): ResultAsync<void, ServiceUnavailableError> {
+  execute(phone: string, messageText: string): ResultAsync<void, ServiceUnavailableError> {
     return ResultAsync.fromPromise(
       this.phoneSessionRepository.findByPhone(phone),
       (error) => new ServiceUnavailableError(error instanceof Error ? error.message : 'Repository unavailable'),
@@ -48,10 +52,9 @@ export class HandleWhatsAppMessageUseCase {
     conversationId: string,
     text: string,
   ): ResultAsync<void, ServiceUnavailableError> {
-    const match = VOCABULARY_REGEX.exec(text);
-    if (match) {
-      return this.explainVocabularyInConversationUseCase.execute(conversationId, match[1].trim())
-        .andThen((explanation) => this.reply(phone, explanation));
+    for (const command of this.commands) {
+      const match = command.regex.exec(text);
+      if (match) return command.execute(phone, conversationId, match);
     }
     return this.reply(phone, UNKNOWN_COMMAND_REPLY);
   }

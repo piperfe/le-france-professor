@@ -13,6 +13,8 @@ import { GenerateTitleUseCase } from './application/use-cases/generate-title-use
 import { ExtractTopicUseCase } from './application/use-cases/extract-topic-use-case';
 import { ExplainVocabularyInConversationUseCase } from './application/use-cases/explain-vocabulary-in-conversation-use-case';
 import { HandleWhatsAppMessageUseCase } from './application/use-cases/handle-whatsapp-message-use-case';
+import { VocabularyWhatsAppCommand } from './application/use-cases/whatsapp-vocabulary-command';
+import { NotebookWhatsAppCommand } from './application/use-cases/whatsapp-notebook-command';
 import { HandleWhatsAppVoiceUseCase } from './application/use-cases/handle-whatsapp-voice-use-case';
 import { createDatabase } from './infrastructure/db/client';
 import { SqliteConversationRepository } from './infrastructure/repositories/sqlite-conversation-repository';
@@ -22,6 +24,7 @@ import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
 import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
 import { MetaWhatsAppClient } from './infrastructure/whatsapp/meta-whatsapp-client';
+import { WhatsAppNotebookFormatter } from './adapters/whatsapp/notebook-formatter';
 import { MetaMediaDownloader } from './infrastructure/whatsapp/meta-media-downloader';
 import { WhisperTranscriptionService } from './infrastructure/whatsapp/whisper-transcription-service';
 import { withTracing } from './infrastructure/telemetry/tracing-proxy';
@@ -76,12 +79,17 @@ export function createApp(env: Env): express.Application {
   if (env.whatsapp) {
     const phoneSessionRepository = new SqlitePhoneSessionRepository(db);
     const whatsAppSender = new MetaWhatsAppClient(env.whatsapp.accessToken, env.whatsapp.phoneNumberId);
+    const notebookFormatter = new WhatsAppNotebookFormatter();
+    const commands = [
+      new VocabularyWhatsAppCommand(explainVocabularyInConversationUseCase, whatsAppSender),
+      new NotebookWhatsAppCommand(getVocabularyUseCase, notebookFormatter, whatsAppSender),
+    ];
     const handleWhatsAppMessageUseCase = withTracing(new HandleWhatsAppMessageUseCase(
       phoneSessionRepository,
       createConversationUseCase,
       sendMessageUseCase,
-      explainVocabularyInConversationUseCase,
       whatsAppSender,
+      commands,
     ));
     const mediaDownloader = new MetaMediaDownloader(env.whatsapp.accessToken);
     const audioTranscriber = new WhisperTranscriptionService(env.whisper.url);
