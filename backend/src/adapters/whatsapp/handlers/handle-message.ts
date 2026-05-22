@@ -1,6 +1,12 @@
 import type { Request, Response } from 'express';
-import type { HandleWhatsAppMessageUseCase } from '../../../application/use-cases/handle-whatsapp-message-use-case';
-import type { HandleWhatsAppVoiceUseCase } from '../../../application/use-cases/handle-whatsapp-voice-use-case';
+import { ResultAsync } from 'neverthrow';
+import type { StartOrResumeConversationUseCase } from '../../../application/use-cases/start-or-resume-conversation-use-case';
+import { ConversationStatus } from '../../../application/use-cases/start-or-resume-conversation-use-case';
+import type { SendMessageUseCase } from '../../../application/use-cases/send-message-use-case';
+import type { WhatsAppVoiceTranscriber } from '../voice-transcriber';
+import type { WhatsAppSender } from '../ports/whatsapp-sender';
+import type { WhatsAppCommand } from './whatsapp-command';
+import { ServiceUnavailableError } from '../../../domain/errors';
 
 // TODO: error handling & retry strategy
 // Use cases are fired with void — if they fail the message is silently lost (Meta
@@ -8,8 +14,11 @@ import type { HandleWhatsAppVoiceUseCase } from '../../../application/use-cases/
 // [WhatsApp] Error handling & retry strategy for fire-and-forget use cases
 
 export function createHandleMessageHandler(
-  handleWhatsAppMessageUseCase: HandleWhatsAppMessageUseCase,
-  handleWhatsAppVoiceUseCase: HandleWhatsAppVoiceUseCase,
+  startOrResumeConversationUseCase: StartOrResumeConversationUseCase,
+  sendMessageUseCase: SendMessageUseCase,
+  whatsAppSender: WhatsAppSender,
+  commands: WhatsAppCommand[],
+  voiceTranscriber: WhatsAppVoiceTranscriber,
 ) {
   return (req: Request, res: Response): void => {
     const msg = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
@@ -19,12 +28,48 @@ export function createHandleMessageHandler(
     if (!msg) return;
 
     if (msg.type === 'text' && msg.text?.body) {
-      void handleWhatsAppMessageUseCase.execute(msg.from, msg.text.body);
+      void handleText(msg.from, msg.text.body);
       return;
     }
 
     if (msg.type === 'audio' && msg.audio?.id) {
-      void handleWhatsAppVoiceUseCase.execute(msg.from, msg.audio.id);
+      void voiceTranscriber.transcribe(msg.audio.id)
+        .andThen((transcribedText) => handleText(msg.from, transcribedText));
     }
   };
+
+  function handleText(phone: string, text: string): ResultAsync<void, ServiceUnavailableError> {
+    return startOrResumeConversationUseCase.execute(phone).andThen((session) => {
+      if (session.status === ConversationStatus.STARTED) {
+        return reply(phone, session.initialMessage);
+      }
+      if (text.startsWith('/')) {
+        return dispatchCommand(phone, session.conversationId, text);
+      }
+      return continueConversation(phone, session.conversationId, text);
+    });
+  }
+
+  function dispatchCommand(phone: string, conversationId: string, text: string): ResultAsync<void, ServiceUnavailableError> {
+    const command = commands.find((c) => c.trigger.test(text));
+    if (!command) {
+      const usages = commands.map((c) => c.usage).join(' · ');
+      return reply(phone, `Commande inconnue. Commandes disponibles : ${usages}`);
+    }
+    return command.execute(phone, conversationId, text);
+  }
+
+  function continueConversation(phone: string, conversationId: string, text: string): ResultAsync<void, ServiceUnavailableError> {
+    return sendMessageUseCase
+      .execute(conversationId, text)
+      .mapErr((error) => new ServiceUnavailableError(error.message))
+      .andThen(({ tutorResponse }) => reply(phone, tutorResponse));
+  }
+
+  function reply(phone: string, body: string): ResultAsync<void, ServiceUnavailableError> {
+    return ResultAsync.fromPromise(
+      whatsAppSender.sendMessage(phone, body),
+      (error) => new ServiceUnavailableError(error instanceof Error ? error.message : 'Failed to send WhatsApp reply'),
+    );
+  }
 }

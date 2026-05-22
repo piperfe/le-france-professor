@@ -32,21 +32,20 @@ Three options were considered:
 ```ts
 export interface WhatsAppCommand {
   readonly trigger: RegExp;  // broad — "is this command for me?"
-  readonly pattern: RegExp;  // strict — "are args valid?"
-  readonly usage: string;    // shown when pattern fails
-  execute(phone, conversationId, match): ResultAsync<void, ServiceUnavailableError>;
+  readonly usage: string;    // shown in unknown-command reply
+  execute(phone, conversationId, text): ResultAsync<void, ServiceUnavailableError>;
 }
 ```
 
-`HandleWhatsAppMessageUseCase` constructor accepts `commands: WhatsAppCommand[]`. The `trigger`/`pattern`/`usage` split mirrors HTTP request validation: the router matches the route (`trigger`), the handler validates the body (`pattern`), and returns a field-specific 400 message (`usage`) if invalid. `UNKNOWN_COMMAND_REPLY` fires only when no `trigger` matches.
+`handle-message.ts` accepts `commands: WhatsAppCommand[]`. The `trigger`/`usage` split mirrors HTTP request validation: the router matches the route (`trigger`) and shows the `usage` hint when no trigger matches. Each command owns its own strict input validation as a private `pattern` regex — this is not part of the shared interface.
 
 Each command class declares `WhatsAppSender` as a constructor dependency and owns its complete execution — including notebook's compound send (text then PDF). The compound send is specific to the notebook command; encoding it in a shared abstraction would be a leaky generalisation.
 
-The use case retains `WhatsAppSender` for the three non-command paths: `startConversation` (greeting), `continueConversation` (tutor reply), and unknown-command reply.
+The handler (`handle-message.ts`) retains `WhatsAppSender` for the three non-command paths: new-phone greeting, tutor reply, and unknown-command reply.
 
 ## Consequences
 
-- `HandleWhatsAppMessageUseCase` drops from 7 to 4 constructor dependencies (`phoneSession`, `createConversation`, `sendMessage`, `whatsAppSender`) plus `commands: WhatsAppCommand[]`
+- Session handling was later extracted into `StartOrResumeConversationUseCase`; routing moved fully into `handle-message.ts` (adapter layer). `HandleWhatsAppMessageUseCase` no longer exists.
 - Adding a new command requires only a new class wired in `index.ts` — zero changes to the use case
 - Use case tests use generic `mockCommandA` / `mockCommandB` objects; they test routing behaviour, not command-specific logic
 - Command tests are isolated: each command's error paths, regex boundaries, and sending logic tested independently

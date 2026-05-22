@@ -19,6 +19,9 @@ Files are named `{category}-{date}-{slug}.md` and organised by domain below.
 | [ADR-0030](./arch-2026-04-10-whatsapp-cloud-api-webhook.md)              | WhatsApp via Meta Cloud API webhook — one conversation per phone number | Established | 2026-04-10 |
 | [ADR-0031](./arch-2026-04-11-eslint-boundaries-hexagonal-enforcement.md) | eslint-plugin-boundaries — automated hexagonal layer enforcement        | Established | 2026-04-11 |
 | [ADR-0034](./arch-2026-05-18-channel-agnostic-vocabulary-use-case.md)    | Channel-agnostic vocabulary use case — context resolved server-side     | Established | 2026-05-18 |
+| [ADR-0035](./whatsapp-2026-05-19-command-routing-pattern.md)              | WhatsApp command routing — injected `WhatsAppCommand[]`, commands own sending | Established | 2026-05-19 |
+| [ADR-0036](./whatsapp-2026-05-19-command-handlers-adapter-layer.md)       | WhatsApp command handlers belong in `adapters/whatsapp/handlers/`       | Established | 2026-05-19 |
+| [ADR-0037](./whatsapp-2026-05-21-adapter-owned-port-interfaces.md)        | Adapter-owned port interfaces — `adapters/whatsapp/ports/`              | Established | 2026-05-21 |
 
 
 ## ⚛️ Frontend Patterns

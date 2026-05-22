@@ -12,10 +12,10 @@ import { GetVocabularyUseCase } from './application/use-cases/get-vocabulary-use
 import { GenerateTitleUseCase } from './application/use-cases/generate-title-use-case';
 import { ExtractTopicUseCase } from './application/use-cases/extract-topic-use-case';
 import { ExplainVocabularyInConversationUseCase } from './application/use-cases/explain-vocabulary-in-conversation-use-case';
-import { HandleWhatsAppMessageUseCase } from './application/use-cases/handle-whatsapp-message-use-case';
-import { VocabularyWhatsAppCommand } from './application/use-cases/whatsapp-vocabulary-command';
-import { NotebookWhatsAppCommand } from './application/use-cases/whatsapp-notebook-command';
-import { HandleWhatsAppVoiceUseCase } from './application/use-cases/handle-whatsapp-voice-use-case';
+import { StartOrResumeConversationUseCase } from './application/use-cases/start-or-resume-conversation-use-case';
+import { WhatsAppVoiceTranscriber } from './adapters/whatsapp/voice-transcriber';
+import { VocabularyCommand } from './adapters/whatsapp/handlers/vocabulary-command';
+import { NotebookCommand } from './adapters/whatsapp/handlers/notebook-command';
 import { createDatabase } from './infrastructure/db/client';
 import { SqliteConversationRepository } from './infrastructure/repositories/sqlite-conversation-repository';
 import { SqliteVocabularyRepository } from './infrastructure/repositories/sqlite-vocabulary-repository';
@@ -80,25 +80,32 @@ export function createApp(env: Env): express.Application {
     const phoneSessionRepository = new SqlitePhoneSessionRepository(db);
     const whatsAppSender = new MetaWhatsAppClient(env.whatsapp.accessToken, env.whatsapp.phoneNumberId);
     const notebookFormatter = new WhatsAppNotebookFormatter();
-    const commands = [
-      new VocabularyWhatsAppCommand(explainVocabularyInConversationUseCase, whatsAppSender),
-      new NotebookWhatsAppCommand(getVocabularyUseCase, notebookFormatter, whatsAppSender),
-    ];
-    const handleWhatsAppMessageUseCase = withTracing(new HandleWhatsAppMessageUseCase(
+
+    const startOrResumeConversationUseCase = withTracing(new StartOrResumeConversationUseCase(
       phoneSessionRepository,
       createConversationUseCase,
+    ));
+
+    const commands = [
+      new VocabularyCommand(explainVocabularyInConversationUseCase, whatsAppSender),
+      new NotebookCommand(getVocabularyUseCase, notebookFormatter, whatsAppSender),
+    ];
+
+    const mediaDownloader = new MetaMediaDownloader(env.whatsapp.accessToken);
+    const audioTranscriber = new WhisperTranscriptionService(env.whisper.url);
+    const voiceTranscriber = withTracing(new WhatsAppVoiceTranscriber(
+      mediaDownloader,
+      audioTranscriber,
+    ));
+
+    app.use('/api', createWhatsAppRoutes(
+      env.whatsapp.verifyToken,
+      startOrResumeConversationUseCase,
       sendMessageUseCase,
       whatsAppSender,
       commands,
+      voiceTranscriber,
     ));
-    const mediaDownloader = new MetaMediaDownloader(env.whatsapp.accessToken);
-    const audioTranscriber = new WhisperTranscriptionService(env.whisper.url);
-    const handleWhatsAppVoiceUseCase = withTracing(new HandleWhatsAppVoiceUseCase(
-      mediaDownloader,
-      audioTranscriber,
-      handleWhatsAppMessageUseCase,
-    ));
-    app.use('/api', createWhatsAppRoutes(env.whatsapp.verifyToken, handleWhatsAppMessageUseCase, handleWhatsAppVoiceUseCase));
   }
 
   app.use('/docs', apiReference({ spec: { content: openApiSpec } }));

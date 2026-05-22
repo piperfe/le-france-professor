@@ -1,6 +1,6 @@
 import PDFDocument from 'pdfkit';
 import type { VocabularyEntry } from '../../domain/entities/vocabulary-entry';
-import type { NotebookFormatter } from '../../domain/services/notebook-formatter';
+import type { NotebookFormatter } from './ports/notebook-formatter';
 
 const NOTEBOOK_LIMIT = 5;
 const ENTRY_SEPARATOR = '▫️';

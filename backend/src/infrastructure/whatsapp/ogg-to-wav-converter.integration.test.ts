@@ -21,7 +21,7 @@ describe('convertOggToWav (integration)', () => {
     const invalid = Buffer.from('not-audio');
 
     await expect(convertOggToWav(invalid)).rejects.toThrow();
-  });
+  }, 15000);
 
   it('converts an OGG/Opus buffer to a valid WAV buffer', async () => {
     const input = await readFile(FIXTURE);

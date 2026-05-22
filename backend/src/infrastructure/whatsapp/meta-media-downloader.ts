@@ -1,7 +1,6 @@
-import type { MediaDownloader } from '../../domain/services/media-downloader';
 import { Span } from '../telemetry/decorators';
 
-export class MetaMediaDownloader implements MediaDownloader {
+export class MetaMediaDownloader {
   constructor(private readonly accessToken: string) {}
 
   @Span()

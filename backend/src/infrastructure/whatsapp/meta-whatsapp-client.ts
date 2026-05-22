@@ -1,7 +1,6 @@
 import { Span } from '../telemetry/decorators';
-import type { WhatsAppSender } from '../../domain/services/whatsapp-sender';
 
-export class MetaWhatsAppClient implements WhatsAppSender {
+export class MetaWhatsAppClient {
   constructor(
     private readonly accessToken: string,
     private readonly phoneNumberId: string,

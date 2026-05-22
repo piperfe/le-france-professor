@@ -11,23 +11,33 @@ backend/
 ├── infrastructure/  # LLM integration, repositories, telemetry
 └── adapters/
     ├── http/        # Express route handlers — parse HTTP, call use cases, map errors to status codes
-    └── whatsapp/    # WhatsApp message handlers — parse Meta payloads, command routing, PDF formatting
+    └── whatsapp/    # ports/ · handlers/ · routes · voice-transcriber · notebook-formatter
 ```
 
-### WhatsApp command pattern
+### WhatsApp adapter layout
 
-`HandleWhatsAppMessageUseCase` is a generic router. It accepts a `WhatsAppCommand[]` at construction time and routes incoming messages by regex:
+```
+adapters/whatsapp/
+├── ports/               # Adapter-owned port interfaces (WhatsAppSender, MediaDownloader, …)
+├── handlers/            # handle-message.ts (router) + per-command handlers + verify-webhook.ts
+├── voice-transcriber.ts # Audio download + OGG→WAV + whisper transcription pipeline
+├── notebook-formatter.ts
+└── routes.ts
+```
+
+`handle-message.ts` is the router. It accepts a `WhatsAppCommand[]` at construction time and routes incoming text messages by regex trigger. Voice notes are transcribed first by `WhatsAppVoiceTranscriber`, then handled through the same text path:
 
 ```ts
 export interface WhatsAppCommand {
   readonly trigger: RegExp;  // broad match — "is this command for me?"
-  readonly pattern: RegExp;  // strict match — "are the args valid?"
-  readonly usage: string;    // shown when pattern fails: "Usage : /vocabulary [mot]"
-  execute(phone, conversationId, match): ResultAsync<void, ServiceUnavailableError>;
+  readonly usage: string;    // shown in the unknown-command reply
+  execute(phone, conversationId, text): ResultAsync<void, ServiceUnavailableError>;
 }
 ```
 
-Command implementations live in `adapters/whatsapp/handlers/` — same layer as HTTP handlers. They translate WhatsApp-specific input (regex match, phone number) into use case calls and own their own `WhatsAppSender` dependency. The use case has no knowledge of which commands are registered; new commands are wired in `index.ts`.
+Command implementations live in `adapters/whatsapp/handlers/` alongside the router — same layer as HTTP handlers. Each command owns its input validation (a private `pattern` regex) and its `WhatsAppSender` dependency. New commands are wired in `index.ts` with zero changes to the router.
+
+Port interfaces (`WhatsAppSender`, `MediaDownloader`, `AudioTranscriber`, `NotebookFormatter`) live in `adapters/whatsapp/ports/` — the layer that depends on them — rather than `domain/services/`. Infrastructure implementations satisfy these interfaces via TypeScript structural typing; no `implements` import is required. See [ADR-0037](./docs/decisions/whatsapp-2026-05-21-adapter-owned-port-interfaces.md).
 
 ## Frontend
 

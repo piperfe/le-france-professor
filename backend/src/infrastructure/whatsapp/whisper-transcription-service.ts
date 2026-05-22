@@ -1,10 +1,9 @@
 import { logInfo } from '../telemetry/logger';
-import type { AudioTranscriber } from '../../domain/services/audio-transcriber';
 import { ServiceUnavailableError } from '../../domain/errors';
 import { convertOggToWav } from './ogg-to-wav-converter';
 import { Span } from '../telemetry/decorators';
 
-export class WhisperTranscriptionService implements AudioTranscriber {
+export class WhisperTranscriptionService {
   constructor(
     private readonly whisperUrl: string,
     private readonly audioConverter: (audio: Buffer) => Promise<Buffer> = convertOggToWav,

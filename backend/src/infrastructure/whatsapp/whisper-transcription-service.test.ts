@@ -22,7 +22,7 @@ describe('WhisperTranscriptionService', () => {
     service = new WhisperTranscriptionService(WHISPER_URL, mockConverter);
   });
 
-  it('converts the audio format before sending to whisper', async () => {
+  it('converts audio format before transcription', async () => {
     nock(WHISPER_URL).post('/inference').reply(200, { text: 'Bonjour !' });
 
     await service.transcribe(fakeAudio);
@@ -44,7 +44,7 @@ describe('WhisperTranscriptionService', () => {
     expect(result).toBe('Je veux parler de cuisine.');
   });
 
-  it('trims leading and trailing whitespace from the whisper response', async () => {
+  it('trims whitespace from the transcription', async () => {
     nock(WHISPER_URL).post('/inference').reply(200, { text: '  Je veux parler de cuisine.  ' });
 
     const result = await service.transcribe(fakeAudio);
@@ -52,7 +52,7 @@ describe('WhisperTranscriptionService', () => {
     expect(result).toBe('Je veux parler de cuisine.');
   });
 
-  it('throws ServiceUnavailableError when whisper responds with an error', async () => {
+  it('throws ServiceUnavailableError when the transcription service is unavailable', async () => {
     nock(WHISPER_URL).post('/inference').reply(503);
 
     await expect(service.transcribe(fakeAudio)).rejects.toBeInstanceOf(ServiceUnavailableError);

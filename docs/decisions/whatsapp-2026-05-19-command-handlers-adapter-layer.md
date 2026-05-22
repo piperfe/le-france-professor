@@ -26,7 +26,7 @@ The responsibility is identical to HTTP handlers:
 
 Command classes know about WhatsApp-specific concerns (regex format, phone numbers, `WhatsAppSender`) — that is adapter knowledge, not business logic. Moving them to `adapters/whatsapp/handlers/` enforces the hexagonal boundary enforced by `eslint-plugin-boundaries` (see ADR-0031).
 
-The `WhatsAppCommand` interface is exported from `application/use-cases/handle-whatsapp-message-use-case.ts` — the use case owns the contract it consumes. Adapter files import it from there, the same direction HTTP handlers use to import use case types.
+The `WhatsAppCommand` interface is defined in `adapters/whatsapp/handlers/whatsapp-command.ts`. After `HandleWhatsAppMessageUseCase` was dissolved into `handle-message.ts` (see ADR-0035), the interface moved to live alongside the router that enforces it — the adapter layer owns the contract it uses.
 
 ## Consequences
 
