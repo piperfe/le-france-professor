@@ -1,6 +1,6 @@
 import PDFDocument from 'pdfkit';
-import type { VocabularyEntry } from '../../domain/entities/vocabulary-entry';
-import type { NotebookFormatter } from './ports/notebook-formatter';
+import type { VocabularyEntry } from '../../../domain/entities/vocabulary-entry';
+import type { NotebookFormatter } from '../ports/notebook-formatter';
 
 const NOTEBOOK_LIMIT = 5;
 const ENTRY_SEPARATOR = '▫️';
@@ -25,6 +25,10 @@ const F_BODY    = 'Helvetica';
 type Doc = InstanceType<typeof PDFDocument>;
 
 export class WhatsAppNotebookFormatter implements NotebookFormatter {
+  formatInvalidUsage(): string {
+    return `📖 *Utilisation :*\n• /notebook\n• /notebook all`;
+  }
+
   formatReply(entries: VocabularyEntry[], showAll: boolean): string {
     const count = entries.length;
     const header = `📖 *Vocabulaire* 🇫🇷 — ${count} mot${count !== 1 ? 's' : ''} au total`;

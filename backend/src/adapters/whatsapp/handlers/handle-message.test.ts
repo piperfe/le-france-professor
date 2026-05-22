@@ -48,7 +48,7 @@ describe('createHandleMessageHandler', () => {
   });
 
   describe('HTTP behavior', () => {
-    it('always returns 200 immediately for text messages', () => {
+    it('returns 200 for text messages', () => {
       mockRequest.body = textBody('+10000000001', 'Bonjour');
       mockStartOrResume.execute.mockReturnValue(
         okAsync({ status: ConversationStatus.RESUMED, conversationId: 'conv-1' }),
@@ -201,7 +201,7 @@ describe('createHandleMessageHandler', () => {
 
       expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(
         '+10000000001',
-        'Commande inconnue. Commandes disponibles : /command-a [arg] · /command-b [all]',
+        '❓ *Commande inconnue.*\nCommandes disponibles :\n• /command-a [arg]\n• /command-b [all]',
       );
       expect(mockCommandA.execute).not.toHaveBeenCalled();
       expect(mockCommandB.execute).not.toHaveBeenCalled();

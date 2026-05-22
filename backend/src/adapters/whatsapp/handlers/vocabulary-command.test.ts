@@ -3,10 +3,12 @@ import { VocabularyCommand } from './vocabulary-command';
 import { ServiceUnavailableError } from '../../../domain/errors';
 
 const mockExplainVocabularyInConversationUseCase = { execute: jest.fn() };
+const mockVocabularyFormatter = { formatReply: jest.fn(), formatMissingWord: jest.fn() };
 const mockWhatsAppSender = { sendMessage: jest.fn(), sendDocument: jest.fn() };
 
 const command = new VocabularyCommand(
   mockExplainVocabularyInConversationUseCase as any,
+  mockVocabularyFormatter,
   mockWhatsAppSender,
 );
 
@@ -17,6 +19,16 @@ describe('VocabularyCommand', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWhatsAppSender.sendMessage.mockResolvedValue(undefined);
+    mockVocabularyFormatter.formatReply.mockImplementation(
+      (word: string, explanation: string) => `📚 *${word}* 🇫🇷\n\n${explanation}`,
+    );
+    mockVocabularyFormatter.formatMissingWord.mockReturnValue(
+      '📚 *Utilisation*, indique un mot à expliquer *:*\n• /vocabulary bonjour\n• /vocabulary se passer',
+    );
+  });
+
+  it('usage string is /vocabulary [mot]', () => {
+    expect(command.usage).toBe('/vocabulary [mot]');
   });
 
   describe('regex', () => {
@@ -62,7 +74,7 @@ describe('VocabularyCommand', () => {
   });
 
   describe('execute', () => {
-    it('explains the word and sends the explanation', async () => {
+    it('explains the word and sends the formatted reply', async () => {
       mockExplainVocabularyInConversationUseCase.execute.mockReturnValue(
         okAsync('«Bonjour» est une salutation.'),
       );
@@ -71,24 +83,30 @@ describe('VocabularyCommand', () => {
 
       expect(result.isOk()).toBe(true);
       expect(mockExplainVocabularyInConversationUseCase.execute).toHaveBeenCalledWith(CONV, 'bonjour');
-      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(PHONE, '«Bonjour» est une salutation.');
+      expect(mockVocabularyFormatter.formatReply).toHaveBeenCalledWith('bonjour', '«Bonjour» est une salutation.');
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(
+        PHONE,
+        '📚 *bonjour* 🇫🇷\n\n«Bonjour» est une salutation.',
+      );
     });
 
-    it('sends explanation for a multi-word phrase', async () => {
+    it('sends formatted reply for a multi-word phrase', async () => {
       mockExplainVocabularyInConversationUseCase.execute.mockReturnValue(okAsync('Explication.'));
 
       await command.execute(PHONE, CONV, '/vocabulary se passer');
 
       expect(mockExplainVocabularyInConversationUseCase.execute).toHaveBeenCalledWith(CONV, 'se passer');
+      expect(mockVocabularyFormatter.formatReply).toHaveBeenCalledWith('se passer', 'Explication.');
     });
 
-    it('sends usage hint when no word is provided', async () => {
+    it('sends formatted usage hint when no word is provided', async () => {
       const result = await command.execute(PHONE, CONV, '/vocabulary');
 
       expect(result.isOk()).toBe(true);
+      expect(mockVocabularyFormatter.formatMissingWord).toHaveBeenCalled();
       expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(
         PHONE,
-        'Indiquez un mot à expliquer. Exemple : /vocabulary bonjour',
+        '📚 *Utilisation*, indique un mot à expliquer *:*\n• /vocabulary bonjour\n• /vocabulary se passer',
       );
       expect(mockExplainVocabularyInConversationUseCase.execute).not.toHaveBeenCalled();
     });

@@ -1,6 +1,6 @@
 import { PDFParse } from 'pdf-parse';
 import { WhatsAppNotebookFormatter } from './notebook-formatter';
-import { VocabularyEntry } from '../../domain/entities/vocabulary-entry';
+import { VocabularyEntry } from '../../../domain/entities/vocabulary-entry';
 
 const makeEntry = (word: string, explanation: string, daysAgo = 0) =>
   new VocabularyEntry(
@@ -19,6 +19,17 @@ const formatter = new WhatsAppNotebookFormatter();
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('WhatsAppNotebookFormatter.formatReply', () => {
+  it('golden path — single entry, today', () => {
+    const today = new Date();
+    const time = today.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const entry = makeEntry('bonjour', 'Salutation française courante.', 0);
+    const result = formatter.formatReply([entry], false);
+    expect(result).toBe(
+      `📖 *Vocabulaire* 🇫🇷 — 1 mot au total\n\n*bonjour*\nSalutation française courante.\n_Aujourd'hui, ${time}_`,
+    );
+  });
+
+
   describe('structure — WhatsApp format markers', () => {
     it('wraps the header word in bold markers with flag emoji', () => {
       expect(formatter.formatReply([], false)).toContain('📖 *Vocabulaire* 🇫🇷');
@@ -144,6 +155,40 @@ describe('WhatsAppNotebookFormatter.formatReply', () => {
       expect(result).toContain('*mot-0*');
       expect(result).toContain('*mot-7*');
       expect(result).not.toContain('/notebook all');
+    });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// formatInvalidUsage
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('WhatsAppNotebookFormatter.formatInvalidUsage', () => {
+  it('golden path — full formatted output', () => {
+    expect(formatter.formatInvalidUsage()).toBe('📖 *Utilisation :*\n• /notebook\n• /notebook all');
+  });
+
+  describe('content — data correctness', () => {
+    it('includes the utilisation label', () => {
+      expect(formatter.formatInvalidUsage()).toContain('Utilisation');
+    });
+
+    it('includes /notebook command', () => {
+      expect(formatter.formatInvalidUsage()).toContain('/notebook');
+    });
+
+    it('includes /notebook all variant', () => {
+      expect(formatter.formatInvalidUsage()).toContain('/notebook all');
+    });
+  });
+
+  describe('format — WhatsApp markers', () => {
+    it('includes the notebook emoji', () => {
+      expect(formatter.formatInvalidUsage()).toContain('📖');
+    });
+
+    it('uses bullet list for usage variants', () => {
+      expect(formatter.formatInvalidUsage()).toContain('• /notebook');
     });
   });
 });

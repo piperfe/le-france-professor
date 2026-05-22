@@ -3,7 +3,7 @@ import { NotebookCommand } from './notebook-command';
 import { ServiceUnavailableError } from '../../../domain/errors';
 
 const mockGetVocabularyUseCase = { execute: jest.fn() };
-const mockNotebookFormatter = { formatReply: jest.fn(), generatePdf: jest.fn() };
+const mockNotebookFormatter = { formatReply: jest.fn(), formatInvalidUsage: jest.fn(), generatePdf: jest.fn() };
 const mockWhatsAppSender = { sendMessage: jest.fn(), sendDocument: jest.fn() };
 
 const command = new NotebookCommand(
@@ -21,6 +21,11 @@ describe('NotebookCommand', () => {
     jest.clearAllMocks();
     mockWhatsAppSender.sendMessage.mockResolvedValue(undefined);
     mockWhatsAppSender.sendDocument.mockResolvedValue(undefined);
+    mockNotebookFormatter.formatInvalidUsage.mockReturnValue('📖 *Utilisation :*\n• /notebook\n• /notebook all');
+  });
+
+  it('usage string is /notebook · /notebook all', () => {
+    expect(command.usage).toBe('/notebook · /notebook all');
   });
 
   describe('regex', () => {
@@ -66,11 +71,12 @@ describe('NotebookCommand', () => {
   });
 
   describe('execute', () => {
-    it('sends usage hint when command is malformed', async () => {
+    it('sends formatted usage hint when command is malformed', async () => {
       const result = await command.execute(PHONE, CONV, '/notebookfoo');
 
       expect(result.isOk()).toBe(true);
-      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(PHONE, 'Usage : /notebook · /notebook all');
+      expect(mockNotebookFormatter.formatInvalidUsage).toHaveBeenCalled();
+      expect(mockWhatsAppSender.sendMessage).toHaveBeenCalledWith(PHONE, '📖 *Utilisation :*\n• /notebook\n• /notebook all');
       expect(mockGetVocabularyUseCase.execute).not.toHaveBeenCalled();
     });
 

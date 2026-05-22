@@ -11,17 +11,17 @@ backend/
 ├── infrastructure/  # LLM integration, repositories, telemetry
 └── adapters/
     ├── http/        # Express route handlers — parse HTTP, call use cases, map errors to status codes
-    └── whatsapp/    # ports/ · handlers/ · routes · voice-transcriber · notebook-formatter
+    └── whatsapp/    # ports/ · handlers/ · formatters/ · routes · voice-transcriber
 ```
 
 ### WhatsApp adapter layout
 
 ```
 adapters/whatsapp/
-├── ports/               # Adapter-owned port interfaces (WhatsAppSender, MediaDownloader, …)
+├── ports/               # Adapter-owned port interfaces (WhatsAppSender, MediaDownloader, VocabularyFormatter, NotebookFormatter, …)
 ├── handlers/            # handle-message.ts (router) + per-command handlers + verify-webhook.ts
+├── formatters/          # Per-command WhatsApp message formatters (WhatsAppVocabularyFormatter, WhatsAppNotebookFormatter)
 ├── voice-transcriber.ts # Audio download + OGG→WAV + whisper transcription pipeline
-├── notebook-formatter.ts
 └── routes.ts
 ```
 
@@ -35,9 +35,9 @@ export interface WhatsAppCommand {
 }
 ```
 
-Command implementations live in `adapters/whatsapp/handlers/` alongside the router — same layer as HTTP handlers. Each command owns its input validation (a private `pattern` regex) and its `WhatsAppSender` dependency. New commands are wired in `index.ts` with zero changes to the router.
+Command implementations live in `adapters/whatsapp/handlers/` alongside the router — same layer as HTTP handlers. Each command owns its input validation (a private `pattern` regex), its `WhatsAppSender` dependency, and a formatter instance injected at construction time. Formatters are behavioral contract ports — interfaces whose methods produce platform-specific message strings, not data DTOs. New commands are wired in `index.ts` with zero changes to the router.
 
-Port interfaces (`WhatsAppSender`, `MediaDownloader`, `AudioTranscriber`, `NotebookFormatter`) live in `adapters/whatsapp/ports/` — the layer that depends on them — rather than `domain/services/`. Infrastructure implementations satisfy these interfaces via TypeScript structural typing; no `implements` import is required. See [ADR-0037](./docs/decisions/whatsapp-2026-05-21-adapter-owned-port-interfaces.md).
+Port interfaces (`WhatsAppSender`, `MediaDownloader`, `AudioTranscriber`, `VocabularyFormatter`, `NotebookFormatter`) live in `adapters/whatsapp/ports/` — the layer that depends on them — rather than `domain/services/`. Infrastructure implementations satisfy these interfaces via TypeScript structural typing; no `implements` import is required. See [ADR-0037](./docs/decisions/whatsapp-2026-05-21-adapter-owned-port-interfaces.md).
 
 ## Frontend
 

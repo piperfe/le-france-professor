@@ -24,7 +24,8 @@ import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
 import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
 import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
 import { MetaWhatsAppClient } from './infrastructure/whatsapp/meta-whatsapp-client';
-import { WhatsAppNotebookFormatter } from './adapters/whatsapp/notebook-formatter';
+import { WhatsAppNotebookFormatter } from './adapters/whatsapp/formatters/notebook-formatter';
+import { WhatsAppVocabularyFormatter } from './adapters/whatsapp/formatters/vocabulary-formatter';
 import { MetaMediaDownloader } from './infrastructure/whatsapp/meta-media-downloader';
 import { WhisperTranscriptionService } from './infrastructure/whatsapp/whisper-transcription-service';
 import { withTracing } from './infrastructure/telemetry/tracing-proxy';
@@ -80,6 +81,7 @@ export function createApp(env: Env): express.Application {
     const phoneSessionRepository = new SqlitePhoneSessionRepository(db);
     const whatsAppSender = new MetaWhatsAppClient(env.whatsapp.accessToken, env.whatsapp.phoneNumberId);
     const notebookFormatter = new WhatsAppNotebookFormatter();
+    const vocabularyFormatter = new WhatsAppVocabularyFormatter();
 
     const startOrResumeConversationUseCase = withTracing(new StartOrResumeConversationUseCase(
       phoneSessionRepository,
@@ -87,7 +89,7 @@ export function createApp(env: Env): express.Application {
     ));
 
     const commands = [
-      new VocabularyCommand(explainVocabularyInConversationUseCase, whatsAppSender),
+      new VocabularyCommand(explainVocabularyInConversationUseCase, vocabularyFormatter, whatsAppSender),
       new NotebookCommand(getVocabularyUseCase, notebookFormatter, whatsAppSender),
     ];
 

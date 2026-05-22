@@ -35,6 +35,7 @@ function audioPayload(from: string, mediaId: string) {
 }
 
 const flushAsync = () => new Promise((resolve) => setTimeout(resolve, 50));
+const flushAsyncPdf = () => new Promise((resolve) => setTimeout(resolve, 500));
 const flushAsyncSlow = () => new Promise((resolve) => setTimeout(resolve, 3000));
 
 describe('WhatsApp webhook (integration)', () => {
@@ -154,7 +155,7 @@ describe('WhatsApp webhook (integration)', () => {
       .send(textPayload('+15556666666', '/notebook'));
 
     expect(res.status).toBe(200);
-    await flushAsync();
+    await flushAsyncPdf();
     expect(textReply.isDone()).toBe(true);
     expect(mediaUpload.isDone()).toBe(true);
     expect(documentSend.isDone()).toBe(true);

@@ -7,8 +7,6 @@ import { ServiceUnavailableError } from '../../../domain/errors';
 
 // TODO: extract input parsing to a dedicated schema when this command grows multiple fields or error cases
 
-const INVALID_USAGE_REPLY = 'Usage : /notebook · /notebook all';
-
 export class NotebookCommand implements WhatsAppCommand {
   readonly trigger = /^\/notebook/i;
   readonly pattern = /^\/notebook(\s+all)?$/i;
@@ -22,7 +20,7 @@ export class NotebookCommand implements WhatsAppCommand {
 
   execute(phone: string, conversationId: string, text: string): ResultAsync<void, ServiceUnavailableError> {
     const match = this.pattern.exec(text);
-    if (!match) return this.sendText(phone, INVALID_USAGE_REPLY);
+    if (!match) return this.sendText(phone, this.notebookFormatter.formatInvalidUsage());
 
     const showAll = match[1]?.trim() === 'all';
     return this.getVocabularyUseCase.execute(conversationId).andThen((entries) => {

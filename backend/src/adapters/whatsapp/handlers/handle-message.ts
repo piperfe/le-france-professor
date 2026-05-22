@@ -53,8 +53,7 @@ export function createHandleMessageHandler(
   function dispatchCommand(phone: string, conversationId: string, text: string): ResultAsync<void, ServiceUnavailableError> {
     const command = commands.find((c) => c.trigger.test(text));
     if (!command) {
-      const usages = commands.map((c) => c.usage).join(' · ');
-      return reply(phone, `Commande inconnue. Commandes disponibles : ${usages}`);
+      return reply(phone, formatUnknownCommand(commands.map((c) => c.usage)));
     }
     return command.execute(phone, conversationId, text);
   }
@@ -72,4 +71,9 @@ export function createHandleMessageHandler(
       (error) => new ServiceUnavailableError(error instanceof Error ? error.message : 'Failed to send WhatsApp reply'),
     );
   }
+}
+
+function formatUnknownCommand(availableUsages: string[]): string {
+  const list = availableUsages.map((u) => `• ${u}`).join('\n');
+  return `❓ *Commande inconnue.*\nCommandes disponibles :\n${list}`;
 }
