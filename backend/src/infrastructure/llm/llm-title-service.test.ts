@@ -1,5 +1,5 @@
 import nock from 'nock';
-import { OllamaTitleService } from './ollama-title-service';
+import { LlmTitleService } from './llm-title-service';
 import { Message, MessageSender } from '../../domain/entities/message';
 
 const BASE_URL = 'http://localhost:9999';
@@ -24,8 +24,8 @@ function makeMessages(count: number): Message[] {
   );
 }
 
-describe('OllamaTitleService', () => {
-  let service: OllamaTitleService;
+describe('LlmTitleService', () => {
+  let service: LlmTitleService;
 
   beforeAll(() => {
     nock.disableNetConnect();
@@ -36,7 +36,7 @@ describe('OllamaTitleService', () => {
   });
 
   beforeEach(() => {
-    service = new OllamaTitleService({ baseURL: `${BASE_URL}/v1`, model: 'llama2' });
+    service = new LlmTitleService({ baseURL: `${BASE_URL}/v1`, model: 'llama2' });
     nock.cleanAll();
   });
 
@@ -69,7 +69,7 @@ describe('OllamaTitleService', () => {
       expect(result).toBe('Visite du marché dominical');
     });
 
-    it('sends only the first 4 messages regardless of conversation length', async () => {
+    it('limits context to the first 4 messages regardless of conversation length', async () => {
       let capturedBody: unknown = null;
       nock(BASE_URL)
         .post(CHAT_PATH, (body) => { capturedBody = body; return true; })
@@ -82,7 +82,7 @@ describe('OllamaTitleService', () => {
       expect(lines).toHaveLength(4);
     });
 
-    it('sends a system prompt that instructs a 4–7 word French title without roles', async () => {
+    it('instructs the LLM to generate a 4–7 word French title without speaker roles', async () => {
       let capturedBody: unknown = null;
       nock(BASE_URL)
         .post(CHAT_PATH, (body) => { capturedBody = body; return true; })
@@ -100,7 +100,7 @@ describe('OllamaTitleService', () => {
       });
     });
 
-    it('uses temperature 0.5 for balanced creativity', async () => {
+    it('uses moderate temperature for creative title generation', async () => {
       let capturedBody: unknown = null;
       nock(BASE_URL)
         .post(CHAT_PATH, (body) => { capturedBody = body; return true; })

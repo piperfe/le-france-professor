@@ -1,5 +1,87 @@
-import { parseScore } from './judge';
-import type { Score } from './judge';
+import nock from 'nock';
+import { parseScore, scoreTranscript } from './judge';
+import type { Score, JudgeConfig } from './judge';
+import type { Transcript } from './runner';
+
+const BASE_URL = 'http://localhost:9999';
+const COMPLETIONS_PATH = '/v1/chat/completions';
+
+const FAKE_CONFIG: JudgeConfig = { baseURL: `${BASE_URL}/v1`, model: 'test-model' };
+
+const COHERENCE_TRANSCRIPT: Transcript = {
+  scenarioId: 'a1-test',
+  level: 'A1',
+  interest: 'food',
+  evalMode: 'coherence',
+  turns: [{ student: 'Bonjour', tutor: 'Salut !' }],
+};
+
+const DISCOVERY_TRANSCRIPT: Transcript = {
+  scenarioId: 'a2-test',
+  level: 'A2',
+  interest: 'unknown',
+  evalMode: 'discovery',
+  turns: [{ student: 'oui', tutor: 'Tu aimes quoi ?' }],
+};
+
+function mockCompletion(content: string) {
+  return { choices: [{ message: { content } }] };
+}
+
+function validCoherenceScore() {
+  return JSON.stringify({ engagement: 4, teaching_quality: 3, topic_coherence: 5, question_naturalness: 2, rationale: 'Good.' });
+}
+
+function validDiscoveryScore() {
+  return JSON.stringify({ engagement: 3, teaching_quality: 3, topic_discovery: 4, question_naturalness: 3, rationale: 'Decent.' });
+}
+
+describe('scoreTranscript', () => {
+  beforeAll(() => { nock.disableNetConnect(); });
+  afterAll(() => { nock.enableNetConnect(); });
+  beforeEach(() => { nock.cleanAll(); });
+
+  it('returns a parsed Score when the judge returns a valid coherence response', async () => {
+    nock(BASE_URL).post(COMPLETIONS_PATH).reply(200, mockCompletion(validCoherenceScore()));
+    const score = await scoreTranscript(COHERENCE_TRANSCRIPT, FAKE_CONFIG);
+    expect(score.engagement).toBe(4);
+    expect(score.topicCoherence).toBe(5);
+    expect(score.topicDiscovery).toBeUndefined();
+  });
+
+  it('returns a parsed Score for discovery mode', async () => {
+    nock(BASE_URL).post(COMPLETIONS_PATH).reply(200, mockCompletion(validDiscoveryScore()));
+    const score = await scoreTranscript(DISCOVERY_TRANSCRIPT, FAKE_CONFIG);
+    expect(score.topicDiscovery).toBe(4);
+    expect(score.topicCoherence).toBeUndefined();
+  });
+
+  it('requests structured JSON output from the judge API', async () => {
+    let body: unknown;
+    nock(BASE_URL).post(COMPLETIONS_PATH, (b) => { body = b; return true; }).reply(200, mockCompletion(validCoherenceScore()));
+    await scoreTranscript(COHERENCE_TRANSCRIPT, FAKE_CONFIG);
+    expect(body).toMatchObject({ response_format: { type: 'json_object' } });
+  });
+
+  it('includes the API key in the request when provided', async () => {
+    let authHeader: string | undefined;
+    nock(BASE_URL)
+      .post(COMPLETIONS_PATH)
+      .reply(200, function () { authHeader = this.req.headers['authorization']; return mockCompletion(validCoherenceScore()); });
+    await scoreTranscript(COHERENCE_TRANSCRIPT, { ...FAKE_CONFIG, apiKey: 'gsk_test' });
+    expect(authHeader).toBe('Bearer gsk_test');
+  });
+
+  it('throws when the judge API returns a non-ok status', async () => {
+    nock(BASE_URL).post(COMPLETIONS_PATH).reply(500, { error: 'Internal server error' });
+    await expect(scoreTranscript(COHERENCE_TRANSCRIPT, FAKE_CONFIG)).rejects.toThrow();
+  });
+
+  it('throws when the judge returns an empty response', async () => {
+    nock(BASE_URL).post(COMPLETIONS_PATH).reply(200, { choices: [] });
+    await expect(scoreTranscript(COHERENCE_TRANSCRIPT, FAKE_CONFIG)).rejects.toThrow('empty response');
+  });
+});
 
 describe('parseScore — coherence mode', () => {
   it('parses a valid coherence score into a Score with topicCoherence set', () => {

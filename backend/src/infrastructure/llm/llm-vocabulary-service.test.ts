@@ -1,5 +1,5 @@
 import nock from 'nock';
-import { OllamaVocabularyService } from './ollama-vocabulary-service';
+import { LlmVocabularyService } from './llm-vocabulary-service';
 
 const BASE_URL = 'http://localhost:9999';
 const CHAT_PATH = '/v1/chat/completions';
@@ -17,8 +17,8 @@ function createMockChatResponse(content: string | null) {
   };
 }
 
-describe('OllamaVocabularyService', () => {
-  let service: OllamaVocabularyService;
+describe('LlmVocabularyService', () => {
+  let service: LlmVocabularyService;
 
   beforeAll(() => {
     nock.disableNetConnect();
@@ -29,7 +29,7 @@ describe('OllamaVocabularyService', () => {
   });
 
   beforeEach(() => {
-    service = new OllamaVocabularyService({ baseURL: `${BASE_URL}/v1`, model: 'llama2' });
+    service = new LlmVocabularyService({ baseURL: `${BASE_URL}/v1`, model: 'llama2' });
     nock.cleanAll();
   });
 
@@ -55,7 +55,7 @@ describe('OllamaVocabularyService', () => {
       expect(result).toBe('Je ne peux pas expliquer ce mot pour le moment.');
     });
 
-    it('sends system prompt focused on linguistic explanation without questions', async () => {
+    it('instructs the LLM to explain without asking follow-up questions', async () => {
       let capturedBody: unknown = null;
       nock(BASE_URL)
         .post(CHAT_PATH, (body) => { capturedBody = body; return true; })
@@ -73,7 +73,7 @@ describe('OllamaVocabularyService', () => {
       });
     });
 
-    it('includes the context phrase in the user message when context is provided', async () => {
+    it('includes the conversation context when explaining vocabulary in context', async () => {
       let capturedBody: unknown = null;
       nock(BASE_URL)
         .post(CHAT_PATH, (body) => { capturedBody = body; return true; })
@@ -92,7 +92,7 @@ describe('OllamaVocabularyService', () => {
       });
     });
 
-    it('sends a context-free user message when context is empty', async () => {
+    it('explains vocabulary without a phrase context when none is provided', async () => {
       let capturedBody: unknown = null;
       nock(BASE_URL)
         .post(CHAT_PATH, (body) => { capturedBody = body; return true; })
@@ -105,7 +105,7 @@ describe('OllamaVocabularyService', () => {
       expect(userMessage.content).toContain('bonjour');
     });
 
-    it('uses temperature 0.3 for deterministic explanations', async () => {
+    it('uses low temperature for deterministic explanations', async () => {
       let capturedBody: unknown = null;
       nock(BASE_URL)
         .post(CHAT_PATH, (body) => { capturedBody = body; return true; })

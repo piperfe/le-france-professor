@@ -6,7 +6,8 @@ import { runCommand } from './run';
 
 const SCENARIOS_DIR = join(__dirname, '..', '..', 'scenarios');
 const BACKEND_URL = 'http://localhost:3001';
-const JUDGE_URL = 'http://localhost:11434';
+const JUDGE_HOST = 'http://localhost:11434';
+const JUDGE_BASE_URL = `${JUDGE_HOST}/v1`;
 const JUDGE_MODEL = 'gemma3:4b';
 
 let runsDir: string;
@@ -38,9 +39,9 @@ function mockScenario(): void {
     .times(5)
     .reply(200, { tutorResponse: 'Ah super !', messageId: 'msg-1', message: 'test' });
 
-  nock(JUDGE_URL)
-    .post('/api/chat')
-    .reply(200, { message: { content: JSON.stringify(FAKE_SCORE) } });
+  nock(JUDGE_HOST)
+    .post('/v1/chat/completions')
+    .reply(200, { choices: [{ message: { content: JSON.stringify(FAKE_SCORE) } }] });
 }
 
 beforeEach(() => {
@@ -58,7 +59,7 @@ describe('runCommand (integration)', () => {
   it('runs all scenarios and returns a formatted report', async () => {
     const report = await runCommand({
       backendUrl: BACKEND_URL,
-      judgeUrl: JUDGE_URL,
+      judgeBaseURL: JUDGE_BASE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
       label: 'test-run',
@@ -66,14 +67,14 @@ describe('runCommand (integration)', () => {
     });
 
     expect(report).toContain('SUMMARY');
-    expect(report).toContain('Average');
+    expect(report).toContain('Avg');
     expect(report).toContain('engagement');
   });
 
   it('includes scenario ids from the scenarios directory in the report', async () => {
     const report = await runCommand({
       backendUrl: BACKEND_URL,
-      judgeUrl: JUDGE_URL,
+      judgeBaseURL: JUDGE_BASE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
       label: 'test-run',
@@ -83,12 +84,12 @@ describe('runCommand (integration)', () => {
     expect(report).toContain('a1-confused-beginner-food');
   });
 
-  it('calls onProgress for each scenario start and done', async () => {
+  it('emits scenario_start and scenario_done events for each scenario', async () => {
     const events: string[] = [];
 
     await runCommand({
       backendUrl: BACKEND_URL,
-      judgeUrl: JUDGE_URL,
+      judgeBaseURL: JUDGE_BASE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
       label: 'test-run',
@@ -112,7 +113,7 @@ describe('runCommand (integration)', () => {
 
     await runCommand({
       backendUrl: BACKEND_URL,
-      judgeUrl: JUDGE_URL,
+      judgeBaseURL: JUDGE_BASE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
       label: 'test-run',
@@ -123,6 +124,26 @@ describe('runCommand (integration)', () => {
     }).catch(() => {});
 
     expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('throws when all scenarios fail', async () => {
+    nock.cleanAll();
+    for (let i = 0; i < 5; i++) {
+      nock(BACKEND_URL)
+        .post('/api/conversations')
+        .reply(500, { error: 'Internal server error' });
+    }
+
+    await expect(
+      runCommand({
+        backendUrl: BACKEND_URL,
+        judgeBaseURL: JUDGE_BASE_URL,
+        judgeModel: JUDGE_MODEL,
+        scenariosDir: SCENARIOS_DIR,
+        label: 'test-run',
+        runsDir,
+      }),
+    ).rejects.toThrow('No scenarios completed successfully');
   });
 
   it('emits scenario_error when judge returns an out-of-range score', async () => {
@@ -139,16 +160,16 @@ describe('runCommand (integration)', () => {
         .times(5)
         .reply(200, { tutorResponse: 'Ah super !', messageId: 'msg-1', message: 'test' });
 
-      nock(JUDGE_URL)
-        .post('/api/chat')
-        .reply(200, { message: { content: JSON.stringify(badScore) } });
+      nock(JUDGE_HOST)
+        .post('/v1/chat/completions')
+        .reply(200, { choices: [{ message: { content: JSON.stringify(badScore) } }] });
     }
 
     const errors: string[] = [];
 
     await runCommand({
       backendUrl: BACKEND_URL,
-      judgeUrl: JUDGE_URL,
+      judgeBaseURL: JUDGE_BASE_URL,
       judgeModel: JUDGE_MODEL,
       scenariosDir: SCENARIOS_DIR,
       label: 'test-run',

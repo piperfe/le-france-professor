@@ -13,7 +13,7 @@ const FAKE_META: RunMeta = {
   label: 'baseline',
   createdAt: '2026-03-28T10:00:00.000Z',
   judgeModel: 'gemma3:4b',
-  judgeUrl: 'http://localhost:11434',
+  judgeBaseURL: 'http://localhost:11434/v1',
   backendUrl: 'http://localhost:3001',
 };
 

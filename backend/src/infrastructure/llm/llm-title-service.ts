@@ -1,19 +1,19 @@
 import OpenAI from 'openai';
 import type { TitleService } from '../../domain/services/title-service';
 import type { Message } from '../../domain/entities/message';
-import type { OllamaConfig } from './ollama-tutor-service';
+import type { LlmConfig } from './llm-tutor-service';
 import { Span } from '../telemetry/decorators';
 
 const TITLE_CONTEXT_MESSAGES = 4;
 
-export class OllamaTitleService implements TitleService {
+export class LlmTitleService implements TitleService {
   private client: OpenAI;
   private model: string;
 
-  constructor(config: OllamaConfig) {
+  constructor(config: LlmConfig) {
     this.client = new OpenAI({
       baseURL: config.baseURL,
-      apiKey: 'ollama',
+      apiKey: config.apiKey ?? 'ollama',
     });
     this.model = config.model;
   }

@@ -10,8 +10,9 @@ import type { Scenario } from '../runner';
 
 export interface RunOptions {
   backendUrl: string;
-  judgeUrl: string;
+  judgeBaseURL: string;
   judgeModel: string;
+  judgeApiKey?: string;
   scenariosDir: string;
   label: string;
   runsDir: string;
@@ -32,7 +33,7 @@ function loadScenarios(scenariosDir: string): Scenario[] {
 }
 
 export async function runCommand(options: RunOptions): Promise<string> {
-  const { backendUrl, judgeUrl, judgeModel, scenariosDir, label, runsDir, note, onProgress } =
+  const { backendUrl, judgeBaseURL, judgeModel, judgeApiKey, scenariosDir, label, runsDir, note, onProgress } =
     options;
   const scenarios = loadScenarios(scenariosDir);
   const results: ScenarioResult[] = [];
@@ -42,7 +43,7 @@ export async function runCommand(options: RunOptions): Promise<string> {
 
     try {
       const transcript = await runScenario(scenario, backendUrl);
-      const score = await scoreTranscript(transcript, judgeUrl, judgeModel);
+      const score = await scoreTranscript(transcript, { baseURL: judgeBaseURL, model: judgeModel, apiKey: judgeApiKey });
       results.push({ scenario, transcript, score });
       onProgress?.({ type: 'scenario_done', scenarioId: scenario.id, score });
     } catch (err) {
@@ -52,11 +53,11 @@ export async function runCommand(options: RunOptions): Promise<string> {
   }
 
   if (results.length === 0) {
-    throw new Error('No scenarios completed successfully — check backend and Ollama are running.');
+    throw new Error('No scenarios completed successfully — check backend and judge LLM are running.');
   }
 
   saveRun(
-    { label, note, judgeModel, judgeUrl, backendUrl, createdAt: new Date().toISOString() },
+    { label, note, judgeModel, judgeBaseURL, backendUrl, createdAt: new Date().toISOString() },
     results,
     runsDir,
   );

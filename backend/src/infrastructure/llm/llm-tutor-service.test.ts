@@ -1,5 +1,5 @@
 import nock from 'nock';
-import { OllamaTutorService } from './ollama-tutor-service';
+import { LlmTutorService } from './llm-tutor-service';
 
 const BASE_URL = 'http://localhost:9999';
 const API_BASE = `${BASE_URL}/v1`;
@@ -33,8 +33,8 @@ function createMockChatResponse(content: string | null) {
   };
 }
 
-describe('OllamaTutorService', () => {
-  let service: OllamaTutorService;
+describe('LlmTutorService', () => {
+  let service: LlmTutorService;
 
   beforeAll(() => {
     nock.disableNetConnect();
@@ -45,7 +45,7 @@ describe('OllamaTutorService', () => {
   });
 
   beforeEach(() => {
-    service = new OllamaTutorService({
+    service = new LlmTutorService({
       baseURL: `${API_BASE}`,
       model: 'llama2',
     });

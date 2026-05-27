@@ -10,8 +10,9 @@ import type { Score } from './judge';
 const SCENARIOS_DIR = join(__dirname, '..', 'scenarios');
 const RUNS_DIR = join(__dirname, '..', 'runs');
 const BACKEND_URL = process.env.BACKEND_URL ?? 'http://localhost:3001';
-const JUDGE_URL = process.env.JUDGE_URL ?? 'http://localhost:11434';
+const JUDGE_BASE_URL = process.env.JUDGE_BASE_URL ?? 'http://localhost:11434/v1';
 const JUDGE_MODEL = process.env.JUDGE_MODEL ?? 'gemma3:4b';
+const JUDGE_API_KEY = process.env.JUDGE_API_KEY;
 const DEFAULT_LABEL = `run-${new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-')}`;
 
 function scoreLabel(score: Score): string {
@@ -47,23 +48,25 @@ program
 program
   .command('run')
   .description('Run all scenarios through the tutor and score them with the LLM judge')
-  .option('--backend <url>',   'Backend URL',              BACKEND_URL)
-  .option('--judge-url <url>', 'Judge LLM URL',            JUDGE_URL)
-  .option('--judge-model <n>', 'Judge LLM model name',     JUDGE_MODEL)
+  .option('--backend <url>',        'Backend URL',                  BACKEND_URL)
+  .option('--judge-base-url <url>', 'Judge LLM base URL (OpenAI-compatible)', JUDGE_BASE_URL)
+  .option('--judge-model <n>',      'Judge LLM model name',         JUDGE_MODEL)
+  .option('--judge-api-key <key>',  'Judge LLM API key',            JUDGE_API_KEY)
   .option('--label <name>',    'Label for this run',       DEFAULT_LABEL)
   .option('--runs-dir <path>', 'Directory for saved runs', RUNS_DIR)
   .option('--note <text>',     'Free-text annotation for this run')
   .action(async (opts: {
     backend: string;
-    judgeUrl: string;
+    judgeBaseUrl: string;
     judgeModel: string;
+    judgeApiKey?: string;
     label: string;
     runsDir: string;
     note?: string;
   }) => {
     console.log(`\nEval harness — Le France Professor`);
     console.log(`  Backend     : ${opts.backend}`);
-    console.log(`  Judge model : ${opts.judgeUrl} (${opts.judgeModel})`);
+    console.log(`  Judge model : ${opts.judgeBaseUrl} (${opts.judgeModel})`);
     console.log(`  Label       : ${opts.label}`);
     if (opts.note) console.log(`  Note        : ${opts.note}`);
     console.log();
@@ -73,8 +76,9 @@ program
     try {
       const report = await runCommand({
         backendUrl: opts.backend,
-        judgeUrl: opts.judgeUrl,
+        judgeBaseURL: opts.judgeBaseUrl,
         judgeModel: opts.judgeModel,
+        judgeApiKey: opts.judgeApiKey,
         scenariosDir: SCENARIOS_DIR,
         label: opts.label,
         runsDir: opts.runsDir,

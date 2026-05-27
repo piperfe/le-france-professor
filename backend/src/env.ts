@@ -11,9 +11,10 @@ const EnvSchema = z.object({
   db: z.object({
     url: z.string().nonempty(),
   }),
-  ollama: z.object({
-    model: z.string().nonempty('set OLLAMA_MODEL in backend/.env — e.g. gemma3:4b'),
+  llm: z.object({
+    model: z.string().nonempty('set LLM_MODEL in backend/.env — e.g. llama-3.3-70b-versatile'),
     baseURL: z.string().url(),
+    apiKey: z.string().optional(),
   }),
   whisper: z.object({
     url: z.string().url(),
@@ -27,9 +28,10 @@ export function parseEnv(): Env {
   return EnvSchema.parse({
     port: process.env.PORT,
     db: { url: process.env.DATABASE_URL },
-    ollama: {
-      model: process.env.OLLAMA_MODEL,
-      baseURL: process.env.OLLAMA_BASE_URL,
+    llm: {
+      model: process.env.LLM_MODEL,
+      baseURL: process.env.LLM_BASE_URL,
+      apiKey: process.env.LLM_API_KEY,
     },
     whisper: { url: process.env.WHISPER_URL },
     whatsapp: process.env.WHATSAPP_VERIFY_TOKEN

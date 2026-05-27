@@ -20,9 +20,9 @@ import { createDatabase } from './infrastructure/db/client';
 import { SqliteConversationRepository } from './infrastructure/repositories/sqlite-conversation-repository';
 import { SqliteVocabularyRepository } from './infrastructure/repositories/sqlite-vocabulary-repository';
 import { SqlitePhoneSessionRepository } from './infrastructure/repositories/sqlite-phone-session-repository';
-import { OllamaTutorService } from './infrastructure/llm/ollama-tutor-service';
-import { OllamaVocabularyService } from './infrastructure/llm/ollama-vocabulary-service';
-import { OllamaTitleService } from './infrastructure/llm/ollama-title-service';
+import { LlmTutorService } from './infrastructure/llm/llm-tutor-service';
+import { LlmVocabularyService } from './infrastructure/llm/llm-vocabulary-service';
+import { LlmTitleService } from './infrastructure/llm/llm-title-service';
 import { MetaWhatsAppClient } from './infrastructure/whatsapp/meta-whatsapp-client';
 import { WhatsAppNotebookFormatter } from './adapters/whatsapp/formatters/notebook-formatter';
 import { WhatsAppVocabularyFormatter } from './adapters/whatsapp/formatters/vocabulary-formatter';
@@ -40,9 +40,9 @@ export function createApp(env: Env): express.Application {
   const conversationRepository = new SqliteConversationRepository(db);
   const vocabularyRepository = new SqliteVocabularyRepository(db);
 
-  const tutorService = new OllamaTutorService(env.ollama);
-  const vocabularyService = new OllamaVocabularyService(env.ollama);
-  const titleService = new OllamaTitleService(env.ollama);
+  const tutorService = new LlmTutorService(env.llm);
+  const vocabularyService = new LlmVocabularyService(env.llm);
+  const titleService = new LlmTitleService(env.llm);
 
   const createConversationUseCase = withTracing(new CreateConversationUseCase(
     conversationRepository,

@@ -2,7 +2,7 @@ import { parseEnv } from './env';
 
 const ALL_KEYS = [
   'PORT', 'DATABASE_URL',
-  'OLLAMA_MODEL', 'OLLAMA_BASE_URL',
+  'LLM_MODEL', 'LLM_BASE_URL', 'LLM_API_KEY',
   'WHISPER_URL',
   'WHATSAPP_VERIFY_TOKEN', 'WHATSAPP_ACCESS_TOKEN', 'WHATSAPP_PHONE_NUMBER_ID',
 ];
@@ -10,8 +10,8 @@ const ALL_KEYS = [
 const VALID_ENV = {
   PORT: '3001',
   DATABASE_URL: './le-france.db',
-  OLLAMA_MODEL: 'gemma3:4b',
-  OLLAMA_BASE_URL: 'http://localhost:11434/v1',
+  LLM_MODEL: 'llama-3.3-70b-versatile',
+  LLM_BASE_URL: 'http://localhost:11434/v1',
   WHISPER_URL: 'http://127.0.0.1:7600',
 };
 
@@ -60,30 +60,35 @@ describe('parseEnv', () => {
     });
   });
 
-  describe('ollama', () => {
+  describe('llm', () => {
     it('parses model and baseURL', () => {
-      process.env.OLLAMA_MODEL = 'mistral-nemo';
-      process.env.OLLAMA_BASE_URL = 'http://localhost:11434/v1';
-      expect(parseEnv().ollama).toEqual({ model: 'mistral-nemo', baseURL: 'http://localhost:11434/v1' });
+      process.env.LLM_MODEL = 'llama-3.3-70b-versatile';
+      process.env.LLM_BASE_URL = 'http://localhost:11434/v1';
+      expect(parseEnv().llm).toEqual({ model: 'llama-3.3-70b-versatile', baseURL: 'http://localhost:11434/v1', apiKey: undefined });
     });
 
-    it('throws "Required" when OLLAMA_MODEL is absent', () => {
-      delete process.env.OLLAMA_MODEL;
+    it('parses apiKey when LLM_API_KEY is set', () => {
+      process.env.LLM_API_KEY = 'gsk_test123';
+      expect(parseEnv().llm.apiKey).toBe('gsk_test123');
+    });
+
+    it('throws "Required" when LLM_MODEL is absent', () => {
+      delete process.env.LLM_MODEL;
       expect(() => parseEnv()).toThrow('Required');
     });
 
-    it('throws "set OLLAMA_MODEL in backend/.env" when OLLAMA_MODEL is empty', () => {
-      process.env.OLLAMA_MODEL = '';
-      expect(() => parseEnv()).toThrow('set OLLAMA_MODEL in backend/.env — e.g. gemma3:4b');
+    it('throws "set LLM_MODEL in backend/.env" when LLM_MODEL is empty', () => {
+      process.env.LLM_MODEL = '';
+      expect(() => parseEnv()).toThrow('set LLM_MODEL in backend/.env — e.g. llama-3.3-70b-versatile');
     });
 
-    it('throws "Required" when OLLAMA_BASE_URL is absent', () => {
-      delete process.env.OLLAMA_BASE_URL;
+    it('throws "Required" when LLM_BASE_URL is absent', () => {
+      delete process.env.LLM_BASE_URL;
       expect(() => parseEnv()).toThrow('Required');
     });
 
-    it('throws "Invalid url" when OLLAMA_BASE_URL is not a valid URL', () => {
-      process.env.OLLAMA_BASE_URL = 'not-a-url';
+    it('throws "Invalid url" when LLM_BASE_URL is not a valid URL', () => {
+      process.env.LLM_BASE_URL = 'not-a-url';
       expect(() => parseEnv()).toThrow('Invalid url');
     });
   });

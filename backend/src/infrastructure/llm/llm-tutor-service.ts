@@ -2,21 +2,22 @@ import OpenAI from 'openai';
 import type { TutorService, TutorResponseContext } from '../../domain/services/tutor-service';
 import { Span } from '../telemetry/decorators';
 
-export interface OllamaConfig {
+export interface LlmConfig {
   baseURL: string;
   model: string;
+  apiKey?: string;
 }
 
-const ANTI_REPETITION = { repeat_penalty: 1.15, presence_penalty: 0.3 } as const;
+const ANTI_REPETITION = { frequency_penalty: 0.3, presence_penalty: 0.3 } as const;
 
-export class OllamaTutorService implements TutorService {
+export class LlmTutorService implements TutorService {
   private client: OpenAI;
   private model: string;
 
-  constructor(config: OllamaConfig) {
+  constructor(config: LlmConfig) {
     this.client = new OpenAI({
       baseURL: config.baseURL,
-      apiKey: 'ollama',
+      apiKey: config.apiKey ?? 'ollama',
     });
     this.model = config.model;
   }

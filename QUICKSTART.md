@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Node.js 18+ and npm
-- [Ollama](https://ollama.com/) — runs natively for GPU/Metal access
+- An LLM provider — either [Ollama](https://ollama.com/) (local, GPU/Metal) or a hosted OpenAI-compatible API such as [Groq](https://console.groq.com/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) — only if using Option A for whisper/piper
 
 ## 1. Install dependencies
@@ -14,13 +14,15 @@ npm install
 
 ## 2. Configure the LLM
 
-Create `backend/.env`:
+Create `backend/.env`. Choose one of the two setups below:
+
+**Option A — Ollama (local):**
 ```
 PORT=3001
 DATABASE_URL=./le-france.db
 NODE_ENV=development
-OLLAMA_MODEL=gemma3:4b
-OLLAMA_BASE_URL=http://localhost:11434/v1
+LLM_MODEL=gemma3:4b
+LLM_BASE_URL=http://localhost:11434/v1
 WHISPER_URL=http://127.0.0.1:7600
 ```
 
@@ -29,7 +31,20 @@ Pull the model:
 ollama pull gemma3:4b
 ```
 
-**Model recommendations by available RAM:**
+**Option B — Groq (hosted, no GPU required):**
+```
+PORT=3001
+DATABASE_URL=./le-france.db
+NODE_ENV=development
+LLM_MODEL=llama-3.3-70b-versatile
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_API_KEY=gsk_...
+WHISPER_URL=http://127.0.0.1:7600
+```
+
+Get a free API key at [console.groq.com](https://console.groq.com/). `LLM_API_KEY` is optional for Ollama — omit it or leave it out of `.env`.
+
+**Local model recommendations by available RAM:**
 
 | RAM | Recommended model | Pull command |
 |-----|-------------------|--------------|

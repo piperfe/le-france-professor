@@ -14,7 +14,7 @@ const META: RunMeta = {
   label: 'calibration-flow-v2',
   createdAt: '2026-04-08T23:02:07.000Z',
   judgeModel: 'gemma3:4b',
-  judgeUrl: 'http://localhost:11434',
+  judgeBaseURL: 'http://localhost:11434/v1',
   backendUrl: 'http://localhost:3001',
   note: 'corrected judge: eval_mode branching',
 };

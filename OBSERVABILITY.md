@@ -8,7 +8,7 @@ The backend is instrumented with [OpenTelemetry](https://opentelemetry.io/) and 
 |---|---|---|
 | Incoming HTTP requests | auto-instrumented | `instrumentation-express`, `instrumentation-http` |
 | Use cases | `withTracing()` proxy at composition root | `infrastructure/telemetry/tracing-proxy.ts`, `src/index.ts` |
-| Infrastructure services (LLM, WhatsApp, repositories) | `@Span()` decorator | `infrastructure/telemetry/decorators.ts`, `infrastructure/llm/ollama-*.ts`, `infrastructure/whatsapp/meta-whatsapp-client.ts`, `infrastructure/whatsapp/meta-media-downloader.ts`, `infrastructure/whatsapp/whisper-transcription-service.ts`, `infrastructure/repositories/sqlite-*.ts` |
+| Infrastructure services (LLM, WhatsApp, repositories) | `@Span()` decorator | `infrastructure/telemetry/decorators.ts`, `infrastructure/llm/llm-*.ts`, `infrastructure/whatsapp/meta-whatsapp-client.ts`, `infrastructure/whatsapp/meta-media-downloader.ts`, `infrastructure/whatsapp/whisper-transcription-service.ts`, `infrastructure/repositories/sqlite-*.ts` |
 | LLM calls | auto-instrumented with `gen_ai.*` attributes | `instrumentation-openai` |
 | Outgoing HTTP (fetch) | auto-instrumented | `instrumentation-undici` |
 
@@ -18,9 +18,9 @@ The backend is instrumented with [OpenTelemetry](https://opentelemetry.io/) and 
 HTTP POST /api/conversations/:id/messages            ← auto (Express)
   └─ SendMessageUseCase.execute                      ← withTracing() proxy
         ├─ SqliteConversationRepository.findById     ← @Span() decorator
-        ├─ OllamaTutorService.generateResponse       ← @Span() decorator
+        ├─ LlmTutorService.generateResponse          ← @Span() decorator
         │     └─ chat openai                         ← auto (openai SDK)
-        │           gen_ai.request.model        = "hf.co/..."
+        │           gen_ai.request.model        = "gemma3:4b"
         │           gen_ai.request.temperature  = 0.7
         │           gen_ai.request.max_tokens   = 120
         │           gen_ai.usage.input_tokens   = …
@@ -28,12 +28,12 @@ HTTP POST /api/conversations/:id/messages            ← auto (Express)
         ├─ SqliteConversationRepository.save         ← @Span() decorator
         ├─ GenerateTitleUseCase.execute              ← withTracing() — fire-and-forget after 2nd student message
         │     ├─ SqliteConversationRepository.findById ← @Span() decorator
-        │     ├─ OllamaTitleService.generateTitle    ← @Span() decorator
+        │     ├─ LlmTitleService.generateTitle       ← @Span() decorator
         │     │     └─ chat openai                   ← auto (openai SDK)
         │     └─ SqliteConversationRepository.save   ← @Span() decorator
         └─ ExtractTopicUseCase.execute               ← withTracing() — fire-and-forget after 4th student message
               ├─ SqliteConversationRepository.findById ← @Span() decorator
-              ├─ OllamaTutorService.extractTopic     ← @Span() decorator
+              ├─ LlmTutorService.extractTopic        ← @Span() decorator
               │     └─ chat openai                   ← auto (openai SDK)
               └─ SqliteConversationRepository.save   ← @Span() decorator
 ```
@@ -183,6 +183,27 @@ To enable content capture, set in `backend/.env`:
 |---|---|
 | LLM prompt / response | `OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true` |
 | WhatsApp voice transcription | `OTEL_WHATSAPP_CAPTURE_TRANSCRIPTION=true` |
+
+---
+
+## LLM Token Usage dashboard
+
+The Grafana stack ships with a provisioned **LLM Token Usage** dashboard (`observability/grafana/dashboards/llm-token-usage.json`).
+
+Open `http://localhost:3100/d/llm-token-usage` after starting the stack.
+
+| Panel | What it shows |
+|---|---|
+| Input Tokens | Aggregate sum of `gen_ai.usage.input_tokens` across all LLM spans in the selected time range |
+| Output Tokens | Aggregate sum of `gen_ai.usage.output_tokens` across all LLM spans in the selected time range |
+| LLM Calls | Count of spans with `gen_ai.usage.input_tokens > 0` |
+| Total Tokens (free tier: 100K) | Aggregate sum of input + output tokens; colour-coded against Groq's 100K free-tier limit |
+| LLM API Call Rate | Request rate (req/s) to LLM-serving endpoints over time, grouped by route |
+| LLM API Calls — Token Usage | Per-call table: model, operation, input tokens, output tokens, duration |
+
+The stat panels (Input/Output/LLM Calls/Total) use TraceQL **aggregate queries** against the ingester — they have access to all spans, including child LLM spans, and data appears immediately after the first request.
+
+The time series panel ("LLM API Call Rate") uses Tempo's **TraceQL metrics pipeline** (`query_range` endpoint + local-blocks WAL). The metrics pipeline only processes root/entry spans — the LLM child spans that carry `gen_ai.usage.input_tokens` are not available here. This is why the time series shows request rate (per root HTTP span) rather than token counts. See [ADR-0040](./docs/decisions/observability-2026-05-27-tempo-traceql-query-strategy.md) for the full reasoning and the path to proper token time series.
 
 ---
 

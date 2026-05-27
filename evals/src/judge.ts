@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import OpenAI from 'openai';
 import type { EvalMode, Transcript } from './runner';
 
 export interface Score {
@@ -8,6 +8,12 @@ export interface Score {
   topicDiscovery?: number;      // 1-5: present when evalMode === 'discovery'
   questionNaturalness: number;  // 1-5: varied and conversational — not a forced question every turn
   rationale: string;            // max 2 sentences explaining the scores
+}
+
+export interface JudgeConfig {
+  baseURL: string;
+  model: string;
+  apiKey?: string;
 }
 
 const COMMON_DIMENSIONS = `- engagement: Does the tutor keep the student interested and wanting to continue? (1=kills conversation, 5=highly engaging)
@@ -37,41 +43,13 @@ ${COMMON_CLOSING}
 
 Return JSON with integer fields: engagement, teaching_quality, topic_discovery, question_naturalness (all 1-5), and rationale (string, max 2 sentences).`;
 
-const COHERENCE_FORMAT = {
-  type: 'object',
-  properties: {
-    engagement: { type: 'integer' },
-    teaching_quality: { type: 'integer' },
-    topic_coherence: { type: 'integer' },
-    question_naturalness: { type: 'integer' },
-    rationale: { type: 'string' },
-  },
-  required: ['engagement', 'teaching_quality', 'topic_coherence', 'question_naturalness', 'rationale'],
-};
-
-const DISCOVERY_FORMAT = {
-  type: 'object',
-  properties: {
-    engagement: { type: 'integer' },
-    teaching_quality: { type: 'integer' },
-    topic_discovery: { type: 'integer' },
-    question_naturalness: { type: 'integer' },
-    rationale: { type: 'string' },
-  },
-  required: ['engagement', 'teaching_quality', 'topic_discovery', 'question_naturalness', 'rationale'],
-};
-
-interface OllamaRawScore {
+interface RawScore {
   engagement: number;
   teaching_quality: number;
   topic_coherence?: number;
   topic_discovery?: number;
   question_naturalness: number;
   rationale: string;
-}
-
-interface OllamaChatResponse {
-  message: { content: string };
 }
 
 function formatTranscript(transcript: Transcript): string {
@@ -81,7 +59,7 @@ function formatTranscript(transcript: Transcript): string {
 }
 
 export function parseScore(raw: string, evalMode: EvalMode): Score {
-  const parsed = JSON.parse(raw) as OllamaRawScore;
+  const parsed = JSON.parse(raw) as RawScore;
 
   const topicValue = evalMode === 'coherence' ? parsed.topic_coherence : parsed.topic_discovery;
   const topicKey = evalMode === 'coherence' ? 'topicCoherence' : 'topicDiscovery';
@@ -112,34 +90,29 @@ export function parseScore(raw: string, evalMode: EvalMode): Score {
 
 export async function scoreTranscript(
   transcript: Transcript,
-  ollamaUrl: string,
-  model: string,
+  config: JudgeConfig,
 ): Promise<Score> {
-  const { evalMode, interest } = transcript;
-  const systemPrompt = evalMode === 'coherence' ? buildCoherencePrompt(interest) : DISCOVERY_PROMPT;
-  const format = evalMode === 'coherence' ? COHERENCE_FORMAT : DISCOVERY_FORMAT;
-
-  const response = await fetch(`${ollamaUrl}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        {
-          role: 'user',
-          content: `Evaluate this French tutoring conversation:\n\nLevel: ${transcript.level} | Interest: ${transcript.interest}\n\n${formatTranscript(transcript)}`,
-        },
-      ],
-      stream: false,
-      format,
-    }),
+  const client = new OpenAI({
+    baseURL: config.baseURL,
+    apiKey: config.apiKey ?? 'ollama',
   });
 
-  if (!response.ok) {
-    throw new Error(`Ollama judge call failed: ${response.status} ${response.statusText}`);
-  }
+  const { evalMode, interest } = transcript;
+  const systemPrompt = evalMode === 'coherence' ? buildCoherencePrompt(interest) : DISCOVERY_PROMPT;
 
-  const data = (await response.json()) as OllamaChatResponse;
-  return parseScore(data.message.content, evalMode);
+  const response = await client.chat.completions.create({
+    model: config.model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: `Evaluate this French tutoring conversation:\n\nLevel: ${transcript.level} | Interest: ${transcript.interest}\n\n${formatTranscript(transcript)}`,
+      },
+    ],
+    response_format: { type: 'json_object' },
+  });
+
+  const content = response.choices[0]?.message?.content;
+  if (!content) throw new Error('Judge returned empty response');
+  return parseScore(content, evalMode);
 }

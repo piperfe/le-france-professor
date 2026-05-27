@@ -6,7 +6,7 @@ export interface RunMeta {
   label: string;
   createdAt: string; // ISO-8601
   judgeModel: string;
-  judgeUrl: string;
+  judgeBaseURL: string;
   backendUrl: string;
   note?: string;
 }

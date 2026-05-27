@@ -1,16 +1,16 @@
 import OpenAI from 'openai';
 import type { VocabularyService } from '../../domain/services/vocabulary-service';
-import type { OllamaConfig } from './ollama-tutor-service';
+import type { LlmConfig } from './llm-tutor-service';
 import { Span } from '../telemetry/decorators';
 
-export class OllamaVocabularyService implements VocabularyService {
+export class LlmVocabularyService implements VocabularyService {
   private client: OpenAI;
   private model: string;
 
-  constructor(config: OllamaConfig) {
+  constructor(config: LlmConfig) {
     this.client = new OpenAI({
       baseURL: config.baseURL,
-      apiKey: 'ollama',
+      apiKey: config.apiKey ?? 'ollama',
     });
     this.model = config.model;
   }
@@ -30,8 +30,7 @@ export class OllamaVocabularyService implements VocabularyService {
       ],
       temperature: 0.3,
       max_tokens: 150,
-      // @ts-expect-error — Ollama-specific sampling options not in OpenAI types
-      repeat_penalty: 1.15,
+      frequency_penalty: 0.3,
       presence_penalty: 0.3,
     });
     return response.choices[0]?.message?.content ?? "Je ne peux pas expliquer ce mot pour le moment.";

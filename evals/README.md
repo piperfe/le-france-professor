@@ -4,7 +4,7 @@ Automated conversation evaluation for the tutor. Runs pre-written student scenar
 
 ## Why a separate judge model?
 
-The tutor uses `gemma3:4b` via the backend. The judge uses a **different model** (configurable via `JUDGE_URL` / `JUDGE_MODEL`). This prevents self-evaluation bias — a model scoring its own outputs inflates quality. It also makes the harness portable: you can point it at a remote judge (OpenAI, Anthropic, a hosted Ollama) without touching the backend.
+Both the tutor and the judge are configurable via env vars. The tutor model is set in the backend (`LLM_MODEL` / `LLM_BASE_URL`). The judge uses a **separate model** (`JUDGE_BASE_URL` / `JUDGE_MODEL` / `JUDGE_API_KEY`). Keeping them separate prevents self-evaluation bias — a model scoring its own outputs inflates quality. It also makes the harness portable: you can point it at a remote judge (Groq, OpenAI, a local Ollama) without touching the backend.
 
 ## Architecture
 
@@ -52,23 +52,29 @@ The summary report shows separate `Avg coherence` and `Avg discovery` rows. The 
 
 ## Running
 
-Requires the Le France Professor backend and an Ollama instance to be running. URLs default to `http://localhost:3001` and `http://localhost:11434` but are fully configurable:
+Requires the Le France Professor backend and a judge LLM to be running. Defaults to Ollama at `http://localhost:11434/v1` but any OpenAI-compatible provider works:
 
 ```bash
 cd evals
 npm install
 
-# Run with defaults — saves to runs/run-{timestamp}.json
+# Run with defaults (Ollama judge at localhost)
 npm run eval
 
 # Label the run and add an annotation
-npm run eval -- --label baseline --note "default prompt, gemma3:4b"
+npm run eval -- --label baseline --note "groq judge, llama-3.3-70b"
 
-# Override URLs, judge model, and runs directory
+# Ollama judge — explicit
 BACKEND_URL=http://localhost:3001 \
-JUDGE_URL=http://localhost:11434 \
+JUDGE_BASE_URL=http://localhost:11434/v1 \
 JUDGE_MODEL=gemma3:4b \
 npm run eval -- --label baseline
+
+# Groq judge
+JUDGE_BASE_URL=https://api.groq.com/openai/v1 \
+JUDGE_MODEL=llama-3.3-70b-versatile \
+JUDGE_API_KEY=gsk_... \
+npm run eval -- --label groq-judge
 ```
 
 Every run is automatically saved to `evals/runs/{label}.json` (gitignored). To reprint a saved run's full report:
@@ -103,7 +109,7 @@ CLI flags work too and take precedence over env vars:
 ```bash
 npx tsx src/cli.ts run \
   --backend http://localhost:3001 \
-  --judge-url http://localhost:11434 \
+  --judge-base-url http://localhost:11434/v1 \
   --judge-model gemma3:4b \
   --label baseline \
   --note "default prompt"
