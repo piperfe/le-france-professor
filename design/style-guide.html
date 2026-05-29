@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le France Professor — Style Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:         #F7F4EF;
+      --parchment:     #EDE9E1;
+      --ink:           #1A1714;
+      --ink-muted:     #6B6560;
+      --border:        #D8D2C8;
+      --tricolore:     #002395;
+      --tricolore-700: #001A6E;
+      --tricolore-50:  #EEF1FC;
+      --rouge:         #ED2939;
+      --rouge-50:      #FEF0F0;
+      --vocab:         #5C4A8A;
+      --vocab-50:      #F2EFF9;
+      /* WhatsApp */
+      --wa-bg:         #0B141A;
+      --wa-header:     #1F2C34;
+      --wa-bubble-in:  #202C33;
+      --wa-bubble-out: #005C4B;
+      --wa-text:       #E9EDE0;
+      --wa-text-dim:   #8696A0;
+      --wa-link:       #53BDEB;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(160deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+      background-attachment: fixed;
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15,15,35,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 48px;
+    }
+    .nav-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-right: 32px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-brand span { color: var(--tricolore); }
+    .nav-links { display: flex; gap: 4px; overflow-x: auto; }
+    .nav-links a {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.07); }
+
+    /* ── SECTION WRAPPER ── */
+    .section {
+      padding: 72px 32px 56px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+    .section + .section { border-top: 1px solid rgba(255,255,255,0.06); }
+
+    .section-header {
+      margin-bottom: 40px;
+    }
+    .section-eyebrow {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .section-sub {
+      margin-top: 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.6;
+    }
+
+    /* frames row */
+    .frames-row {
+      display: flex;
+      gap: 48px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .frame-block {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+    .frame-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+    }
+
+    /* device frames */
+    .desktop-frame {
+      width: 900px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.07), 0 24px 64px rgba(0,0,0,0.55);
+    }
+    .desktop-bar {
+      height: 32px;
+      background: #e8e8e8;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r { background: #FF5F57; }
+    .dot.y { background: #FFBD2E; }
+    .dot.g { background: #28C840; }
+
+    .mobile-frame {
+      width: 320px;
+      border-radius: 36px;
+      overflow: hidden;
+      box-shadow: 0 0 0 8px #222, 0 0 0 9px #333, 0 24px 64px rgba(0,0,0,0.6);
+      flex-shrink: 0;
+    }
+    .mobile-notch {
+      height: 36px;
+      background: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .notch-pill {
+      width: 80px;
+      height: 22px;
+      background: #1a1a2e;
+      border-radius: 0 0 16px 16px;
+    }
+
+    /* ═══════════════════════════════════════════
+       1. DESIGN TOKENS
+    ═══════════════════════════════════════════ */
+
+    /* Color swatches */
+    .token-group {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .token-row-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 10px;
+    }
+    .swatches {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+    .swatch-color {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .swatch-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+    }
+    .swatch-hex {
+      font-size: 10px;
+      color: rgba(255,255,255,0.35);
+      font-family: monospace;
+      text-align: center;
+    }
+
+    /* Typography specimens */
+    .type-specimens {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .type-row {
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .type-meta {
+      width: 180px;
+      flex-shrink: 0;
+    }
+    .type-meta-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+    }
+    .type-meta-spec {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      margin-top: 2px;
+    }
+    .type-sample { color: #fff; }
+    .type-sample.muted { color: rgba(255,255,255,0.5); }
+
+    /* Radius tokens */
+    .radius-row {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .radius-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .radius-box {
+      width: 64px;
+      height: 64px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .radius-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+    }
+    .radius-value {
+      font-size: 10px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* ═══════════════════════════════════════════
+       2. COMPONENTS
+    ═══════════════════════════════════════════ */
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .comp-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .comp-card-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-bottom: 16px;
+    }
+    .comp-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--tricolore);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,35,149,0.25);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--parchment);
+      color: var(--ink);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .btn-vocab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--vocab-50);
+      color: var(--vocab);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(92,74,138,0.3);
+      cursor: pointer;
+    }
+    .btn-disabled {
+      display: inline-flex;
+      align-items: center;
+      background: var(--border);
+      color: var(--ink-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: none;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    /* Message bubbles */
+    .bubble-demo { background: var(--cream); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .bubble {
+      max-width: 82%;
+      padding: 11px 14px;
+      border-radius: 18px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .bubble.tutor {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--ink);
+      border-bottom-left-radius: 4px;
+    }
+    .bubble.user {
+      background: var(--tricolore);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+      align-self: flex-end;
+    }
+    .bubble.vocab-bubble {
+      background: var(--vocab-50);
+      border: 1px solid rgba(92,74,138,0.2);
+      border-left: 3px solid var(--vocab);
+      color: var(--ink);
+      max-width: 92%;
+      border-radius: 10px;
+    }
+    .vocab-bubble-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--vocab);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 5px;
+    }
+    .tts-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .tts-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--parchment);
+      color: var(--ink-muted);
+      cursor: pointer;
+    }
+    .tts-btn.active {
+      background: var(--tricolore-50);
+      border-color: var(--tricolore);
+      color: var(--tricolore);
+    }
+    .tts-btn.vocab-active {
+      background: var(--vocab-50);
+      border-color: rgba(92,74,138,0.3);
+      color: var(--vocab);
+    }
+
+    /* Input bar */
+    .input-demo { background: #fff; border-top: 1px solid var(--border); border-radius: 0 0 12px 12px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; }
+    .mic-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--parchment);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; cursor: pointer; flex-shrink: 0;
+    }
+    .mic-btn.recording { background: var(--rouge); border-color: var(--rouge); }
+    .input-field {
+      flex: 1; height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      background: var(--parchment);
+      color: var(--ink); outline: none; min-width: 0;
+    }
+    .input-field::placeholder { color: var(--ink-muted); }
+    .input-field.focused { border-color: var(--tricolore); background: #fff; }
+    .send-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      background: var(--tricolore);
+      border: none; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; cursor: pointer; flex-shrink: 0;
+    }
+
+    /* Recording state */
+    .recording-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 14px;
+      border: 2px solid var(--rouge);
+      border-radius: 999px;
+      background: var(--rouge-50);
+      flex: 1;
+    }
+    .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rouge); flex-shrink: 0; }
+    .rec-text { font-size: 12px; color: var(--rouge); flex: 1; font-weight: 500; }
+    .rec-timer { font-size: 11px; color: var(--rouge); font-weight: 600; }
+
+    /* Slash dropdown */
+    .slash-dropdown {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+    }
+    .slash-item {
+      display: flex; align-items: flex-start;
+      gap: 10px; padding: 10px 14px; font-size: 13px; cursor: pointer;
+    }
+    .slash-item.sel { background: var(--tricolore-50); }
+    .slash-icon { font-size: 18px; flex-shrink: 0; margin-top: 2px; }
+    .slash-cmd-name { font-size: 13px; font-weight: 600; color: var(--tricolore); }
+    .slash-cmd-desc { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+
+    /* Error */
+    .error-box {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: var(--rouge-50);
+      border: 1px solid rgba(237,41,57,0.2);
+      border-radius: 12px;
+    }
+    .error-text { font-size: 12px; color: #c0392b; flex: 1; line-height: 1.4; }
+
+    /* Vocab notebook pill */
+    .vocab-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px;
+      border: 1px solid rgba(92,74,138,0.3);
+      border-radius: 999px;
+      background: var(--vocab-50);
+      color: var(--vocab);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .vocab-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px;
+      background: var(--vocab); color: #fff;
+      font-size: 10px; font-weight: 700; border-radius: 50%;
+    }
+
+    /* Sidebar item */
+    .sidebar-demo {
+      background: var(--ink);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+    }
+    .sidebar-item.active { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); flex-shrink: 0; }
+    .sidebar-item.active .sidebar-dot { background: var(--rouge); }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 10px 14px;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 18px; border-bottom-left-radius: 4px;
+    }
+    .t-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-muted); opacity: 0.5; }
+    .t-dot:nth-child(2) { opacity: 0.7; }
+    .t-dot:nth-child(3) { opacity: 0.9; }
+
+    /* ═══════════════════════════════════════════
+       FLOWS — WELCOME PAGE
+    ═══════════════════════════════════════════ */
+
+    .welcome-desktop {
+      width: 100%;
+      height: calc(100% - 32px);
+      background: var(--cream);
+      display: flex;
+    }
+    .welcome-accent {
+      width: 6px; height: 100%;
+      background: linear-gradient(180deg, var(--tricolore) 33.3%, #fff 33.3% 66.6%, var(--rouge) 66.6%);
+      flex-shrink: 0;
+    }
+    .welcome-content {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 22px; padding: 48px; text-align: center;
+    }
+    .flag-badge {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--parchment); border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+    .welcome-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 40px; font-weight: 700;
+      color: var(--ink); line-height: 1.15;
+    }
+    .welcome-title span { color: var(--tricolore); }
+    .welcome-sub {
+      font-size: 15px; color: var(--ink-muted);
+      max-width: 360px; line-height: 1.6;
+    }
+    .divider-line {
+      display: flex; align-items: center; gap: 12px;
+      width: 320px; color: var(--ink-muted); font-size: 12px;
+    }
+    .divider-line::before, .divider-line::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .recent-list { display: flex; flex-direction: column; gap: 8px; width: 320px; }
+    .recent-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; background: #fff;
+      border: 1px solid var(--border); border-radius: 10px;
+      cursor: pointer; font-size: 13px;
+    }
+    .recent-icon { font-size: 16px; flex-shrink: 0; }
+    .recent-text { flex: 1; }
+    .recent-name { font-weight: 500; color: var(--ink); }
+    .recent-date { font-size: 11px; color: var(--ink-muted); }
+    .recent-arrow { color: var(--ink-muted); }
+
+    /* welcome mobile */
+    .welcome-mobile {
+      width: 100%; height: calc(100% - 36px);
+      background: var(--cream);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 18px; padding: 28px 22px; text-align: center;
+    }
+    .welcome-mobile .flag-badge { width: 50px; height: 50px; font-size: 24px; }
+    .welcome-mobile .welcome-title { font-size: 30px; }
+    .welcome-mobile .welcome-sub { font-size: 13px; }
+    .welcome-mobile .btn-primary { padding: 13px 28px; width: 100%; justify-content: center; font-size: 14px; }
+    .welcome-mobile .divider-line { width: 100%; }
+    .welcome-mobile .recent-list { width: 100%; }
+
+    /* ═══════════════════════════════════════════
+       FLOWS — CONVERSATION
+    ═══════════════════════════════════════════ */
+
+    .conv-desktop { width: 100%; height: calc(100% - 32px); display: flex; }
+
+    /* sidebar */
+    .sidebar {
+      width: 240px; height: 100%;
+      background: var(--ink);
+      display: flex; flex-direction: column; flex-shrink: 0;
+    }
+    .sidebar-brand {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .brand-flag { font-size: 20px; margin-bottom: 6px; }
+    .brand-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px; font-weight: 700; color: #fff; line-height: 1.2;
+    }
+    .brand-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .sidebar-section {
+      padding: 14px 16px 8px;
+      font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(255,255,255,0.3);
+    }
+    .sidebar-item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-footer { margin-top: auto; padding: 14px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .btn-new-conv {
+      width: 100%; padding: 9px 12px;
+      background: var(--tricolore); color: #fff;
+      font-size: 12px; font-weight: 600; border: none; border-radius: 8px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+
+    /* chat area */
+    .chat-area { flex: 1; height: 100%; display: flex; flex-direction: column; background: var(--cream); min-width: 0; }
+    .chat-header-bar {
+      height: 56px; background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 20px; gap: 12px; flex-shrink: 0;
+    }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--tricolore-50); border: 2px solid var(--tricolore);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .avatar.sm { width: 28px; height: 28px; font-size: 14px; }
+    .chat-header-info { flex: 1; }
+    .chat-header-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px; font-weight: 600; color: var(--ink);
+    }
+    .chat-header-sub { font-size: 11px; color: var(--ink-muted); }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; display: inline-block; margin-right: 4px; }
+
+    .messages-area {
+      flex: 1; overflow-y: auto;
+      padding: 18px 18px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .msg-row { display: flex; gap: 10px; }
+    .msg-row.user { justify-content: flex-end; }
+
+    .input-bar {
+      padding: 12px 16px; background: #fff;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0; position: relative;
+    }
+
+    /* slash dropdown in desktop */
+    .slash-overlay {
+      position: absolute; bottom: 68px; left: 16px;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      overflow: hidden; width: 240px; z-index: 10;
+    }
+
+    /* mobile conversation */
+    .conv-mobile { width: 100%; height: calc(100% - 36px); display: flex; flex-direction: column; background: var(--cream); }
+    .mobile-header {
+      height: 52px; background: #fff; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 14px; gap: 10px; flex-shrink: 0;
+    }
+    .hamburger { display: flex; flex-direction: column; gap: 4px; padding: 4px; cursor: pointer; }
+    .h-line { width: 18px; height: 2px; background: var(--ink); border-radius: 2px; }
+    .mobile-vocab-btn {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 4px 9px;
+      border: 1px solid rgba(92,74,138,0.3); border-radius: 999px;
+      background: var(--vocab-50); color: var(--vocab);
+      font-size: 11px; font-weight: 600; flex-shrink: 0;
+    }
+    .mobile-header-info { flex: 1; }
+    .mobile-header-name { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: var(--ink); }
+    .mobile-header-sub { font-size: 10px; color: var(--ink-muted); }
+
+    .mobile-messages { flex: 1; overflow: hidden; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
+    .mobile-bubble { max-width: 82%; padding: 10px 13px; border-radius: 16px; font-size: 12px; line-height: 1.55; }
+    .mobile-bubble.tutor { background: #fff; border: 1px solid var(--border); color: var(--ink); border-bottom-left-radius: 3px; }
+    .mobile-bubble.user { background: var(--tricolore); color: #fff; border-bottom-right-radius: 3px; align-self: flex-end; }
+    .mobile-bubble.vocab { background: var(--vocab-50); border: 1px solid rgba(92,74,138,0.2); border-left: 3px solid var(--vocab); color: var(--ink); max-width: 90%; border-radius: 8px; }
+    .mobile-tts { display: flex; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .mobile-tts-btn { padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 500; border: 1px solid var(--border); background: var(--parchment); color: var(--ink-muted); }
+
+    .mobile-input-bar { padding: 10px 12px; background: #fff; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .mobile-mic { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--parchment); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .mobile-input { flex: 1; height: 34px; border: 1px solid var(--border); border-radius: 999px; padding: 0 12px; font-size: 12px; background: var(--parchment); color: var(--ink); outline: none; min-width: 0; }
+    .mobile-input::placeholder { color: var(--ink-muted); }
+    .mobile-send { width: 34px; height: 34px; border-radius: 50%; background: var(--tricolore); border: none; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+
+    /* state cards */
+    .states-col { display: flex; flex-direction: column; gap: 14px; max-width: 300px; }
+    .state-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 18px; }
+    .state-card-title { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 12px; }
+    .state-note { font-size: 11px; color: rgba(255,255,255,0.3); line-height: 1.5; margin-top: 10px; }
+
+    /* ═══════════════════════════════════════════
+       FLOW — VOCABULARY (3 phones)
+    ═══════════════════════════════════════════ */
+
+    .phones-row { display: flex; gap: 28px; align-items: center; justify-content: center; flex-wrap: wrap; }
+    .phone-wrap { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+    .phone-frame-label { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+
+    .phone-frame {
+      width: 280px; height: 590px;
+      border-radius: 40px; overflow: hidden;
+      box-shadow: 0 0 0 8px #1c1c1e, 0 0 0 10px #2c2c2e, 0 32px 80px rgba(0,0,0,0.7);
+      flex-shrink: 0; display: flex; flex-direction: column;
+    }
+    .phone-frame.main {
+      width: 296px; height: 624px;
+      box-shadow: 0 0 0 8px #1c1c1e, 0 0 0 10px #2c2c2e, 0 40px 100px rgba(0,0,0,0.85);
+    }
+    .phone-notch { height: 34px; background: var(--cream); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .phone-frame.main .phone-notch { background: var(--ink); }
+    .phone-notch-pill { width: 72px; height: 20px; background: #1c1c1e; border-radius: 0 0 14px 14px; }
+    .phone-frame.main .phone-notch-pill { background: #f0f0f0; }
+
+    /* welcome screen inside phone */
+    .welcome-screen {
+      flex: 1; background: var(--cream);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 24px 20px; gap: 14px; text-align: center;
+    }
+    .ph-flag { width: 50px; height: 50px; border-radius: 50%; background: var(--parchment); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .ph-title { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+    .ph-title span { color: var(--tricolore); }
+    .ph-sub { font-size: 12px; color: var(--ink-muted); line-height: 1.6; max-width: 220px; }
+    .ph-btn { background: var(--tricolore); color: #fff; font-size: 13px; font-weight: 600; padding: 12px 0; width: 100%; border-radius: 999px; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(0,35,149,0.3); }
+    .ph-divider { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 10px; color: var(--ink-muted); }
+    .ph-divider::before, .ph-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .ph-recent { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+    .ph-recent-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #fff; border: 1px solid var(--border); border-radius: 10px; font-size: 11px; }
+    .ph-recent-info { flex: 1; text-align: left; }
+    .ph-recent-name { font-weight: 600; color: var(--ink); }
+    .ph-recent-date { font-size: 10px; color: var(--ink-muted); margin-top: 1px; }
+
+    /* chat screen inside phone */
+    .chat-screen { flex: 1; display: flex; flex-direction: column; background: var(--cream); overflow: hidden; }
+    .ph-chat-header { height: 50px; background: var(--ink); display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+    .ph-hamburger { display: flex; flex-direction: column; gap: 4px; padding: 4px; }
+    .ph-hline { width: 16px; height: 2px; background: rgba(255,255,255,0.7); border-radius: 2px; }
+    .ph-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--tricolore-50); border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .ph-header-info { flex: 1; }
+    .ph-name { font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; color: #fff; }
+    .ph-status { font-size: 9px; color: rgba(255,255,255,0.5); }
+    .ph-vocab-btn { display: flex; align-items: center; gap: 3px; padding: 4px 8px; border: 1px solid rgba(92,74,138,0.5); border-radius: 999px; background: rgba(92,74,138,0.15); color: #c4b5fd; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+    .ph-vbadge { width: 13px; height: 13px; background: var(--vocab); color: #fff; font-size: 8px; font-weight: 700; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+
+    .ph-messages { flex: 1; overflow: hidden; padding: 12px 10px; display: flex; flex-direction: column; gap: 10px; }
+    .ph-msg-tutor { display: flex; gap: 6px; }
+    .ph-msg-user { display: flex; justify-content: flex-end; }
+    .ph-bubble { max-width: 80%; padding: 9px 12px; border-radius: 16px; font-size: 11px; line-height: 1.55; }
+    .ph-bubble.tutor { background: #fff; border: 1px solid var(--border); color: var(--ink); border-bottom-left-radius: 3px; }
+    .ph-bubble.user { background: var(--tricolore); color: #fff; border-bottom-right-radius: 3px; }
+    .ph-bubble.vocab { background: var(--vocab-50); border: 1px solid rgba(92,74,138,0.2); border-left: 3px solid var(--vocab); color: var(--ink); max-width: 88%; border-radius: 8px; margin-left: 34px; }
+    .ph-tts { display: flex; gap: 4px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .ph-tts-btn { padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 500; border: 1px solid var(--border); background: var(--parchment); color: var(--ink-muted); }
+    .ph-tts-btn.active { background: var(--tricolore-50); border-color: var(--tricolore); color: var(--tricolore); }
+    .ph-vocab-label { font-size: 9px; font-weight: 600; color: var(--vocab); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .ph-vocab-tts { display: flex; gap: 4px; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(92,74,138,0.15); }
+    .ph-vocab-tts-btn { padding: 2px 7px; border-radius: 999px; font-size: 9px; border: 1px solid rgba(92,74,138,0.3); background: var(--vocab-50); color: var(--vocab); }
+    .ph-typing { display: flex; align-items: center; gap: 3px; padding: 8px 10px; background: #fff; border: 1px solid var(--border); border-radius: 14px; border-bottom-left-radius: 3px; width: fit-content; }
+    .ph-tdot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-muted); opacity: 0.5; }
+    .ph-tdot:nth-child(2) { opacity: 0.7; }
+    .ph-tdot:nth-child(3) { opacity: 0.9; }
+
+    .ph-input-bar { padding: 8px 10px; background: #fff; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .ph-mic { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--parchment); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .ph-field { flex: 1; height: 32px; border: 1px solid var(--border); border-radius: 999px; padding: 0 12px; font-family: 'Inter', sans-serif; font-size: 11px; background: var(--parchment); color: var(--ink); outline: none; min-width: 0; }
+    .ph-field::placeholder { color: var(--ink-muted); }
+    .ph-send { width: 32px; height: 32px; border-radius: 50%; background: var(--tricolore); border: none; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+
+    /* vocab drawer phone */
+    .vocab-screen { flex: 1; display: flex; flex-direction: column; background: var(--cream); overflow: hidden; position: relative; }
+    .vocab-overlay { position: absolute; inset: 0; background: rgba(26,23,20,0.4); }
+    .vocab-drawer { position: absolute; bottom: 0; left: 0; right: 0; height: 82%; background: #fff; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+    .drawer-handle { display: flex; justify-content: center; padding: 10px 0 4px; flex-shrink: 0; }
+    .handle-pill { width: 36px; height: 4px; background: var(--border); border-radius: 99px; }
+    .drawer-header { padding: 0 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .drawer-title { font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; color: var(--ink); }
+    .drawer-sub { font-size: 10px; color: var(--ink-muted); margin-top: 2px; }
+    .drawer-entries { flex: 1; overflow: hidden; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .vocab-entry { padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--cream); }
+    .vocab-entry.highlighted { background: var(--vocab-50); border-color: rgba(92,74,138,0.3); }
+    .entry-word { font-size: 12px; font-weight: 700; color: var(--vocab); margin-bottom: 4px; }
+    .entry-def { font-size: 11px; color: var(--ink); line-height: 1.5; }
+    .entry-context { font-size: 10px; color: var(--ink-muted); margin-top: 5px; padding-top: 5px; border-top: 1px solid var(--border); font-style: italic; }
+
+    /* ═══════════════════════════════════════════
+       FLOW — WHATSAPP
+    ═══════════════════════════════════════════ */
+
+    .wa-grid { display: flex; gap: 48px; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
+    .wa-col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .wa-col-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+
+    .wa-phone {
+      width: 300px; height: 720px;
+      background: var(--wa-bg);
+      border-radius: 40px; overflow: hidden;
+      box-shadow: 0 0 0 8px #1c1c1e, 0 0 0 10px #2c2c2e, 0 32px 80px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column;
+    }
+    .wa-notch { height: 34px; background: var(--wa-header); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .wa-notch-pill { width: 72px; height: 20px; background: #111; border-radius: 0 0 14px 14px; }
+    .wa-header { background: var(--wa-header); padding: 8px 16px 10px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .wa-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--tricolore); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .wa-contact-name { font-size: 14px; font-weight: 600; color: var(--wa-text); }
+    .wa-contact-status { font-size: 11px; color: var(--wa-text-dim); }
+    .wa-chat { flex: 1; background: var(--wa-bg); padding: 12px 10px; overflow-y: scroll; display: flex; flex-direction: column; gap: 4px; }
+    .wa-msg { max-width: 88%; padding: 6px 10px 4px; border-radius: 8px; font-size: 12.5px; line-height: 1.5; position: relative; }
+    .wa-msg.out { align-self: flex-end; background: var(--wa-bubble-out); color: var(--wa-text); border-bottom-right-radius: 2px; }
+    .wa-msg.in { align-self: flex-start; background: var(--wa-bubble-in); color: var(--wa-text); border-bottom-left-radius: 2px; }
+    .wa-time { font-size: 10px; color: var(--wa-time); text-align: right; margin-top: 2px; }
+    .wa-date-chip { align-self: center; background: rgba(255,255,255,0.08); color: var(--wa-text-dim); font-size: 11px; padding: 3px 10px; border-radius: 8px; margin: 4px 0; }
+    .wa-msg b { font-weight: 700; }
+    .wa-msg i { font-style: italic; }
+    .vocab-word { font-weight: 700; color: #A89FCA; }
+    .entry-date-wa { color: var(--wa-text-dim); font-style: italic; font-size: 11px; }
+    .entry-gap { height: 6px; }
+    .section-title-wa { color: var(--wa-text-dim); font-style: italic; font-size: 11px; margin-bottom: 6px; }
+    .header-line { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .footer-hint { color: var(--wa-link); font-style: italic; font-size: 11.5px; margin-top: 4px; }
+    .wa-doc { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.07); border-radius: 6px; padding: 8px 10px; margin-top: 4px; }
+    .wa-doc-icon { width: 36px; height: 36px; background: var(--rouge); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .wa-doc-name { font-size: 12px; font-weight: 600; color: var(--wa-text); }
+    .wa-doc-sub { font-size: 10.5px; color: var(--wa-text-dim); }
+    .wa-input-bar { background: var(--wa-header); padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .wa-input { flex: 1; background: #2A3942; border-radius: 20px; padding: 8px 14px; font-size: 12px; color: var(--wa-text-dim); }
+
+    /* PDF preview */
+    .pdf-frame { width: 380px; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.5); font-family: 'Inter', sans-serif; }
+    .pdf-header { background: var(--tricolore); padding: 16px 24px 14px; position: relative; overflow: hidden; }
+    .pdf-stripe-white { position: absolute; right: 36px; top: 0; bottom: 0; width: 14px; background: #fff; }
+    .pdf-stripe-red { position: absolute; right: 0; top: 0; bottom: 0; width: 36px; background: var(--rouge); border-radius: 0 6px 0 0; }
+    .pdf-title { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+    .pdf-subtitle { font-size: 9px; color: #99B4E8; }
+    .pdf-section-band { background: var(--tricolore-50); padding: 6px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #D5D8E8; }
+    .pdf-section-topic { font-size: 8.5px; font-weight: 600; color: #8A93B2; text-transform: uppercase; letter-spacing: 0.08em; }
+    .pdf-section-count { font-size: 8.5px; color: #8A93B2; }
+    .pdf-entries { padding: 10px 18px; display: flex; flex-direction: column; gap: 7px; }
+    .pdf-entry { background: var(--cream); border-radius: 6px; padding: 8px 10px 8px 13px; border-left: 3px solid var(--vocab); }
+    .pdf-entry-word { font-size: 12px; font-weight: 700; color: var(--vocab); margin-bottom: 3px; }
+    .pdf-entry-exp { font-size: 10px; color: var(--ink); line-height: 1.45; margin-bottom: 4px; }
+    .pdf-entry-date { font-size: 8.5px; color: var(--ink-muted); font-style: italic; }
+    .pdf-footer { border-top: 1px solid #E8E4DC; padding: 6px 24px; display: flex; justify-content: space-between; }
+    .pdf-footer span { font-size: 8px; color: var(--ink-muted); }
+
+    /* WhatsApp style guide */
+    .wa-style-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 40px; }
+    .wa-style-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 10px; padding: 16px; }
+    .wa-style-card h3 { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .wa-style-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; font-size: 12px; }
+    .wa-marker { font-family: monospace; color: #A89FCA; background: rgba(90,74,138,0.2); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+    .wa-arrow { color: rgba(255,255,255,0.3); font-size: 11px; }
+    .wa-desc { color: rgba(255,255,255,0.55); font-size: 11px; }
+    .wa-change { background: rgba(255,255,255,0.03); border-left: 3px solid var(--vocab); border-radius: 0 6px 6px 0; padding: 8px 12px; margin-bottom: 6px; font-size: 11px; color: rgba(255,255,255,0.6); }
+    .wa-change-label { font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .tag { display: inline-block; font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 4px; text-transform: uppercase; margin-left: 4px; vertical-align: middle; }
+    .tag.changed { background: rgba(0,35,149,0.4); color: #7B9AE8; }
+    .tag.removed { background: rgba(237,41,57,0.25); color: #F08080; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(0,35,149,0.2); border-top-color: var(--tricolore); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+    .spinner.sm { width: 10px; height: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-brand">🇫🇷 Le <span>France</span> Professor</div>
+  <div class="nav-links">
+    <a href="#tokens">Fondations</a>
+    <a href="#components">Composants</a>
+    <span style="width:1px;background:rgba(255,255,255,0.1);align-self:stretch;margin:10px 4px;"></span>
+    <a href="#welcome">Accueil</a>
+    <a href="#conversation">Conversation</a>
+    <a href="#vocabulary">Vocabulaire</a>
+    <span style="width:1px;background:rgba(255,255,255,0.1);align-self:stretch;margin:10px 4px;"></span>
+    <a href="#whatsapp">WhatsApp</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     §1  DESIGN TOKENS
+════════════════════════════════════════════════════════ -->
+<section class="section" id="tokens">
+  <div class="section-header">
+    <div class="section-eyebrow">01 · Fondations</div>
+    <div class="section-title">Couleurs, typographie, espacements</div>
+    <div class="section-sub">Toutes les valeurs fondamentales partagées entre l'interface web et les exports PDF.</div>
+  </div>
+
+  <!-- Colors -->
+  <div style="margin-bottom:40px;">
+    <div class="token-row-label">Palette</div>
+    <div class="swatches">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F7F4EF; border:1px solid #D8D2C8;"></div>
+        <div class="swatch-name">Cream</div>
+        <div class="swatch-hex">#F7F4EF</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#EDE9E1;"></div>
+        <div class="swatch-name">Parchment</div>
+        <div class="swatch-hex">#EDE9E1</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#D8D2C8;"></div>
+        <div class="swatch-name">Border</div>
+        <div class="swatch-hex">#D8D2C8</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#6B6560;"></div>
+        <div class="swatch-name">Ink Muted</div>
+        <div class="swatch-hex">#6B6560</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#1A1714;"></div>
+        <div class="swatch-name">Ink</div>
+        <div class="swatch-hex">#1A1714</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#EEF1FC;"></div>
+        <div class="swatch-name">Tricolore 50</div>
+        <div class="swatch-hex">#EEF1FC</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#002395;"></div>
+        <div class="swatch-name">Tricolore</div>
+        <div class="swatch-hex">#002395</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#001A6E;"></div>
+        <div class="swatch-name">Tricolore 700</div>
+        <div class="swatch-hex">#001A6E</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#FEF0F0;"></div>
+        <div class="swatch-name">Rouge 50</div>
+        <div class="swatch-hex">#FEF0F0</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#ED2939;"></div>
+        <div class="swatch-name">Rouge</div>
+        <div class="swatch-hex">#ED2939</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#F2EFF9;"></div>
+        <div class="swatch-name">Vocab 50</div>
+        <div class="swatch-hex">#F2EFF9</div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#5C4A8A;"></div>
+        <div class="swatch-name">Vocab</div>
+        <div class="swatch-hex">#5C4A8A</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Typography -->
+  <div style="margin-bottom:40px;">
+    <div class="token-row-label">Typographie</div>
+    <div class="type-specimens">
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-name">Display / H1</div>
+          <div class="type-meta-spec">Space Grotesk 700 · 40px</div>
+        </div>
+        <div class="type-sample" style="font-family:'Space Grotesk',sans-serif; font-size:40px; font-weight:700; line-height:1.15;">Le France Professor</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-name">H2</div>
+          <div class="type-meta-spec">Space Grotesk 700 · 26px</div>
+        </div>
+        <div class="type-sample" style="font-family:'Space Grotesk',sans-serif; font-size:26px; font-weight:700;">Gastronomie française</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-name">H3 / Label</div>
+          <div class="type-meta-spec">Space Grotesk 600 · 15px</div>
+        </div>
+        <div class="type-sample" style="font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:600;">Professeure Sophie</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-name">Body</div>
+          <div class="type-meta-spec">Inter 400 · 14px</div>
+        </div>
+        <div class="type-sample" style="font-size:14px; line-height:1.6;">Apprenez le français naturellement, en conversation avec un tuteur IA.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-name">Body Small</div>
+          <div class="type-meta-spec">Inter 400 · 13px</div>
+        </div>
+        <div class="type-sample" style="font-size:13px; line-height:1.6;">Le bœuf bourguignon est un plat emblématique de la cuisine française.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-name">Caption</div>
+          <div class="type-meta-spec">Inter 400 · 11px</div>
+        </div>
+        <div class="type-sample muted" style="font-size:11px;">Hier à 14h32 · Conversation en français</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta">
+          <div class="type-meta-name">Eyebrow</div>
+          <div class="type-meta-spec">Inter 600 · 10px · caps · 0.12em</div>
+        </div>
+        <div class="type-sample muted" style="font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.12em;">Conversations récentes</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Border radius -->
+  <div>
+    <div class="token-row-label">Border Radius</div>
+    <div class="radius-row">
+      <div class="radius-swatch">
+        <div class="radius-box" style="border-radius:4px;"></div>
+        <div class="radius-label">SM</div>
+        <div class="radius-value">4px</div>
+      </div>
+      <div class="radius-swatch">
+        <div class="radius-box" style="border-radius:8px;"></div>
+        <div class="radius-label">MD</div>
+        <div class="radius-value">8px</div>
+      </div>
+      <div class="radius-swatch">
+        <div class="radius-box" style="border-radius:12px;"></div>
+        <div class="radius-label">LG</div>
+        <div class="radius-value">12px</div>
+      </div>
+      <div class="radius-swatch">
+        <div class="radius-box" style="border-radius:18px;"></div>
+        <div class="radius-label">Bubble</div>
+        <div class="radius-value">18px</div>
+      </div>
+      <div class="radius-swatch">
+        <div class="radius-box" style="border-radius:36px;"></div>
+        <div class="radius-label">Mobile frame</div>
+        <div class="radius-value">36px</div>
+      </div>
+      <div class="radius-swatch">
+        <div class="radius-box" style="border-radius:999px; width:64px; height:36px;"></div>
+        <div class="radius-label">Pill</div>
+        <div class="radius-value">999px</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §2  COMPONENTS
+════════════════════════════════════════════════════════ -->
+<section class="section" id="components">
+  <div class="section-header">
+    <div class="section-eyebrow">02 · Composants</div>
+    <div class="section-title">Bibliothèque de composants</div>
+    <div class="section-sub">Boutons, bulles, champ de saisie, états d'interaction.</div>
+  </div>
+
+  <div class="comp-grid">
+
+    <!-- Buttons -->
+    <div class="comp-card">
+      <div class="comp-card-title">Boutons</div>
+      <div class="comp-row">
+        <button class="btn-primary">Commencer →</button>
+      </div>
+      <div class="comp-row">
+        <button class="btn-secondary">Annuler</button>
+      </div>
+      <div class="comp-row">
+        <button class="btn-vocab">📖 Vocabulaire <span class="vocab-badge">3</span></button>
+      </div>
+      <div class="comp-row">
+        <button class="btn-disabled">Envoyer</button>
+      </div>
+    </div>
+
+    <!-- Message bubbles -->
+    <div class="comp-card" style="grid-column: span 2;">
+      <div class="comp-card-title">Bulles de message</div>
+      <div class="bubble-demo">
+        <div style="display:flex; gap:8px; align-items:flex-start;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--tricolore-50);border:2px solid var(--tricolore);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👩‍🏫</div>
+          <div>
+            <div class="bubble tutor">
+              Le bœuf bourguignon est un plat <u style="text-decoration-color:var(--vocab);text-decoration-thickness:2px;">emblématique</u>. Tu sais d'où il vient ?
+              <div class="tts-row">
+                <div class="tts-btn active">▶ Normal</div>
+                <div class="tts-btn">🐢 Lent</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bubble vocab-bubble">
+          <div class="vocab-bubble-label">📖 emblématique</div>
+          <div style="font-size:13px;line-height:1.55;">Qui représente ou symbolise quelque chose de manière forte.</div>
+          <div class="tts-row" style="border-color:rgba(92,74,138,0.15);">
+            <div class="tts-btn vocab-active">▶ Normal</div>
+            <div class="tts-btn vocab-active">🐢 Lent</div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end;">
+          <div class="bubble user">Oui ! J'ai mangé du bœuf bourguignon. C'est délicieux !</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input bar -->
+    <div class="comp-card" style="grid-column: span 2;">
+      <div class="comp-card-title">Barre de saisie — états</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="background:var(--cream); border-radius:12px 12px 0 0; padding:10px 12px 0; font-size:11px; color:var(--ink-muted);">Repos</div>
+        <div class="input-demo" style="border-radius:0 0 0 0; margin-top:0;">
+          <div class="mic-btn">🎙</div>
+          <input class="input-field" placeholder="Écrivez en français…" />
+          <div class="send-btn disabled" style="background:var(--border);">›</div>
+        </div>
+        <div style="background:var(--cream); padding:10px 12px 0; font-size:11px; color:var(--ink-muted);">Focus + slash command</div>
+        <div class="input-demo" style="border-radius:0; margin-top:0; position:relative;">
+          <div class="slash-dropdown" style="position:absolute;bottom:56px;left:12px;width:230px;">
+            <div class="slash-item sel">
+              <div class="slash-icon">📖</div>
+              <div><div class="slash-cmd-name">/vocabulary</div><div class="slash-cmd-desc">Expliquer un mot en contexte</div></div>
+            </div>
+            <div class="slash-item">
+              <div class="slash-icon">📚</div>
+              <div><div class="slash-cmd-name">/notebook</div><div class="slash-cmd-desc">Voir le carnet de vocabulaire</div></div>
+            </div>
+          </div>
+          <div class="mic-btn">🎙</div>
+          <input class="input-field focused" value="/vocabulary " />
+          <div class="send-btn">›</div>
+        </div>
+        <div style="background:var(--cream); padding:10px 12px 0; font-size:11px; color:var(--ink-muted);">Enregistrement vocal</div>
+        <div class="input-demo" style="border-radius:0 0 12px 12px; margin-top:0;">
+          <div class="mic-btn recording">🎙</div>
+          <div class="recording-bar">
+            <div class="rec-dot"></div>
+            <div class="rec-text">Enregistrement…</div>
+            <div class="rec-timer">0:07</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- States -->
+    <div class="comp-card">
+      <div class="comp-card-title">Typing + Erreur</div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="background:var(--cream); border-radius:10px; padding:12px;">
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--tricolore-50);border:2px solid var(--tricolore);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👩‍🏫</div>
+            <div class="typing-indicator">
+              <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="error-box">
+          <span style="font-size:16px;">⚠️</span>
+          <div class="error-text">Impossible d'envoyer le message. Vérifiez votre connexion.</div>
+          <span style="color:var(--ink-muted); cursor:pointer;">✕</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TTS states -->
+    <div class="comp-card">
+      <div class="comp-card-title">TTS — états des boutons</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.3); width:76px; flex-shrink:0;">Repos</div>
+          <div class="tts-btn">▶ Normal</div>
+          <div class="tts-btn">🐢 Lent</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.3); width:76px; flex-shrink:0;">Chargement</div>
+          <div class="tts-btn" style="background:var(--tricolore-50); border-color:var(--tricolore); color:var(--tricolore); gap:5px; opacity:0.75;"><span class="spinner sm"></span> Normal</div>
+          <div class="tts-btn">🐢 Lent</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.3); width:76px; flex-shrink:0;">En lecture</div>
+          <div class="tts-btn active">▶ Normal</div>
+          <div class="tts-btn">🐢 Lent</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-size:10px; color:rgba(255,255,255,0.3); width:76px; flex-shrink:0;">Lent actif</div>
+          <div class="tts-btn">▶ Normal</div>
+          <div class="tts-btn active">🐢 Lent</div>
+        </div>
+      </div>
+      <div class="state-note" style="margin-top:10px;">Un seul audio actif à la fois — cliquer un bouton pendant la lecture arrête l'autre message.</div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="comp-card">
+      <div class="comp-card-title">Sidebar — Conversations</div>
+      <div class="sidebar-demo">
+        <div style="padding:14px 14px 10px; border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:18px; margin-bottom:4px;">🇫🇷</div>
+          <div style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; color:#fff; line-height:1.2;">Le France<br>Professor</div>
+          <div style="font-size:9px; color:rgba(255,255,255,0.35); margin-top:2px; text-transform:uppercase; letter-spacing:0.08em;">Tuteur IA</div>
+        </div>
+        <div style="padding:12px 14px 6px; font-size:9px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.3);">Conversations</div>
+        <div class="sidebar-item active"><div class="sidebar-dot"></div><div class="sidebar-item-text">Gastronomie française</div></div>
+        <div class="sidebar-item"><div class="sidebar-dot"></div><div class="sidebar-item-text">L'IA en France</div></div>
+        <div class="sidebar-item"><div class="sidebar-dot"></div><div class="sidebar-item-text">La langue française</div></div>
+        <div style="padding:10px 12px; border-top:1px solid rgba(255,255,255,0.08);">
+          <button class="btn-new-conv">+ Nouvelle conversation</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §3  FLOW — WELCOME PAGE
+════════════════════════════════════════════════════════ -->
+<section class="section" id="welcome">
+  <div class="section-header">
+    <div class="section-eyebrow">Flow 01 · Web</div>
+    <div class="section-title">Accueil</div>
+    <div class="section-sub">Point d'entrée. Présentation de l'IA tutrice, bouton de démarrage, conversations récentes. État vide pour les nouveaux utilisateurs.</div>
+  </div>
+
+  <div class="frames-row">
+    <!-- Desktop -->
+    <div class="frame-block" style="width:100%; max-width:960px;">
+      <div class="frame-label">Desktop · 900 × 580px</div>
+      <div class="desktop-frame" style="height:580px;">
+        <div class="desktop-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <div class="welcome-desktop">
+          <div class="welcome-accent"></div>
+          <div class="welcome-content">
+            <div class="flag-badge">🇫🇷</div>
+            <div class="welcome-title">Le <span>France</span><br>Professor</div>
+            <div class="welcome-sub">Apprenez le français naturellement, en conversation avec un tuteur IA.</div>
+            <button class="btn-primary" style="font-size:14px; padding:14px 32px;">Commencer une conversation →</button>
+            <div class="divider-line">conversations récentes</div>
+            <div class="recent-list">
+              <div class="recent-item"><div class="recent-icon">💬</div><div class="recent-text"><div class="recent-name">Gastronomie française</div><div class="recent-date">Hier à 14h32</div></div><div class="recent-arrow">›</div></div>
+              <div class="recent-item"><div class="recent-icon">💬</div><div class="recent-text"><div class="recent-name">L'IA en France</div><div class="recent-date">Il y a 3 jours</div></div><div class="recent-arrow">›</div></div>
+              <div class="recent-item"><div class="recent-icon">💬</div><div class="recent-text"><div class="recent-name">La langue française</div><div class="recent-date">Il y a 1 semaine</div></div><div class="recent-arrow">›</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile -->
+    <div class="frame-block">
+      <div class="frame-label">Mobile · 320 × 620px</div>
+      <div class="mobile-frame" style="height:620px;">
+        <div class="mobile-notch"><div class="notch-pill"></div></div>
+        <div class="welcome-mobile">
+          <div class="flag-badge" style="width:50px;height:50px;font-size:24px;">🇫🇷</div>
+          <div class="welcome-title" style="font-size:30px;">Le <span>France</span><br>Professor</div>
+          <div class="welcome-sub" style="font-size:13px;">Apprenez le français naturellement, en conversation avec un tuteur IA.</div>
+          <button class="btn-primary" style="font-size:14px;padding:13px 28px;width:100%;justify-content:center;">Commencer →</button>
+          <div class="divider-line" style="width:100%;">conversations récentes</div>
+          <div class="recent-list" style="width:100%;">
+            <div class="recent-item"><div class="recent-icon">💬</div><div class="recent-text"><div class="recent-name">Gastronomie française</div><div class="recent-date">Hier à 14h32</div></div><div class="recent-arrow">›</div></div>
+            <div class="recent-item"><div class="recent-icon">💬</div><div class="recent-text"><div class="recent-name">L'IA en France</div><div class="recent-date">Il y a 3 jours</div></div><div class="recent-arrow">›</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state mobile -->
+    <div class="frame-block">
+      <div class="frame-label">Mobile · Premier visite</div>
+      <div class="mobile-frame" style="height:440px;">
+        <div class="mobile-notch"><div class="notch-pill"></div></div>
+        <div class="welcome-mobile" style="height:calc(100% - 36px); justify-content:center; gap:20px;">
+          <div class="flag-badge" style="width:50px;height:50px;font-size:24px;">🇫🇷</div>
+          <div class="welcome-title" style="font-size:28px;">Le <span>France</span><br>Professor</div>
+          <div class="welcome-sub" style="font-size:13px;">Apprenez le français naturellement, en conversation avec un tuteur IA.</div>
+          <button class="btn-primary" style="font-size:14px;padding:13px 28px;width:100%;justify-content:center;">Commencer →</button>
+          <div style="text-align:center; font-size:11px; color:var(--ink-muted); line-height:1.5;">Votre première conversation<br>apparaîtra ici.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Button states -->
+  <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-top:32px;">
+    <div class="state-card" style="width:260px;">
+      <div class="state-card-title">⏳ Bouton — chargement</div>
+      <button style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--tricolore);color:#fff;font-size:14px;font-weight:600;padding:13px 0;border-radius:999px;border:none;opacity:0.75;cursor:not-allowed;">
+        <span class="spinner" style="border-color:rgba(255,255,255,0.25);border-top-color:#fff;"></span>Démarrage…
+      </button>
+      <div class="state-note">Pendant la création de la conversation côté serveur.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §4  FLOW — CONVERSATION PAGE
+════════════════════════════════════════════════════════ -->
+<section class="section" id="conversation">
+  <div class="section-header">
+    <div class="section-eyebrow">Flow 02 · Web</div>
+    <div class="section-title">Conversation</div>
+    <div class="section-sub">Interface principale de chat — sidebar de navigation, bulles tutor/user, TTS, highlighting de vocabulaire, slash command, sidebar mobile en overlay.</div>
+  </div>
+
+  <div class="frames-row" style="margin-bottom:48px;">
+    <!-- Desktop split layout -->
+    <div class="frame-block" style="width:100%; max-width:960px;">
+      <div class="frame-label">Desktop — Split layout · 900 × 640px</div>
+      <div class="desktop-frame" style="height:640px;">
+        <div class="desktop-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <div class="conv-desktop">
+          <div class="sidebar">
+            <div class="sidebar-brand"><div class="brand-flag">🇫🇷</div><div class="brand-name">Le France<br>Professor</div><div class="brand-sub">Tuteur IA</div></div>
+            <div class="sidebar-section">Conversations</div>
+            <div class="sidebar-item active"><div class="sidebar-dot"></div><div class="sidebar-item-text">Gastronomie française</div></div>
+            <div class="sidebar-item"><div class="sidebar-dot"></div><div class="sidebar-item-text">L'IA en France</div></div>
+            <div class="sidebar-item"><div class="sidebar-dot"></div><div class="sidebar-item-text">La langue française</div></div>
+            <div class="sidebar-footer"><button class="btn-new-conv">+ Nouvelle conversation</button></div>
+          </div>
+          <div class="chat-area" style="position:relative;">
+            <div class="chat-header-bar">
+              <div class="avatar">👩‍🏫</div>
+              <div class="chat-header-info">
+                <div class="chat-header-name">Professeure Sophie</div>
+                <div class="chat-header-sub"><span class="status-dot"></span>En ligne · Conversation en français</div>
+              </div>
+              <button class="vocab-pill">📖 Vocabulaire <span class="vocab-badge">3</span></button>
+            </div>
+            <div class="messages-area">
+              <div class="msg-row">
+                <div class="avatar sm">👩‍🏫</div>
+                <div>
+                  <div class="bubble tutor">
+                    Bonjour ! Aujourd'hui, j'aimerais qu'on parle de la gastronomie française. Est-ce que tu as déjà essayé des plats français typiques ?
+                    <div class="tts-row"><div class="tts-btn active">▶ Normal</div><div class="tts-btn">🐢 Lent</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="msg-row user"><div class="bubble user">Oui, j'ai mangé du bœuf bourguignon la semaine dernière. C'est très bon !</div></div>
+              <div class="msg-row">
+                <div class="avatar sm">👩‍🏫</div>
+                <div>
+                  <div class="bubble tutor">
+                    Super ! Le bœuf bourguignon est un plat <u style="text-decoration-color:var(--vocab);text-decoration-thickness:2px;">emblématique</u>. Tu sais d'où vient ce plat ?
+                    <div class="tts-row"><div class="tts-btn">▶ Normal</div><div class="tts-btn">🐢 Lent</div></div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left:38px;">
+                <div class="bubble vocab-bubble" style="max-width:74%;">
+                  <div class="vocab-bubble-label">📖 emblématique</div>
+                  <div style="font-size:13px;color:var(--ink);line-height:1.6;"><strong>Adjectif.</strong> Qui représente ou symbolise quelque chose de manière forte. Dans ce contexte, le bœuf bourguignon représente toute une tradition culinaire française.</div>
+                  <div class="tts-row" style="border-color:rgba(92,74,138,0.15);">
+                    <div class="tts-btn vocab-active">▶ Normal</div>
+                    <div class="tts-btn vocab-active">🐢 Lent</div>
+                  </div>
+                </div>
+              </div>
+              <div class="msg-row">
+                <div class="avatar sm">👩‍🏫</div>
+                <div class="typing-indicator"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>
+              </div>
+            </div>
+            <div style="position:relative;">
+              <div class="slash-overlay">
+                <div class="slash-item sel">
+                  <div class="slash-icon">📖</div>
+                  <div><div class="slash-cmd-name">/vocabulary</div><div class="slash-cmd-desc">Explication d'un mot en contexte</div></div>
+                </div>
+              </div>
+              <div class="input-bar">
+                <div class="mic-btn">🎙</div>
+                <input class="input-field focused" placeholder="/vocabulary emblématique" />
+                <div class="send-btn">›</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frames-row">
+    <!-- Mobile -->
+    <div class="frame-block">
+      <div class="frame-label">Mobile · 320 × 680px</div>
+      <div class="mobile-frame" style="height:680px;">
+        <div class="mobile-notch"><div class="notch-pill"></div></div>
+        <div class="conv-mobile">
+          <div class="mobile-header">
+            <div class="hamburger"><div class="h-line"></div><div class="h-line"></div><div class="h-line"></div></div>
+            <div class="avatar sm">👩‍🏫</div>
+            <div class="mobile-header-info">
+              <div class="mobile-header-name">Professeure Sophie</div>
+              <div class="mobile-header-sub"><span class="status-dot"></span>En ligne</div>
+            </div>
+            <div class="mobile-vocab-btn">📖 <span class="vocab-badge" style="width:14px;height:14px;font-size:9px;">3</span></div>
+          </div>
+          <div class="mobile-messages">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;gap:6px;">
+                <div class="avatar sm" style="flex-shrink:0;margin-top:2px;">👩‍🏫</div>
+                <div class="mobile-bubble tutor">
+                  Bonjour ! Parlons de la gastronomie française. Tu as déjà essayé des plats typiques ?
+                  <div class="mobile-tts"><div class="mobile-tts-btn">▶ Normal</div><div class="mobile-tts-btn">🐢 Lent</div></div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;"><div class="mobile-bubble user">Oui ! J'ai mangé du bœuf bourguignon. C'est délicieux !</div></div>
+              <div style="display:flex;gap:6px;">
+                <div class="avatar sm" style="flex-shrink:0;margin-top:2px;">👩‍🏫</div>
+                <div class="mobile-bubble tutor">
+                  Super ! C'est un plat <u style="text-decoration-color:var(--vocab);text-decoration-thickness:2px;">emblématique</u>. Tu sais d'où il vient ?
+                  <div class="mobile-tts"><div class="mobile-tts-btn">▶</div><div class="mobile-tts-btn">🐢</div></div>
+                </div>
+              </div>
+              <div style="margin-left:34px;">
+                <div class="mobile-bubble vocab" style="max-width:100%;">
+                  <div style="font-size:10px;font-weight:600;color:var(--vocab);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;">📖 emblématique</div>
+                  <div style="font-size:11px;line-height:1.5;">Qui représente ou symbolise quelque chose de manière forte.</div>
+                  <div class="mobile-tts" style="border-color:rgba(92,74,138,0.15);">
+                    <div class="mobile-tts-btn" style="color:var(--vocab);">▶</div>
+                    <div class="mobile-tts-btn" style="color:var(--vocab);">🐢</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <div class="avatar sm" style="flex-shrink:0;">👩‍🏫</div>
+                <div class="typing-indicator" style="padding:8px 12px;font-size:11px;"><div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="mobile-input-bar">
+            <div class="mobile-mic">🎙</div>
+            <input class="mobile-input" placeholder="Écrivez en français…" />
+            <div class="mobile-send">›</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interaction states -->
+    <div class="states-col" style="align-self:flex-start; margin-top:34px;">
+      <div style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.5); margin-bottom:4px;">États d'interaction</div>
+
+      <div class="state-card">
+        <div class="state-card-title">✨ Nouvelle conversation</div>
+        <div style="background:var(--cream); border-radius:10px; padding:12px;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--tricolore-50);border:2px solid var(--tricolore);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👩‍🏫</div>
+            <div class="typing-indicator" style="padding:8px 12px;">
+              <div class="t-dot"></div><div class="t-dot"></div><div class="t-dot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="state-note">Zone messages vide → Sophie génère et envoie l'ouverture automatiquement.</div>
+      </div>
+
+      <div class="state-card">
+        <div class="state-card-title">🎙 Voice input — parcours</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.25);">① Repos</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="mic-btn">🎙</div>
+            <input class="input-field" placeholder="Écrivez en français…" style="font-size:12px;" />
+          </div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.25);">② Enregistrement</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="mic-btn recording">🎙</div>
+            <div class="recording-bar" style="flex:1;">
+              <div class="rec-dot"></div>
+              <div class="rec-text">Enregistrement…</div>
+              <div class="rec-timer">0:07</div>
+            </div>
+          </div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.25);">③ Transcription</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="mic-btn" style="opacity:0.45;">🎙</div>
+            <div style="flex:1;height:38px;border:1px solid var(--tricolore);border-radius:999px;background:#fff;display:flex;align-items:center;padding:0 14px;gap:8px;">
+              <span class="spinner"></span>
+              <span style="font-size:12px;color:var(--ink-muted);">Transcription…</span>
+            </div>
+          </div>
+          <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.25);">④ Résultat</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="mic-btn">🎙</div>
+            <input class="input-field focused" value="Oui, j'ai mangé du bœuf bourguignon." style="font-size:12px;" />
+          </div>
+        </div>
+        <div class="state-note">Desktop : clic = toggle. Mobile : appui maintenu = enregistrement, relâcher = stop.</div>
+      </div>
+
+      <div class="state-card">
+        <div class="state-card-title">⌨️ Slash command</div>
+        <div class="slash-dropdown" style="margin-bottom:10px;">
+          <div class="slash-item sel">
+            <div class="slash-icon">📖</div>
+            <div><div class="slash-cmd-name">/vocabulary</div><div class="slash-cmd-desc">Expliquer un mot en contexte</div></div>
+          </div>
+          <div class="slash-item">
+            <div class="slash-icon">📚</div>
+            <div><div class="slash-cmd-name">/notebook</div><div class="slash-cmd-desc">Voir le carnet</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <div class="mic-btn">🎙</div>
+          <input class="input-field" style="border-color:var(--tricolore);background:#fff;font-size:13px;" value="/vocabulary " />
+        </div>
+      </div>
+
+      <div class="state-card">
+        <div class="state-card-title">🔊 TTS actif</div>
+        <div class="bubble tutor" style="font-size:13px;background:#fff;">
+          Bonjour, comment vas-tu ?
+          <div class="tts-row"><div class="tts-btn active">▶ Normal</div><div class="tts-btn">🐢 Lent</div></div>
+        </div>
+      </div>
+
+      <div class="state-card">
+        <div class="state-card-title">⚠️ Erreur réseau</div>
+        <div class="error-box">
+          <span style="font-size:16px;">⚠️</span>
+          <div class="error-text">Impossible d'envoyer le message. Vérifiez votre connexion.</div>
+          <span style="color:var(--ink-muted);cursor:pointer;">✕</span>
+        </div>
+      </div>
+
+      <div class="state-card">
+        <div class="state-card-title">☰ Sidebar mobile — ouverte</div>
+        <div style="border-radius:10px; overflow:hidden; display:flex; height:180px; position:relative;">
+          <!-- dimmed chat behind -->
+          <div style="flex:1; background:var(--cream); position:relative;">
+            <div style="padding:10px; display:flex; flex-direction:column; gap:8px; opacity:0.3;">
+              <div style="height:44px; background:var(--ink); border-radius:6px;"></div>
+              <div style="height:40px; background:#fff; border:1px solid var(--border); border-radius:12px; max-width:80%;"></div>
+              <div style="height:32px; background:var(--tricolore); border-radius:12px; max-width:55%; align-self:flex-end;"></div>
+            </div>
+            <div style="position:absolute; inset:0; background:rgba(26,23,20,0.45); border-radius:0;"></div>
+          </div>
+          <!-- sidebar overlay -->
+          <div style="width:180px; background:var(--ink); display:flex; flex-direction:column; flex-shrink:0; position:absolute; top:0; left:0; bottom:0; z-index:2; box-shadow:4px 0 16px rgba(0,0,0,0.4);">
+            <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.08);">
+              <div style="font-size:14px; margin-bottom:2px;">🇫🇷</div>
+              <div style="font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:700; color:#fff;">Le France Professor</div>
+            </div>
+            <div style="padding:10px 12px 4px; font-size:9px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.3);">Conversations</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.08);font-size:11px;color:#fff;"><div style="width:5px;height:5px;border-radius:50%;background:var(--rouge);flex-shrink:0;"></div>Gastronomie française</div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:11px;color:rgba(255,255,255,0.5);"><div style="width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,0.2);flex-shrink:0;"></div>L'IA en France</div>
+            <div style="margin-top:auto;padding:10px;border-top:1px solid rgba(255,255,255,0.08);"><button class="btn-new-conv" style="font-size:11px;padding:7px;">+ Nouvelle</button></div>
+          </div>
+        </div>
+        <div class="state-note">Tap hamburger → sidebar slide in, overlay assombrit le chat.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breakpoint note -->
+  <div style="display:flex; justify-content:center; margin-top:40px;">
+    <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:14px 24px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; justify-content:center;">
+      <div style="font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.3);">Breakpoints</div>
+      <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,0.55);">
+        <span style="font-family:monospace; background:rgba(255,255,255,0.07); padding:2px 7px; border-radius:4px; font-size:11px;">&lt; 768px</span>
+        Mobile — sidebar masquée, hamburger visible, vocab en bottom-drawer
+      </div>
+      <div style="width:1px; height:16px; background:rgba(255,255,255,0.1);"></div>
+      <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:rgba(255,255,255,0.55);">
+        <span style="font-family:monospace; background:rgba(255,255,255,0.07); padding:2px 7px; border-radius:4px; font-size:11px;">≥ 768px</span>
+        Desktop — sidebar toujours visible, vocab en panneau latéral droit
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §5  FLOW — VOCABULARY FINAL FLOW
+════════════════════════════════════════════════════════ -->
+<section class="section" id="vocabulary">
+  <div class="section-header">
+    <div class="section-eyebrow">Flow 03 · Web</div>
+    <div class="section-title">Vocabulaire</div>
+    <div class="section-sub">Desktop : panneau latéral droit ouvert à côté du chat. Mobile : séquence en trois écrans — accueil → conversation avec mot souligné → drawer en bas.</div>
+  </div>
+
+  <!-- ── DESKTOP ── -->
+  <div class="frames-row" style="margin-bottom:56px;">
+    <div class="frame-block" style="width:100%; max-width:960px;">
+      <div class="frame-label">Desktop · Panneau vocabulaire ouvert · 900 × 640px</div>
+      <div class="desktop-frame" style="height:640px;">
+        <div class="desktop-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+        <div style="width:100%; height:calc(100% - 32px); display:flex;">
+
+          <!-- Sidebar -->
+          <div class="sidebar" style="width:220px;">
+            <div class="sidebar-brand"><div class="brand-flag">🇫🇷</div><div class="brand-name">Le France<br>Professor</div><div class="brand-sub">Tuteur IA</div></div>
+            <div class="sidebar-section">Conversations</div>
+            <div class="sidebar-item active"><div class="sidebar-dot"></div><div class="sidebar-item-text">Gastronomie française</div></div>
+            <div class="sidebar-item"><div class="sidebar-dot"></div><div class="sidebar-item-text">L'IA en France</div></div>
+            <div class="sidebar-item"><div class="sidebar-dot"></div><div class="sidebar-item-text">La langue française</div></div>
+            <div class="sidebar-footer"><button class="btn-new-conv">+ Nouvelle conversation</button></div>
+          </div>
+
+          <!-- Chat area (narrowed) -->
+          <div class="chat-area" style="min-width:0;">
+            <div class="chat-header-bar">
+              <div class="avatar">👩‍🏫</div>
+              <div class="chat-header-info">
+                <div class="chat-header-name">Professeure Sophie</div>
+                <div class="chat-header-sub"><span class="status-dot"></span>En ligne</div>
+              </div>
+              <button class="vocab-pill" style="background:var(--vocab);color:#fff;border-color:var(--vocab);">📖 Vocabulaire <span class="vocab-badge" style="background:rgba(255,255,255,0.3);">3</span></button>
+            </div>
+            <div class="messages-area">
+              <div class="msg-row">
+                <div class="avatar sm">👩‍🏫</div>
+                <div>
+                  <div class="bubble tutor" style="font-size:12px;">
+                    Bonjour ! Aujourd'hui parlons de gastronomie. Tu as essayé des plats français ?
+                    <div class="tts-row"><div class="tts-btn">▶ Normal</div><div class="tts-btn">🐢 Lent</div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="msg-row user"><div class="bubble user" style="font-size:12px;">Oui, le bœuf bourguignon ! C'est délicieux.</div></div>
+              <div class="msg-row">
+                <div class="avatar sm">👩‍🏫</div>
+                <div>
+                  <div class="bubble tutor" style="font-size:12px;">
+                    Super ! C'est un plat <u style="text-decoration-color:var(--vocab);text-decoration-thickness:2px;text-underline-offset:2px;">emblématique</u>. Tu sais d'où il vient ?
+                    <div class="tts-row"><div class="tts-btn active">▶ Normal</div><div class="tts-btn">🐢 Lent</div></div>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-left:38px;">
+                <div class="bubble vocab-bubble" style="font-size:12px;">
+                  <div class="vocab-bubble-label">📖 emblématique</div>
+                  Qui représente ou symbolise quelque chose de manière forte.
+                  <div class="tts-row" style="border-color:rgba(92,74,138,0.15);"><div class="tts-btn vocab-active">▶</div><div class="tts-btn vocab-active">🐢</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="input-bar">
+              <div class="mic-btn">🎙</div>
+              <input class="input-field" placeholder="Écrivez en français…" style="font-size:12px;" />
+              <div class="send-btn">›</div>
+            </div>
+          </div>
+
+          <!-- Vocabulary panel -->
+          <div style="width:256px; flex-shrink:0; background:#fff; border-left:1px solid var(--border); display:flex; flex-direction:column; height:100%;">
+            <div style="padding:14px 16px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0;">
+              <div>
+                <div style="font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:700; color:var(--ink);">📖 Vocabulaire</div>
+                <div style="font-size:10px; color:var(--ink-muted); margin-top:2px;">3 mots enregistrés</div>
+              </div>
+              <div style="font-size:16px; color:var(--ink-muted); cursor:pointer; padding:4px;">✕</div>
+            </div>
+            <div style="flex:1; overflow:hidden; padding:12px 14px; display:flex; flex-direction:column; gap:10px;">
+              <div style="padding:10px 12px; background:var(--vocab-50); border:1px solid rgba(92,74,138,0.3); border-radius:10px;">
+                <div style="font-size:12px; font-weight:700; color:var(--vocab); margin-bottom:4px;">emblématique</div>
+                <div style="font-size:11px; color:var(--ink); line-height:1.5;">Qui représente ou symbolise quelque chose de manière forte.</div>
+                <div style="font-size:10px; color:var(--ink-muted); margin-top:5px; padding-top:5px; border-top:1px solid rgba(92,74,138,0.15); font-style:italic;">« C'est un plat emblématique… »</div>
+              </div>
+              <div style="padding:10px 12px; background:var(--cream); border:1px solid var(--border); border-radius:10px;">
+                <div style="font-size:12px; font-weight:700; color:var(--vocab); margin-bottom:4px;">gastronomie</div>
+                <div style="font-size:11px; color:var(--ink); line-height:1.5;">L'art de bien manger ; ensemble des règles de la cuisine d'un pays.</div>
+                <div style="font-size:10px; color:var(--ink-muted); margin-top:5px; padding-top:5px; border-top:1px solid var(--border); font-style:italic;">« Parlons de gastronomie… »</div>
+              </div>
+              <div style="padding:10px 12px; background:var(--cream); border:1px solid var(--border); border-radius:10px;">
+                <div style="font-size:12px; font-weight:700; color:var(--vocab); margin-bottom:4px;">délicieux</div>
+                <div style="font-size:11px; color:var(--ink); line-height:1.5;">Extrêmement agréable au goût ; qui procure un plaisir intense.</div>
+                <div style="font-size:10px; color:var(--ink-muted); margin-top:5px; padding-top:5px; border-top:1px solid var(--border); font-style:italic;">« C'est délicieux ! »</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MOBILE ── -->
+  <div class="frame-label" style="text-align:center; margin-bottom:20px;">Mobile · Séquence en trois écrans</div>
+  <div class="phones-row">
+
+    <!-- Phone 1: Welcome -->
+    <div class="phone-wrap">
+      <div class="phone-frame-label">① Accueil</div>
+      <div class="phone-frame">
+        <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+        <div class="welcome-screen">
+          <div class="ph-flag">🇫🇷</div>
+          <div class="ph-title">Le <span>France</span><br>Professor</div>
+          <div class="ph-sub">Apprenez le français naturellement, en conversation avec un tuteur IA.</div>
+          <button class="ph-btn">Commencer →</button>
+          <div class="ph-divider">conversations récentes</div>
+          <div class="ph-recent">
+            <div class="ph-recent-item"><span style="font-size:14px;">💬</span><div class="ph-recent-info"><div class="ph-recent-name">Gastronomie française</div><div class="ph-recent-date">Hier à 14h32</div></div><span style="color:var(--ink-muted);">›</span></div>
+            <div class="ph-recent-item"><span style="font-size:14px;">💬</span><div class="ph-recent-info"><div class="ph-recent-name">L'IA en France</div><div class="ph-recent-date">Il y a 3 jours</div></div><span style="color:var(--ink-muted);">›</span></div>
+            <div class="ph-recent-item"><span style="font-size:14px;">💬</span><div class="ph-recent-info"><div class="ph-recent-name">La langue française</div><div class="ph-recent-date">Il y a 1 semaine</div></div><span style="color:var(--ink-muted);">›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 1→2 -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;align-self:center;padding-bottom:32px;">
+      <div style="font-size:22px;color:rgba(255,255,255,0.2);">→</div>
+      <div style="font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.2);">Commencer</div>
+    </div>
+
+    <!-- Phone 2: Chat (main/larger) -->
+    <div class="phone-wrap">
+      <div class="phone-frame-label">② Conversation + vocabulaire</div>
+      <div class="phone-frame main">
+        <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+        <div class="chat-screen">
+          <div class="ph-chat-header">
+            <div class="ph-hamburger"><div class="ph-hline"></div><div class="ph-hline"></div><div class="ph-hline"></div></div>
+            <div class="ph-avatar">👩‍🏫</div>
+            <div class="ph-header-info">
+              <div class="ph-name">Professeure Sophie</div>
+              <div class="ph-status"><span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:3px;"></span>En ligne</div>
+            </div>
+            <div class="ph-vocab-btn">📖 <span class="ph-vbadge">3</span></div>
+          </div>
+          <div class="ph-messages">
+            <div class="ph-msg-tutor">
+              <div class="ph-avatar" style="width:24px;height:24px;font-size:12px;flex-shrink:0;margin-top:2px;">👩‍🏫</div>
+              <div class="ph-bubble tutor">
+                Bonjour ! Parlons de la gastronomie française. Tu as déjà essayé des plats typiques ?
+                <div class="ph-tts"><div class="ph-tts-btn active">▶ Normal</div><div class="ph-tts-btn">🐢 Lent</div></div>
+              </div>
+            </div>
+            <div class="ph-msg-user"><div class="ph-bubble user">Oui ! J'ai mangé du bœuf bourguignon. C'est délicieux !</div></div>
+            <div class="ph-msg-tutor">
+              <div class="ph-avatar" style="width:24px;height:24px;font-size:12px;flex-shrink:0;margin-top:2px;">👩‍🏫</div>
+              <div class="ph-bubble tutor">
+                Super ! C'est un plat <u style="text-decoration-color:var(--vocab);text-decoration-thickness:2px;text-underline-offset:2px;cursor:pointer;" title="mot enregistré dans le carnet">emblématique</u>. Tu sais d'où il vient ?
+                <div class="ph-tts"><div class="ph-tts-btn">▶ Normal</div><div class="ph-tts-btn">🐢 Lent</div></div>
+              </div>
+              <div style="font-size:9px;color:var(--vocab);margin:2px 0 4px 34px;font-weight:600;letter-spacing:0.04em;">↑ mot souligné = enregistré automatiquement</div>
+            </div>
+            <div class="ph-bubble vocab" style="">
+              <div class="ph-vocab-label">📖 emblématique</div>
+              <div style="font-size:11px;line-height:1.5;">Qui représente ou symbolise quelque chose de manière forte.</div>
+              <div class="ph-vocab-tts"><div class="ph-vocab-tts-btn">▶</div><div class="ph-vocab-tts-btn">🐢</div></div>
+            </div>
+            <div class="ph-msg-tutor">
+              <div class="ph-avatar" style="width:24px;height:24px;font-size:12px;flex-shrink:0;">👩‍🏫</div>
+              <div class="ph-typing"><div class="ph-tdot"></div><div class="ph-tdot"></div><div class="ph-tdot"></div></div>
+            </div>
+          </div>
+          <div class="ph-input-bar">
+            <div class="ph-mic">🎙</div>
+            <input class="ph-field" placeholder="Écrivez en français…" />
+            <div class="ph-send">›</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow 2→3 -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;align-self:center;padding-bottom:32px;">
+      <div style="font-size:22px;color:rgba(255,255,255,0.2);">→</div>
+      <div style="font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.2);">Ouvrir carnet</div>
+    </div>
+
+    <!-- Phone 3: Vocab drawer -->
+    <div class="phone-wrap">
+      <div class="phone-frame-label">③ Carnet ouvert</div>
+      <div class="phone-frame">
+        <div class="phone-notch"><div class="phone-notch-pill"></div></div>
+        <div class="vocab-screen">
+          <!-- dimmed background -->
+          <div style="padding:10px 10px 0; opacity:0.3; pointer-events:none;">
+            <div class="ph-chat-header" style="border-radius:8px; margin-bottom:8px; height:40px;">
+              <div class="ph-avatar" style="width:22px;height:22px;font-size:11px;">👩‍🏫</div>
+              <div class="ph-header-info"><div class="ph-name" style="font-size:11px;">Professeure Sophie</div></div>
+              <div class="ph-vocab-btn" style="font-size:9px;">📖 <span class="ph-vbadge" style="width:11px;height:11px;font-size:7px;">3</span></div>
+            </div>
+            <div class="ph-bubble tutor" style="font-size:10px;max-width:85%;">C'est un plat emblématique. Tu sais d'où il vient ?</div>
+          </div>
+          <div class="vocab-overlay"></div>
+          <div class="vocab-drawer">
+            <div class="drawer-handle"><div class="handle-pill"></div></div>
+            <div class="drawer-header">
+              <div class="drawer-title">📖 Vocabulaire</div>
+              <div class="drawer-sub">3 mots enregistrés</div>
+            </div>
+            <div class="drawer-entries">
+              <div class="vocab-entry highlighted">
+                <div class="entry-word">emblématique</div>
+                <div class="entry-def">Qui représente ou symbolise quelque chose de manière forte.</div>
+                <div class="entry-context">« C'est un plat emblématique… »</div>
+              </div>
+              <div class="vocab-entry">
+                <div class="entry-word">gastronomie</div>
+                <div class="entry-def">L'art de bien manger ; l'ensemble des règles qui constituent la cuisine d'un pays.</div>
+                <div class="entry-context">« Parlons de la gastronomie française… »</div>
+              </div>
+              <div class="vocab-entry">
+                <div class="entry-word">délicieux</div>
+                <div class="entry-def">Extrêmement agréable au goût ; qui procure un plaisir intense.</div>
+                <div class="entry-context">« C'est délicieux ! »</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §6  FLOW — WHATSAPP FORMAT v2
+════════════════════════════════════════════════════════ -->
+<section class="section" id="whatsapp">
+  <div class="section-header">
+    <div class="section-eyebrow">Flow 04 · WhatsApp</div>
+    <div class="section-title">WhatsApp</div>
+    <div class="section-sub">Canal WhatsApp — conversation de tutorat normale puis commandes /vocabulary et /notebook avec export PDF.</div>
+  </div>
+
+  <div class="wa-grid">
+
+    <!-- Phone -->
+    <div class="wa-col">
+      <div class="wa-col-label">WhatsApp — /notebook + /vocabulary</div>
+      <div class="wa-phone">
+        <div class="wa-notch"><div class="wa-notch-pill"></div></div>
+        <div class="wa-header">
+          <div class="wa-avatar">🇫🇷</div>
+          <div>
+            <div class="wa-contact-name">Le France Professor</div>
+            <div class="wa-contact-status">en ligne</div>
+          </div>
+        </div>
+        <div class="wa-chat">
+          <!-- ── Conversation normale (tutorat) ── -->
+          <div class="wa-date-chip">Hier</div>
+
+          <div class="wa-msg out">Bonjour ! Je veux pratiquer mon français.<div class="wa-time">18:04</div></div>
+          <div class="wa-msg in">
+            <div>Bonjour ! Avec plaisir 🇫🇷 Tu veux parler de quoi aujourd'hui ?</div>
+            <div class="wa-time">18:04</div>
+          </div>
+
+          <div class="wa-msg out">La cuisine française. Je connais la ratatouille mais c'est tout…<div class="wa-time">18:05</div></div>
+          <div class="wa-msg in">
+            <div>Bonne base ! La ratatouille vient de Provence. Le mot vient du verbe <b>touiller</b> — mélanger. Tu connais d'autres plats <b>provençaux</b> ?</div>
+            <div class="wa-time">18:05</div>
+          </div>
+
+          <div class="wa-msg out">Non, c'est quoi ?<div class="wa-time">18:06</div></div>
+          <div class="wa-msg in">
+            <div>La <b>bouillabaisse</b> — soupe de poisson de Marseille. Et la <b>tapenade</b> — purée d'olives. Ce sont des <b>incontournables</b> du sud. Tu veux qu'on en parle ?</div>
+            <div class="wa-time">18:06</div>
+          </div>
+
+          <!-- ── Séparateur → commandes ── -->
+          <div class="wa-date-chip">Aujourd'hui</div>
+
+          <div class="wa-msg out">/asda<div class="wa-time">09:55</div></div>
+          <div class="wa-msg in">
+            <div>❓ <b>Commande inconnue.</b></div>
+            <div>Commandes disponibles :</div>
+            <div>• /vocabulary [mot]</div>
+            <div>• /notebook</div>
+            <div>• /notebook all</div>
+            <div class="wa-time">09:55</div>
+          </div>
+
+          <div class="wa-msg out">/vocabulary<div class="wa-time">09:57</div></div>
+          <div class="wa-msg in">
+            <div>📚 <b>Utilisation</b>, indique un mot à expliquer <b>:</b></div>
+            <div>• /vocabulary bonjour</div>
+            <div>• /vocabulary se passer</div>
+            <div class="wa-time">09:57</div>
+          </div>
+
+          <div class="wa-msg out">/notebook fsdfs<div class="wa-time">09:59</div></div>
+          <div class="wa-msg in">
+            <div>📖 <b>Utilisation :</b></div>
+            <div>• /notebook</div>
+            <div>• /notebook all</div>
+            <div class="wa-time">09:59</div>
+          </div>
+
+          <div class="wa-msg out">/vocabulary montre<div class="wa-time">10:02</div></div>
+          <div class="wa-msg in">
+            <div class="header-line">📚 <b>Vocabulaire</b> 🇫🇷</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">montre</span></div>
+            <div>Objet porté au poignet pour indiquer l'heure. « Tu portes une belle montre ! »</div>
+            <div class="entry-date-wa">Aujourd'hui, 10:02</div>
+            <div class="wa-time">10:02</div>
+          </div>
+
+          <div class="wa-msg out">/notebook<div class="wa-time">10:06</div></div>
+          <div class="wa-msg in">
+            <div class="header-line">📖 <b>Vocabulaire</b> — 8 mots au total</div>
+            <div class="section-title-wa">LES SPÉCIALITÉS CULINAIRES DU SUD</div>
+            <div><span class="vocab-word">incontournable</span></div>
+            <div>Essentiel, qu'on ne peut pas éviter.</div>
+            <div class="entry-date-wa">Aujourd'hui, 10:14</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">provençal·e</span></div>
+            <div>Qui vient de la Provence, région du sud.</div>
+            <div class="entry-date-wa">Aujourd'hui, 10:22</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">les épices</span></div>
+            <div>Substances aromatiques pour parfumer les plats.</div>
+            <div class="entry-date-wa">Aujourd'hui, 10:31</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">la ratatouille</span></div>
+            <div>Plat traditionnel provençal à base de légumes.</div>
+            <div class="entry-date-wa">Hier, 18:20</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">la bouillabaisse</span></div>
+            <div>Soupe de poisson typique de Marseille.</div>
+            <div class="entry-date-wa">Hier, 18:15</div>
+            <div class="footer-hint">+ 3 mots · /notebook all pour tout voir</div>
+            <div class="wa-time">10:06</div>
+          </div>
+
+          <div class="wa-msg in" style="padding-bottom:8px;">
+            <div class="wa-doc">
+              <div class="wa-doc-icon">PDF</div>
+              <div><div class="wa-doc-name">carnet-vocabulaire.pdf</div><div class="wa-doc-sub">Carnet complet · 8 mots</div></div>
+            </div>
+            <div class="wa-time">10:06</div>
+          </div>
+        </div>
+        <div class="wa-input-bar">
+          <div class="wa-input">Message</div>
+          <span style="font-size:18px;">🎤</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phone 2: variants -->
+    <div class="wa-col">
+      <div class="wa-col-label">Variantes — carnet vide · /notebook all</div>
+      <div class="wa-phone" style="height:auto; min-height:0;">
+        <div class="wa-notch"><div class="wa-notch-pill"></div></div>
+        <div class="wa-header">
+          <div class="wa-avatar">🇫🇷</div>
+          <div>
+            <div class="wa-contact-name">Le France Professor</div>
+            <div class="wa-contact-status">en ligne</div>
+          </div>
+        </div>
+        <div class="wa-chat" style="max-height:680px; overflow-y:auto;">
+          <!-- Empty notebook -->
+          <div class="wa-date-chip">Carnet vide</div>
+          <div class="wa-msg out">/notebook<div class="wa-time">09:10</div></div>
+          <div class="wa-msg in">
+            <div class="header-line">📖 <b>Vocabulaire</b> 🇫🇷 — 0 mots au total</div>
+            <div class="entry-gap"></div>
+            <div style="color:var(--wa-text-dim); font-style:italic; font-size:11.5px;">Aucun mot enregistré pour l'instant.</div>
+            <div style="color:var(--wa-text-dim); font-style:italic; font-size:11.5px;">Utilise /vocabulary [mot] pendant la conversation.</div>
+            <div class="wa-time">09:10</div>
+          </div>
+
+          <!-- /notebook all -->
+          <div class="wa-date-chip">/notebook all</div>
+          <div class="wa-msg out">/notebook all<div class="wa-time">10:08</div></div>
+          <div class="wa-msg in">
+            <div class="header-line">📖 <b>Vocabulaire</b> — 8 mots au total</div>
+            <div class="section-title-wa">LES SPÉCIALITÉS CULINAIRES DU SUD</div>
+            <div><span class="vocab-word">incontournable</span></div>
+            <div>Essentiel, qu'on ne peut pas éviter.</div>
+            <div class="entry-date-wa">Aujourd'hui, 10:14</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">provençal·e</span></div>
+            <div>Qui vient de la Provence, région du sud.</div>
+            <div class="entry-date-wa">Aujourd'hui, 10:22</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">les épices</span></div>
+            <div>Substances aromatiques pour parfumer les plats.</div>
+            <div class="entry-date-wa">Aujourd'hui, 10:31</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">la ratatouille</span></div>
+            <div>Plat traditionnel provençal à base de légumes.</div>
+            <div class="entry-date-wa">Hier, 18:20</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">la bouillabaisse</span></div>
+            <div>Soupe de poisson typique de Marseille.</div>
+            <div class="entry-date-wa">Hier, 18:15</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">la tapenade</span></div>
+            <div>Purée d'olives et de câpres, typique du sud.</div>
+            <div class="entry-date-wa">Hier, 17:44</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">mijoter</span></div>
+            <div>Cuire lentement à feu doux pendant longtemps.</div>
+            <div class="entry-date-wa">Hier, 17:30</div>
+            <div class="entry-gap"></div>
+            <div><span class="vocab-word">emblématique</span></div>
+            <div>Qui représente ou symbolise quelque chose fortement.</div>
+            <div class="entry-date-wa">Hier, 17:10</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.25);font-style:italic;margin-top:4px;">↑ pas de footer — tous les mots affichés</div>
+            <div class="wa-time">10:08</div>
+          </div>
+        </div>
+        <div class="wa-input-bar">
+          <div class="wa-input">Message</div>
+          <span style="font-size:18px;">🎤</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF -->
+    <div class="wa-col">
+      <div class="wa-col-label">PDF — Carnet de Vocabulaire</div>
+      <div class="pdf-frame">
+        <div class="pdf-header">
+          <div class="pdf-stripe-white"></div>
+          <div class="pdf-stripe-red"></div>
+          <div class="pdf-title">🇫🇷 Le France Professor</div>
+          <div class="pdf-subtitle">Carnet de Vocabulaire &nbsp;·&nbsp; Exporté le 22 mai 2026</div>
+        </div>
+        <div class="pdf-section-band">
+          <span class="pdf-section-topic">Les spécialités culinaires du sud</span>
+          <span class="pdf-section-count">8 mots</span>
+        </div>
+        <div class="pdf-entries">
+          <div class="pdf-entry"><div class="pdf-entry-word">incontournable</div><div class="pdf-entry-exp">Essentiel, qu'on ne peut pas éviter. « La ratatouille est un incontournable de la cuisine provençale. »</div><div class="pdf-entry-date">Aujourd'hui, 10:14</div></div>
+          <div class="pdf-entry"><div class="pdf-entry-word">provençal·e</div><div class="pdf-entry-exp">Qui vient de la Provence, région du sud de la France, connue pour l'huile d'olive et les herbes aromatiques.</div><div class="pdf-entry-date">Aujourd'hui, 10:22</div></div>
+          <div class="pdf-entry"><div class="pdf-entry-word">les épices</div><div class="pdf-entry-exp">Substances végétales aromatiques utilisées pour parfumer et assaisonner les plats.</div><div class="pdf-entry-date">Aujourd'hui, 10:31</div></div>
+          <div class="pdf-entry"><div class="pdf-entry-word">la ratatouille</div><div class="pdf-entry-exp">Plat traditionnel provençal à base de légumes mijotés avec de l'huile d'olive et des herbes aromatiques.</div><div class="pdf-entry-date">Hier, 18:20</div></div>
+          <div class="pdf-entry"><div class="pdf-entry-word">la bouillabaisse</div><div class="pdf-entry-exp">Soupe de poisson typique de Marseille, préparée avec des épices méditerranéennes.</div><div class="pdf-entry-date">Hier, 18:15</div></div>
+        </div>
+        <div class="pdf-footer">
+          <span>Le France Professor · Carnet de Vocabulaire</span>
+          <span>Page 1 sur 1</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Style guide -->
+  <div class="wa-style-grid">
+    <div class="wa-style-card">
+      <h3>WhatsApp markers</h3>
+      <div class="wa-style-row"><span class="wa-marker">*mot*</span><span class="wa-arrow">→</span><span class="wa-desc">bold + purple tint</span></div>
+      <div class="wa-style-row"><span class="wa-marker">_topic_</span><span class="wa-arrow">→</span><span class="wa-desc">italic grey section line</span></div>
+      <div class="wa-style-row"><span class="wa-marker">_date_</span><span class="wa-arrow">→</span><span class="wa-desc">italic grey entry date</span></div>
+    </div>
+    <div class="wa-style-card">
+      <h3>Unified entry format</h3>
+      <div class="wa-change"><div class="wa-change-label">Structure partagée</div><i>/vocabulary</i> et <i>/notebook</i> utilisent le même bloc : <b>*word*</b> / explication / <i>_date_</i></div>
+      <div class="wa-change"><div class="wa-change-label">Frame différent <span class="tag changed">changed</span></div>/vocabulary → 📚 header + 1 entrée<br>/notebook → 📖 header + liste</div>
+      <div class="wa-change"><div class="wa-change-label">Supprimé <span class="tag removed">removed</span></div>Séparateur ▫️ → saut de ligne uniquement</div>
+    </div>
+    <div class="wa-style-card">
+      <h3>Data requirements</h3>
+      <div class="wa-change"><div class="wa-change-label">Topic <span class="tag changed">existing</span></div>conversation.topic déjà extrait — à brancher sur le notebook formatter</div>
+      <div class="wa-change"><div class="wa-change-label">Grammar tags <span class="tag removed">dropped</span></div>Contextuel — le même mot peut être verbe ou nom. Un tag fixe serait linguistiquement faux.</div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelector('.wa-chat').scrollTop = 99999;
+</script>
+</body>
+</html>
