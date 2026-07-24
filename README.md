@@ -36,6 +36,7 @@ Full setup, model recommendations, and native macOS alternative — see [QUICKST
 | [QUICKSTART.md](./QUICKSTART.md) | Full setup: env vars, Ollama, whisper.cpp, piper1-gpl, run & test commands |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Hexagonal layers, BFF pattern, DDD |
 | [TESTING.md](./TESTING.md) | Testing strategy, conventions, commands |
+| [CI.md](./CI.md) | CI/CD pipeline, security audit gate, job descriptions |
 | [OBSERVABILITY.md](./OBSERVABILITY.md) | OpenTelemetry traces, Grafana stack |
-| [docs/decisions/](./docs/decisions/) | Architecture Decision Records — 29 decisions with source conversations |
+| [docs/decisions/](./docs/decisions/) | Architecture Decision Records — 41 decisions with source conversations |
 | API docs | Interactive docs at `http://localhost:3001/docs` (backend must be running) |

@@ -2,6 +2,15 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { synthesizeSpeechUseCase } from '../../../lib/container'
 
+async function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as ArrayBuffer)
+    reader.onerror = reject
+    reader.readAsArrayBuffer(blob)
+  })
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
   const text = body?.text
@@ -15,7 +24,7 @@ export async function POST(req: NextRequest) {
 
   if (result.isErr()) return NextResponse.json({ error: result.error.message }, { status: 503 })
 
-  const arrayBuffer = await result.value.audio.arrayBuffer()
+  const arrayBuffer = await blobToArrayBuffer(result.value.audio)
   return new NextResponse(arrayBuffer, {
     status: 200,
     headers: { 'Content-Type': 'audio/wav' },

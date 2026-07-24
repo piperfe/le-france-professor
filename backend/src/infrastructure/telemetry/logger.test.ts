@@ -13,7 +13,7 @@ const tracerProvider = new NodeTracerProvider({
 });
 
 const loggerProvider = new LoggerProvider({
-  processors: [new SimpleLogRecordProcessor(logExporter)],
+  processors: [new SimpleLogRecordProcessor({ exporter: logExporter })],
 });
 
 beforeAll(() => {

@@ -22,8 +22,9 @@ describe('POST /api/tts', () => {
   beforeEach(() => { vi.clearAllMocks() })
 
   it('returns 200 with WAV audio on success', async () => {
-    const fakeWav = new Blob([new ArrayBuffer(44)], { type: 'audio/wav' })
-    vi.mocked(synthesizeSpeechUseCase.execute).mockResolvedValue(ok({ audio: fakeWav }))
+    const buffer = new ArrayBuffer(44)
+    const fakeAudio = new Blob([buffer], { type: 'audio/wav' })
+    vi.mocked(synthesizeSpeechUseCase.execute).mockResolvedValue(ok({ audio: fakeAudio }))
 
     const res = await POST(makeRequest({ text: 'Bonjour !' }) as unknown as NextRequest)
 
@@ -32,8 +33,9 @@ describe('POST /api/tts', () => {
   })
 
   it('forwards lengthScale to the use case when provided', async () => {
-    const fakeWav = new Blob([new ArrayBuffer(44)], { type: 'audio/wav' })
-    vi.mocked(synthesizeSpeechUseCase.execute).mockResolvedValue(ok({ audio: fakeWav }))
+    const buffer = new ArrayBuffer(44)
+    const fakeAudio = new Blob([buffer], { type: 'audio/wav' })
+    vi.mocked(synthesizeSpeechUseCase.execute).mockResolvedValue(ok({ audio: fakeAudio }))
 
     await POST(makeRequest({ text: 'Bonjour !', lengthScale: 1.5 }) as unknown as NextRequest)
 
@@ -41,8 +43,9 @@ describe('POST /api/tts', () => {
   })
 
   it('ignores non-numeric lengthScale values', async () => {
-    const fakeWav = new Blob([new ArrayBuffer(44)], { type: 'audio/wav' })
-    vi.mocked(synthesizeSpeechUseCase.execute).mockResolvedValue(ok({ audio: fakeWav }))
+    const buffer = new ArrayBuffer(44)
+    const fakeAudio = new Blob([buffer], { type: 'audio/wav' })
+    vi.mocked(synthesizeSpeechUseCase.execute).mockResolvedValue(ok({ audio: fakeAudio }))
 
     await POST(makeRequest({ text: 'Bonjour !', lengthScale: 'fast' }) as unknown as NextRequest)
 

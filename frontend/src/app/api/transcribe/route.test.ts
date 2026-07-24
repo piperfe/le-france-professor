@@ -13,7 +13,11 @@ import { transcribeAudioUseCase } from '../../../lib/container'
 function makeRequest(audio?: Blob) {
   const form = new FormData()
   if (audio) form.append('audio', audio, 'recording.webm')
-  return new Request('http://localhost/api/transcribe', { method: 'POST', body: form })
+
+  const req = {
+    formData: vi.fn().mockResolvedValue(form),
+  } as unknown as NextRequest
+  return req
 }
 
 describe('POST /api/transcribe', () => {

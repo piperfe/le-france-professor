@@ -16,7 +16,7 @@ const resource = resourceFromAttributes({
 
 const loggerProvider = new LoggerProvider({
   resource,
-  processors: [new SimpleLogRecordProcessor(createLogExporter())],
+  processors: [new SimpleLogRecordProcessor({ exporter: createLogExporter() })],
 });
 logs.setGlobalLoggerProvider(loggerProvider);
 

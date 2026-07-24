@@ -76,6 +76,14 @@ npx playwright test --ui
 
 > **Note:** `npm run test:e2e` starts a stub backend on port 5101 and a production Next.js server on port 5100 automatically via Playwright's `webServer`. No manual setup needed. If those ports are already in use, Playwright will reuse the existing servers (local dev mode).
 
+## Continuous Integration
+
+GitHub Actions runs all tests + security audit on every push to `main` and on pull requests. See [CI.md](./CI.md) for:
+- Workflow diagram (security gate → backend/frontend jobs)
+- What each job does
+- How to interpret failures
+- Local pre-merge checks
+
 ---
 
 ## Backend Tests

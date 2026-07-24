@@ -6,12 +6,22 @@ import ffmpegPath from 'ffmpeg-static'
 
 if (!ffmpegPath) throw new Error('ffmpeg-static: binary not found for this platform')
 
+async function blobToBuffer(blob: Blob): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(Buffer.from(reader.result as ArrayBuffer))
+    reader.onerror = reject
+    reader.readAsArrayBuffer(blob)
+  })
+}
+
 export async function convertToWav(audio: Blob): Promise<Blob> {
+  const buffer = await blobToBuffer(audio)
   const id = `whisper-${crypto.randomUUID()}`
   const inputPath = join(tmpdir(), `${id}.webm`)
   const outputPath = join(tmpdir(), `${id}.wav`)
 
-  await writeFile(inputPath, Buffer.from(await audio.arrayBuffer()))
+  await writeFile(inputPath, buffer)
 
   try {
     await new Promise<void>((resolve, reject) =>

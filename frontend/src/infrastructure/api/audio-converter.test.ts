@@ -29,7 +29,12 @@ describe('convertToWav (integration)', () => {
     const input = new Blob([buffer], { type: 'audio/webm' })
 
     const result = await convertToWav(input)
-    const resultBuffer = Buffer.from(await result.arrayBuffer())
+    const resultBuffer = await new Promise<Buffer>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(Buffer.from(reader.result as ArrayBuffer))
+      reader.onerror = reject
+      reader.readAsArrayBuffer(result)
+    })
 
     // MIME type
     expect(result.type).toBe('audio/wav')
