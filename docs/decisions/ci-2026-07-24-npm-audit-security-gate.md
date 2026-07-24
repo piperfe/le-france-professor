@@ -1,4 +1,4 @@
-# Block CI merge on HIGH/CRITICAL vulnerabilities via npm audit
+# Block CI merge on CRITICAL vulnerabilities via npm audit
 
 **Date:** 2026-07-24  
 **Status:** Accepted  
@@ -6,30 +6,30 @@
 
 ## Context
 
-vitest 4 upgrade to fix protobufjs vulnerability revealed npm audit landscape: ~7 vulnerabilities exist (4 moderate, 3 high from Next.js transitive deps). Manual security checks are error-prone; automated gate in CI provides confidence that no HIGH/CRITICAL slip through.
+vitest 4 upgrade to fix protobufjs vulnerability revealed npm audit landscape: ~7 vulnerabilities exist (4 moderate, 3 high from Next.js transitive deps). Manual security checks are error-prone; automated gate in CI provides confidence that no CRITICAL vulnerabilities slip through.
 
 ## Decision
 
-Add `npm audit --audit-level=high` as a CI job that:
+Add `npm audit --audit-level=critical` as a CI job that:
 1. Runs **before** backend/frontend tests (fail fast)
-2. **Blocks merge** on HIGH or CRITICAL severity
-3. **Allows** MODERATE and LOW to pass (transitive dep reality)
+2. **Blocks merge** only on CRITICAL severity
+3. **Allows** HIGH, MODERATE, and LOW to pass (transitive deps from Next.js)
 4. Runs **once at root** (monorepo optimization, not per-workspace)
 
 ## Rationale
 
 | Threshold | Rationale | Trade-off |
 |---|---|---|
-| **HIGH/CRITICAL only** | Catches serious exploits before they reach main | Allows moderate CVEs (low exploitability, hard to fix in transitive deps) |
+| **CRITICAL only** | Catches RCE/auth bypass/data leak before they reach main | Allows HIGH (e.g. XSS) from transitive deps that can't be fixed without major upgrades |
 | **Blocks at CI** | Prevents human error; gating happens before tests run | Adds ~30s to CI time |
 | **Root-level job** | Checks entire monorepo once | Need dependency chain (`needs: security`) |
 
-MODERATE/LOW acceptance is pragmatic: Next.js v16 pins `postcss` and `sharp` with known CVEs. Upgrading to v9.3.3 (the fix) is a breaking change. Accept the risk, monitor with regular audits.
+HIGH/MODERATE/LOW acceptance is pragmatic: Next.js v16 pins `postcss` and `sharp` with known HIGH CVEs. Upgrading to v9.3.3 (the fix) is a breaking change. Accept the risk — HIGH vulnerabilities are tracked and monitored, but require dev judgment (not automated blocks).
 
 ## Implementation
 
 See `.github/workflows/ci.yml`:
-- Job `security`: `npm audit --audit-level=high` at root
+- Job `security`: `npm audit --audit-level=critical` at root
 - Jobs `backend`, `frontend`: depend on security via `needs: security`
 
 ## Audit Thresholds

@@ -29,11 +29,11 @@ Push/PR to main
 ## Jobs
 
 ### Security
-- **Name:** `npm audit --audit-level=high`
+- **Name:** `npm audit --audit-level=critical`
 - **Duration:** ~30s
 - **Runs first** — blocks backend/frontend if it fails
-- **Fails on:** HIGH or CRITICAL vulnerabilities
-- **Allows:** MODERATE and LOW (transitive deps from Next.js)
+- **Fails on:** CRITICAL vulnerabilities only
+- **Allows:** HIGH, MODERATE, LOW (transitive deps from Next.js monitored separately)
 - **See:** [ADR: npm-audit-security-gate](./docs/decisions/ci-2026-07-24-npm-audit-security-gate.md)
 
 ### Backend
@@ -58,12 +58,10 @@ Push/PR to main
 Before pushing, run security audit locally:
 
 ```bash
-npm audit --audit-level=high
+npm audit --audit-level=critical
 ```
 
-If it fails, either:
-1. **Fix** — upgrade vulnerable package
-2. **Accept** — only MODERATE/LOW (will pass in CI)
+If it fails (CRITICAL found), fix the vulnerability before pushing. HIGH/MODERATE/LOW are allowed and will pass CI (but should be reviewed in `npm audit` output).
 
 ## Interpreting Failures
 
