@@ -67,6 +67,14 @@ Files are named `{category}-{date}-{slug}.md` and organised by domain below.
 | [ADR-0040](./observability-2026-05-27-tempo-traceql-query-strategy.md)    | Tempo TraceQL query strategy — aggregate search for stats, rate() for time series | Established | 2026-05-27 |
 
 
+## 🚀 CI/CD & Deployment
+
+| ADR | Title | Status | Date |
+|-----|-------|--------|------|
+| [ADR-0041](./ci-2026-07-24-github-actions-pinning.md) | GitHub Actions pinned to commit SHAs — supply chain security | Established | 2026-07-24 |
+| [ADR-0042](./ci-2026-07-24-job-timeouts-and-patterns.md) | Job timeouts (45 min) and fail-fast dependency graph | Established | 2026-07-24 |
+| [ADR-0043](./ci-2026-07-24-npm-audit-security-gate.md) | Block merge on CRITICAL vulnerabilities only via npm audit | Established | 2026-07-24 |
+
 ## 🤖 LLM & Prompts
 
 

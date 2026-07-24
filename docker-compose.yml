@@ -18,3 +18,38 @@ services:
     volumes:
       - ./docker/models:/models:ro
     restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DATABASE_URL: /data/le-france.db
+      LLM_MODEL: ${LLM_MODEL}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      WHISPER_URL: http://whisper:7600
+      OTEL_TRACES_EXPORTER: console
+    volumes:
+      - backend-db:/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://backend:3001/api
+      WHISPER_URL: http://whisper:7600
+      PIPER_URL: http://piper:7602
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-db:
