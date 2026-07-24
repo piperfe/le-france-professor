@@ -82,14 +82,17 @@ Push/PR to main
 
 ### Build
 - **Name:** Build · Push images
-- **Duration:** 15–30 min (cache hits: 3–5 min)
+- **Duration:** 15–30 min (GHA cache hits: 3–5 min)
 - **Runs only on:** Push to main (not on pull_request)
 - **Depends on:** backend AND frontend jobs pass
 - **Timeout:** 45 minutes
 - **Images:** Docker multi-stage build for backend and frontend
   - Backend: `ghcr.io/$repo/backend:latest` + `ghcr.io/$repo/backend:$SHA`
   - Frontend: `ghcr.io/$repo/frontend:latest` + `ghcr.io/$repo/frontend:$SHA`
-- **Cache:** Registry cache (type=registry) for layer reuse across builds
+- **Cache:** GitHub Actions cache (type=gha) for efficient layer reuse
+  - First build: full compile (~25 min)
+  - Subsequent builds: reuse cached layers (~3–5 min)
+  - Cache persists across branch pushes within repo
 - **Pinning:** All Docker actions pinned to commit SHAs
 - **See:** [ADR: github-actions-pinning](./docs/decisions/ci-2026-07-24-github-actions-pinning.md)
 
