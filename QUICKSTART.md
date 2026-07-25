@@ -61,16 +61,23 @@ Voice input and TTS are optional features — the app works without them. If eit
 ### Option A — Docker (recommended for new contributors)
 
 ```bash
-# Download models once (~310 MB total)
-npm run models:download
-
 # Start whisper (port 7600) and piper (port 7602) in the background
 docker compose up -d
 ```
 
-The first `docker compose up` compiles whisper.cpp from source — takes a few minutes but is fully cached afterwards.
+The first `docker compose up` compiles whisper.cpp from source and downloads voice models — takes a few minutes (5-10 min on first run due to ~250 MB model downloads), but is fully cached afterwards.
 
 ### Option B — Native (macOS)
+
+Not recommended for new contributors. Only choose this if you want to develop whisper.cpp or piper TTS without Docker.
+
+**Download voice models (optional):**
+```bash
+# Helper script downloads both models to docker/models/ (~310 MB total)
+npm run models:download
+```
+
+Or manually:
 
 **whisper.cpp:**
 ```bash
@@ -88,6 +95,8 @@ pip install "https://github.com/OHF-Voice/piper1-gpl/releases/download/v1.4.1/pi
 # Intel Mac:
 pip install "https://github.com/OHF-Voice/piper1-gpl/releases/download/v1.4.1/piper_tts-1.4.1-cp39-abi3-macosx_10_9_x86_64.whl"
 pip install flask
+
+# Download voice models
 curl -L -o models/fr_FR-upmc-medium.onnx \
   "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx"
 curl -L -o models/fr_FR-upmc-medium.onnx.json \

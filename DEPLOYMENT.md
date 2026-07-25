@@ -9,22 +9,23 @@ Automated deployment to Oracle Cloud VM using GitHub Actions + Docker context ov
 ```
 GitHub Push (main)
   ↓
-GitHub Actions CI (tests + build backend image)
-  ↓
-Push backend image to ghcr.io
+GitHub Actions CI
+  ├─ Tests (backend + frontend)
+  ├─ Build backend image (with Groq/Ollama integration)
+  ├─ Build whisper image (with ggml-small.bin STT model embedded)
+  ├─ Build piper image (with fr_FR-upmc-medium TTS model embedded)
+  └─ Push all 3 images to ghcr.io
   ↓
 GitHub Actions Deploy
-  ├─ SSH into Oracle VM
+  ├─ SSH into Oracle VM (Docker context)
   ├─ Write runtime secrets to .env.docker
-  ├─ Pull backend image from ghcr.io
-  ├─ Build piper + whisper locally (PULL_POLICY=build)
-  ├─ Start services with docker-compose
-  │  ├─ docker network created automatically
-  │  ├─ whisper (STT) — built locally
-  │  ├─ piper (TTS) — built locally
-  │  └─ backend (API) — pulled from ghcr.io
+  ├─ Clean up stale network (zero-downtime)
+  ├─ Pull backend + whisper + piper from ghcr.io (pre-built with models)
+  ├─ Start voice services (whisper, piper)
+  ├─ Wait for voice services to be healthy
   ├─ Run database migrations
-  ├─ Health checks
+  ├─ Start backend
+  ├─ Verify health + API endpoint
   └─ Done! ✅
 
 Frontend: Deployed separately on Vercel (see FRONTEND.md)
@@ -215,12 +216,26 @@ This means:
 - ✅ No hardcoded secrets in code
 - ✅ Same pattern used by production projects (e.g., pti-salmoneras)
 
-### **Image Building Strategy (PULL_POLICY=build)**
+### **Image Building Strategy**
 
-- **backend**: Pulled from ghcr.io (built in CI, pushed to registry)
-- **whisper** & **piper**: Built locally on VM (no registry push needed)
+All three services are built once in CI and pushed to GHCR:
 
-This saves CI time and registry space for utility services that don't change often.
+| Service | Built in CI | Pushed to GHCR | Size | Models included |
+|---------|-------------|----------------|------|-----------------|
+| **backend** | ✅ Node + Express + Drizzle ORM | Yes | ~200 MB | N/A (no models) |
+| **whisper** | ✅ whisper.cpp + multilingual model | Yes | ~450 MB | ✅ ggml-small.bin (~250 MB) |
+| **piper** | ✅ piper1-gpl + French voice | Yes | ~200 MB | ✅ fr_FR-upmc-medium (~60 MB) |
+
+**On the Oracle VM:**
+- No builds needed — just pull pre-built images from GHCR
+- Models are already embedded in whisper + piper images
+- Deployment is fast: 2–4 min (mostly image pull time)
+
+**Benefits:**
+- ✅ Consistent, reproducible deployments (image SHA = exact model versions)
+- ✅ Faster deployments (no model downloads on VM)
+- ✅ Same images tested in CI are deployed to production
+- ✅ Simpler VM setup (no extra directories needed)
 
 ### **Zero-Downtime Deployment Strategy**
 

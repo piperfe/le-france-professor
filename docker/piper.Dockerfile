@@ -10,5 +10,12 @@ RUN ARCH=$(dpkg --print-architecture) && \
     fi && \
     pip install --no-cache-dir flask
 
+WORKDIR /models
+RUN echo "Downloading piper voice model (fr_FR-upmc-medium)..." && \
+    curl -L -o fr_FR-upmc-medium.onnx \
+    "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx" && \
+    curl -L -o fr_FR-upmc-medium.onnx.json \
+    "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx.json"
+
 EXPOSE 7602
 CMD ["python3", "-m", "piper.http_server", "-m", "fr_FR-upmc-medium", "--data-dir", "/models", "--port", "7602"]

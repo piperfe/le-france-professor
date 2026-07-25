@@ -19,7 +19,6 @@ A French learning application where students chat with an AI tutor powered by a 
 
 ```bash
 npm install                  # install dependencies
-npm run models:download      # download whisper + piper models (~310 MB, one-time)
 docker compose up -d         # start whisper (7600) and piper TTS (7602)
 npm run dev                  # start backend (3001) + frontend (3000)
 ```
@@ -27,6 +26,9 @@ npm run dev                  # start backend (3001) + frontend (3000)
 Open [http://localhost:3000](http://localhost:3000).
 
 **Prerequisites:** [Ollama](https://ollama.com/) + `ollama pull gemma3:4b`, [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+
+Voice models (whisper STT + piper TTS) are embedded in Docker images and download automatically on first `docker compose up` (~5–10 min).
+
 Full setup, model recommendations, and native macOS alternative — see [QUICKSTART.md](./QUICKSTART.md).
 
 ## Documentation

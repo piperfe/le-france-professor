@@ -129,24 +129,62 @@ Push/PR to main
 - **Runs in parallel with:** build-backend (both images build simultaneously after tests pass)
 - **See:** [ADR: github-actions-pinning](./docs/decisions/ci-2026-07-24-github-actions-pinning.md)
 
+### Build · Whisper image (with STT model)
+- **Job name:** `build-whisper`
+- **Duration:** 40–50 min (first run: model download ~47 sec; builder compile ~48 sec)
+- **Runs only on:** Push to main (not on pull_request)
+- **Depends on:** test-backend AND test-frontend jobs pass (strict fail-fast)
+- **Timeout:** 45 minutes
+- **Image:** `ghcr.io/$repo/whisper:latest` + `ghcr.io/$repo/whisper:$SHA` (with embedded ggml-small.bin ~250 MB)
+- **What's inside:**
+  - whisper.cpp server binary (built from source in builder stage)
+  - Multilingual STT model (ggml-small.bin, ~250 MB, downloaded from Hugging Face)
+- **Cache:** GitHub Actions cache speeds up whisper.cpp compilation on subsequent builds
+- **Pinning:** All Docker actions pinned to commit SHAs
+- **Runs in parallel with:** build-backend + build-frontend
+- **See:** [ADR-0042: Embed voice models in Docker images](./docs/decisions/docker-2026-07-25-embed-voice-models-in-images.md)
+
+### Build · Piper image (with TTS model)
+- **Job name:** `build-piper`
+- **Duration:** 15–25 min (first run: model download ~60 MB; subsequent runs: cached)
+- **Runs only on:** Push to main (not on pull_request)
+- **Depends on:** test-backend AND test-frontend jobs pass (strict fail-fast)
+- **Timeout:** 45 minutes
+- **Image:** `ghcr.io/$repo/piper:latest` + `ghcr.io/$repo/piper:$SHA` (with embedded fr_FR-upmc-medium model ~60 MB)
+- **What's inside:**
+  - piper1-gpl HTTP server (installed from wheel)
+  - French TTS voice model (fr_FR-upmc-medium, ~60 MB, downloaded from Hugging Face)
+  - Model config (fr_FR-upmc-medium.onnx.json)
+- **Cache:** GitHub Actions cache speeds up Python dependency installation
+- **Pinning:** All Docker actions pinned to commit SHAs
+- **Runs in parallel with:** build-backend + build-frontend
+- **See:** [ADR-0042: Embed voice models in Docker images](./docs/decisions/docker-2026-07-25-embed-voice-models-in-images.md)
+
 ### Deploy · Backend to Oracle Cloud
 - **Job name:** `deploy-backend`
-- **Duration:** 3–5 min (after build-backend completes)
+- **Duration:** 2–4 min (image pulls only, no builds)
 - **Runs only on:** Push to main (not on pull_request)
-- **Depends on:** build-backend job passes
+- **Depends on:** build-backend, build-frontend, build-whisper, build-piper jobs all pass
 - **Timeout:** 45 minutes
 - **Pattern:** Docker context over SSH (no appleboy/ssh-action, more efficient)
 - **Flow:**
   1. Create Docker context pointing to Oracle VM via SSH
-  2. Pull Docker images from GHCR (backend, whisper, piper)
-  3. Run database migrations: `docker compose run --rm backend npm run db:migrate`
-  4. Start services with `docker-compose up -d`
-  5. Wait for health checks (whisper, piper, backend healthy)
-  6. Verify backend API endpoint `/api/health`
-  7. Cleanup old images: `docker image prune -af --filter "until=168h"`
+  2. Clean up stale network (zero-downtime restart)
+  3. Pull pre-built Docker images from GHCR (backend, frontend, whisper, piper — all with models embedded)
+  4. Run database migrations: `docker compose run --rm backend npm run db:migrate`
+  5. Start voice services first (whisper, piper)
+  6. Wait for health checks (whisper, piper both healthy, ~60 sec max)
+  7. Start backend service
+  8. Wait for backend health (~30 sec max)
+  9. Verify backend API endpoint `/api/health`
+  10. Cleanup old images: `docker image prune -af --filter "until=168h"`
+- **Key differences from local dev:**
+  - Local: `docker compose up -d` builds images locally if needed (`pull_policy: missing`)
+  - Prod: Explicit `docker compose pull` pulls all pre-built images (models already embedded)
+  - Prod: Manual orchestration ensures whisper/piper are healthy before backend starts
 - **Secrets required:** VM_HOST, VM_USER, VM_SSH_KEY, VM_HOST_KEY (from GitHub production environment)
 - **Environment variables:** LLM_MODEL, LLM_BASE_URL, LLM_API_KEY, NODE_ENV, OTEL_TRACES_EXPORTER, WHISPER_URL, PIPER_URL
-- **See:** [DEPLOYMENT.md](./DEPLOYMENT.md) + [ADR-0041: Oracle Always Free deployment](./docs/decisions/deployment-2026-07-25-oracle-always-free-groq-api.md)
+- **See:** [DEPLOYMENT.md](./DEPLOYMENT.md) + [ADR-0041: Oracle Always Free deployment](./docs/decisions/deployment-2026-07-25-oracle-always-free-groq-api.md) + [ADR-0042: Embed voice models in images](./docs/decisions/docker-2026-07-25-embed-voice-models-in-images.md)
 
 ## Local Pre-merge Check
 

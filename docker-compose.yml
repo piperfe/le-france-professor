@@ -10,11 +10,9 @@ services:
     build:
       context: .
       dockerfile: docker/whisper.Dockerfile
-    pull_policy: ${PULL_POLICY:-build}
+    pull_policy: missing
     ports:
       - "7600:7600"
-    volumes:
-      - ./docker/models:/models:ro
     networks:
       - le-france-network
     restart: unless-stopped
@@ -30,11 +28,9 @@ services:
     build:
       context: .
       dockerfile: docker/piper.Dockerfile
-    pull_policy: ${PULL_POLICY:-build}
+    pull_policy: missing
     ports:
       - "7602:7602"
-    volumes:
-      - ./docker/models:/models:ro
     networks:
       - le-france-network
     restart: unless-stopped
@@ -50,7 +46,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    pull_policy: ${PULL_POLICY:-build}
+    pull_policy: missing
     ports:
       - "3001:3001"
     env_file:
@@ -80,7 +76,7 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-    pull_policy: ${PULL_POLICY:-build}
+    pull_policy: missing
     ports:
       - "3000:3000"
     environment:
