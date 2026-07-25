@@ -23,12 +23,26 @@ Push/PR to main
             ↓
     All tests passed?
             ↓
+    ┌────────────────────────────────────────────┐
+    │ ONLY ON PUSH TO MAIN (not on pull_request) │
+    └────────────────────────────────────────────┘
+            ↓
     [build-backend]        [build-frontend]   (parallel, timeout: 45min)
     ├─ Build backend       ├─ Build frontend
     │  image               │  image
     └─ Push to GHCR        └─ Push to GHCR
             ↓
-    ✓ Images ready for deployment
+    [deploy-backend]                           (timeout: 45min, only after build-backend passes)
+    ├─ Create Docker context (SSH)
+    ├─ Pull images from GHCR
+    ├─ Run DB migrations
+    ├─ Start services (docker-compose)
+    ├─ Wait for health checks
+    ├─ Verify /api/health
+    └─ Cleanup old images
+            ↓
+    ✓ Frontend (Vercel auto-deploys)
+    ✓ Backend deployed to Oracle Cloud
 ```
 
 ## Security & Reliability
@@ -111,6 +125,25 @@ Push/PR to main
 - **Pinning:** All Docker actions pinned to commit SHAs
 - **Runs in parallel with:** build-backend (both images build simultaneously after tests pass)
 - **See:** [ADR: github-actions-pinning](./docs/decisions/ci-2026-07-24-github-actions-pinning.md)
+
+### Deploy · Backend to Oracle Cloud
+- **Job name:** `deploy-backend`
+- **Duration:** 3–5 min (after build-backend completes)
+- **Runs only on:** Push to main (not on pull_request)
+- **Depends on:** build-backend job passes
+- **Timeout:** 45 minutes
+- **Pattern:** Docker context over SSH (no appleboy/ssh-action, more efficient)
+- **Flow:**
+  1. Create Docker context pointing to Oracle VM via SSH
+  2. Pull Docker images from GHCR (backend, whisper, piper)
+  3. Run database migrations: `docker compose run --rm backend npm run db:migrate`
+  4. Start services with `docker-compose up -d`
+  5. Wait for health checks (whisper, piper, backend healthy)
+  6. Verify backend API endpoint `/api/health`
+  7. Cleanup old images: `docker image prune -af --filter "until=168h"`
+- **Secrets required:** VM_HOST, VM_USER, VM_SSH_KEY, VM_HOST_KEY (from GitHub production environment)
+- **Environment variables:** LLM_MODEL, LLM_BASE_URL, LLM_API_KEY, NODE_ENV, OTEL_TRACES_EXPORTER, WHISPER_URL, PIPER_URL
+- **See:** [DEPLOYMENT.md](./DEPLOYMENT.md) + [ADR-0041: Oracle Always Free deployment](./docs/decisions/deployment-2026-07-25-oracle-always-free-groq-api.md)
 
 ## Local Pre-merge Check
 

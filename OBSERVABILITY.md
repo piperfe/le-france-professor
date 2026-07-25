@@ -46,8 +46,12 @@ The exporter is controlled by the `OTEL_TRACES_EXPORTER` env var in `backend/.en
 
 | Value | Exporter | When to use |
 |---|---|---|
-| *(unset)* or `console` | `ConsoleSpanExporter` | Default — prints spans as JSON to stdout |
-| `otlp` | `OTLPTraceExporter` | Sends spans to Grafana Tempo or any OTLP-compatible backend |
+| *(unset)* or `console` | `ConsoleSpanExporter` | Default — prints spans as JSON to stdout (development) |
+| `otlp` | `OTLPTraceExporter` | Sends spans to Grafana Tempo or any OTLP-compatible backend (instrumented environments) |
+| `none` | SDK disabled, API uses no-ops | Production — zero overhead, no tracing emitted |
+
+**OTEL_TRACES_EXPORTER=none:**
+When set to `none`, the OpenTelemetry SDK is not initialized at all (see `backend/src/infrastructure/telemetry/setup.ts`). The API falls back to no-op implementations with zero overhead — suitable for production when observability infrastructure is not available. Tracer.startSpan() returns a no-op span; no CPU or memory overhead.
 
 When using `otlp`, the endpoint defaults to `http://localhost:4318/v1/traces`. Override it with:
 ```

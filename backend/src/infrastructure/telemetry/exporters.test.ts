@@ -32,6 +32,12 @@ describe('createTraceExporter', () => {
 
     expect(createTraceExporter()).toBeInstanceOf(OTLPTraceExporter);
   });
+
+  it('returns ConsoleSpanExporter when OTEL_TRACES_EXPORTER=none (SDK disabled in setup.ts)', () => {
+    process.env.OTEL_TRACES_EXPORTER = 'none';
+
+    expect(createTraceExporter()).toBeInstanceOf(ConsoleSpanExporter);
+  });
 });
 
 describe('createLogExporter', () => {
@@ -61,5 +67,11 @@ describe('createLogExporter', () => {
     process.env.OTEL_TRACES_EXPORTER = 'otlp';
 
     expect(createLogExporter()).toBeInstanceOf(OTLPLogExporter);
+  });
+
+  it('returns ConsoleLogRecordExporter when OTEL_TRACES_EXPORTER=none (SDK disabled in setup.ts)', () => {
+    process.env.OTEL_TRACES_EXPORTER = 'none';
+
+    expect(createLogExporter()).toBeInstanceOf(ConsoleLogRecordExporter);
   });
 });

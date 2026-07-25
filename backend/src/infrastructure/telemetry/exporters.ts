@@ -7,6 +7,7 @@ import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 // OTEL_TRACES_EXPORTER=otlp     → OTLP/HTTP (Jaeger, Grafana Tempo, etc.)
 //                                  defaults to http://localhost:4318/v1/traces
 //                                  override endpoint with OTEL_EXPORTER_OTLP_ENDPOINT
+// OTEL_TRACES_EXPORTER=none     → SDK disabled entirely (see setup.ts), minimal overhead
 export function createTraceExporter(): ConsoleSpanExporter | OTLPTraceExporter {
   if (process.env.OTEL_TRACES_EXPORTER === 'otlp') {
     return new OTLPTraceExporter();

@@ -71,9 +71,10 @@ Files are named `{category}-{date}-{slug}.md` and organised by domain below.
 
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
-| [ADR-0041](./ci-2026-07-24-github-actions-pinning.md) | GitHub Actions pinned to commit SHAs — supply chain security | Established | 2026-07-24 |
-| [ADR-0042](./ci-2026-07-24-job-timeouts-and-patterns.md) | Job timeouts (45 min) and fail-fast dependency graph | Established | 2026-07-24 |
-| [ADR-0043](./ci-2026-07-24-npm-audit-security-gate.md) | Block merge on CRITICAL vulnerabilities only via npm audit | Established | 2026-07-24 |
+| [ADR-0041](./deployment-2026-07-25-oracle-always-free-groq-api.md) | Oracle Always Free + Groq API — cheapest production deployment | Established | 2026-07-25 |
+| [ADR-0042](./ci-2026-07-24-github-actions-pinning.md) | GitHub Actions pinned to commit SHAs — supply chain security | Established | 2026-07-24 |
+| [ADR-0043](./ci-2026-07-24-job-timeouts-and-patterns.md) | Job timeouts (45 min) and fail-fast dependency graph | Established | 2026-07-24 |
+| [ADR-0044](./ci-2026-07-24-npm-audit-security-gate.md) | Block merge on CRITICAL vulnerabilities only via npm audit | Established | 2026-07-24 |
 
 ## 🤖 LLM & Prompts
 

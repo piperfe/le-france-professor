@@ -144,8 +144,15 @@ Open [http://localhost:3000](http://localhost:3000).
 
 `backend/.env` (all required vars shown in step 2; optional vars):
 ```
-NODE_ENV=development          # omit in production
+NODE_ENV=development                    # omit in production
+OTEL_TRACES_EXPORTER=console            # or: otlp (Grafana), none (production, zero overhead)
+OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=true   # optional: capture LLM prompts/responses in traces
 ```
+
+**Observability options:**
+- `OTEL_TRACES_EXPORTER=console` (default) — prints spans to stdout as JSON
+- `OTEL_TRACES_EXPORTER=otlp` — sends spans to Grafana Tempo or OTLP collector
+- `OTEL_TRACES_EXPORTER=none` — disables SDK entirely, zero overhead (production)
 
 `frontend/.env.local` (optional — defaults shown):
 ```
