@@ -19,6 +19,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/backend/dist ./backend/dist
 COPY backend/package.json ./backend/package.json
+COPY backend/drizzle.config.ts ./backend/drizzle.config.ts
 COPY backend/drizzle ./backend/drizzle
 WORKDIR /app/backend
 EXPOSE 3001

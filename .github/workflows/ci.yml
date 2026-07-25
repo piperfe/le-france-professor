@@ -287,6 +287,7 @@ jobs:
       - name: Write runtime secrets
         run: |
           cat > .env.docker << 'EOF'
+          DATABASE_URL=${{ vars.DATABASE_URL }}
           LLM_MODEL=${{ vars.LLM_MODEL }}
           LLM_BASE_URL=${{ vars.LLM_BASE_URL }}
           LLM_API_KEY=${{ secrets.LLM_API_KEY }}
