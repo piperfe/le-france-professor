@@ -35,7 +35,7 @@ services:
       - le-france-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7602/"]
+      test: ["CMD", "curl", "-f", "-X", "POST", "-H", "Content-Type: application/json", "-d", "{\"text\":\"test\"}", "http://localhost:7602/"]
       interval: 30s
       timeout: 10s
       retries: 3
