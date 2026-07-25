@@ -18,8 +18,8 @@ GitHub Actions Deploy
   ├─ Write runtime secrets to .env.docker
   ├─ Pull backend image from ghcr.io
   ├─ Build piper + whisper locally (PULL_POLICY=build)
-  ├─ Create docker network
   ├─ Start services with docker-compose
+  │  ├─ docker network created automatically
   │  ├─ whisper (STT) — built locally
   │  ├─ piper (TTS) — built locally
   │  └─ backend (API) — pulled from ghcr.io
@@ -221,6 +221,16 @@ This means:
 - **whisper** & **piper**: Built locally on VM (no registry push needed)
 
 This saves CI time and registry space for utility services that don't change often.
+
+### **Docker Network Management**
+
+The `le-france-network` is automatically created and managed by docker-compose:
+- ✅ Defined in `docker-compose.yml` with `external: false`
+- ✅ docker-compose creates it on first `up`, labels it correctly
+- ✅ GitHub Actions workflow does not manually create the network
+- ✅ Ensures label consistency (prevents network mismatch errors)
+
+All services connect to this network automatically via the `networks:` section in docker-compose.yml.
 
 ---
 

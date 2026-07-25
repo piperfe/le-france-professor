@@ -2,6 +2,7 @@ networks:
   le-france-network:
     name: le-france-network
     driver: bridge
+    external: false
 
 services:
   whisper:
