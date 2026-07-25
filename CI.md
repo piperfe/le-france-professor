@@ -34,7 +34,10 @@ Push/PR to main
             ↓
     [deploy-backend]                           (timeout: 45min, only after build-backend passes)
     ├─ Create Docker context (SSH)
-    ├─ Pull images from GHCR
+    ├─ Ensure docker network exists
+    ├─ Write runtime secrets to .env.docker
+    ├─ Log in to GHCR
+    ├─ Pull backend image (whisper/piper build locally)
     ├─ Run DB migrations
     ├─ Start services (docker-compose)
     ├─ Wait for health checks

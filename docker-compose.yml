@@ -52,16 +52,11 @@ services:
     pull_policy: ${PULL_POLICY:-build}
     ports:
       - "3001:3001"
+    env_file:
+      - .env.docker
     environment:
       PORT: 3001
       DATABASE_URL: /data/le-france.db
-      NODE_ENV: ${NODE_ENV:-development}
-      LLM_MODEL: ${LLM_MODEL}
-      LLM_BASE_URL: ${LLM_BASE_URL}
-      LLM_API_KEY: ${LLM_API_KEY}
-      WHISPER_URL: ${WHISPER_URL:-http://whisper:7600}
-      PIPER_URL: ${PIPER_URL:-http://piper:7602}
-      OTEL_TRACES_EXPORTER: ${OTEL_TRACES_EXPORTER:-console}
     volumes:
       - backend-db:/data
     networks:

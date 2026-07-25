@@ -9,15 +9,21 @@ Automated deployment to Oracle Cloud VM using GitHub Actions + Docker context ov
 ```
 GitHub Push (main)
   ↓
-GitHub Actions CI (tests + build images)
+GitHub Actions CI (tests + build backend image)
   ↓
-Push images to ghcr.io
+Push backend image to ghcr.io
   ↓
 GitHub Actions Deploy
   ├─ SSH into Oracle VM
-  ├─ Pull images from ghcr.io
+  ├─ Write runtime secrets to .env.docker
+  ├─ Pull backend image from ghcr.io
+  ├─ Build piper + whisper locally (PULL_POLICY=build)
+  ├─ Create docker network
+  ├─ Start services with docker-compose
+  │  ├─ whisper (STT) — built locally
+  │  ├─ piper (TTS) — built locally
+  │  └─ backend (API) — pulled from ghcr.io
   ├─ Run database migrations
-  ├─ Start services (whisper, piper, backend)
   ├─ Health checks
   └─ Done! ✅
 
@@ -174,6 +180,47 @@ VM_USER
 VM_SSH_KEY
 VM_HOST_KEY
 ```
+
+---
+
+## **How Environment Variables Work**
+
+### **.env.docker file (created by GitHub Actions)**
+
+During deployment, GitHub Actions creates a `.env.docker` file on the runner with all production secrets and variables:
+
+```bash
+# GitHub Actions creates this file automatically
+cat > .env.docker << 'EOF'
+LLM_MODEL=llama-3.3-70b-versatile
+LLM_BASE_URL=https://api.groq.com/openai/v1
+LLM_API_KEY=gsk_...
+OTEL_TRACES_EXPORTER=none
+NODE_ENV=production
+WHISPER_URL=http://whisper:7600
+PIPER_URL=http://piper:7602
+EOF
+```
+
+**docker-compose.yml** then reads this file:
+```yaml
+backend:
+  env_file:
+    - .env.docker
+```
+
+This means:
+- ✅ All runtime config in one file
+- ✅ Secrets are masked in GitHub Actions logs
+- ✅ No hardcoded secrets in code
+- ✅ Same pattern used by production projects (e.g., pti-salmoneras)
+
+### **Image Building Strategy (PULL_POLICY=build)**
+
+- **backend**: Pulled from ghcr.io (built in CI, pushed to registry)
+- **whisper** & **piper**: Built locally on VM (no registry push needed)
+
+This saves CI time and registry space for utility services that don't change often.
 
 ---
 

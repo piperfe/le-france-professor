@@ -185,7 +185,7 @@ jobs:
       packages: read
     env:
       IMAGE_TAG: ${{ github.sha }}
-      PULL_POLICY: always
+      PULL_POLICY: build
       NODE_ENV: production
       REGISTRY_OWNER: ${{ github.repository_owner }}
     steps:
@@ -213,6 +213,18 @@ jobs:
 
       - name: Ensure shared network exists
         run: docker network inspect le-france-network >/dev/null 2>&1 || docker network create le-france-network
+
+      - name: Write runtime secrets
+        run: |
+          cat > .env.docker << 'EOF'
+          LLM_MODEL=${{ vars.LLM_MODEL }}
+          LLM_BASE_URL=${{ vars.LLM_BASE_URL }}
+          LLM_API_KEY=${{ secrets.LLM_API_KEY }}
+          OTEL_TRACES_EXPORTER=${{ vars.OTEL_TRACES_EXPORTER }}
+          NODE_ENV=${{ vars.NODE_ENV }}
+          WHISPER_URL=${{ vars.WHISPER_URL }}
+          PIPER_URL=${{ vars.PIPER_URL }}
+          EOF
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
