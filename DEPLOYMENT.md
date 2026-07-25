@@ -222,15 +222,34 @@ This means:
 
 This saves CI time and registry space for utility services that don't change often.
 
-### **Docker Network Management**
+### **Zero-Downtime Deployment Strategy**
 
-The `le-france-network` is automatically created and managed by docker-compose:
-- ✅ Defined in `docker-compose.yml` with `external: false`
-- ✅ docker-compose creates it on first `up`, labels it correctly
-- ✅ GitHub Actions workflow does not manually create the network
-- ✅ Ensures label consistency (prevents network mismatch errors)
+Deployment uses **lightweight network cleanup** instead of `docker-compose down` to minimize service interruption:
 
-All services connect to this network automatically via the `networks:` section in docker-compose.yml.
+**Why not `docker-compose down`?**
+- ❌ Stops ALL containers (brief complete downtime)
+- ❌ Removes volumes and persistent state
+- ✅ But guaranteed clean state
+
+**Our approach: Network cleanup only**
+```bash
+docker network rm le-france-network 2>/dev/null || true  # Remove stale network
+docker-compose up -d                                      # Restart changed services only
+```
+
+**Benefits:**
+- ✅ **Zero downtime** — Services restart only if image changed
+- ✅ **Removes stale network** — Fresh network with correct labels
+- ✅ **Lightweight** — No unnecessary container restarts
+- ✅ **Production best practice** — Used by always-on systems
+
+**How it works:**
+1. GitHub Actions removes the old network (if it exists with wrong labels)
+2. `docker-compose up -d` pulls new images and starts services
+3. docker-compose automatically creates network with correct labels
+4. Services that didn't change keep running (no interruption)
+
+This matches the pattern used by production deployment systems (e.g., pti-salmoneras).
 
 ---
 
