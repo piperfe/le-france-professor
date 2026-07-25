@@ -35,10 +35,13 @@ Frontend: Deployed separately on Vercel (see FRONTEND.md)
 
 ## **Prerequisites**
 
-- ✅ Oracle Cloud VM with Docker + docker-compose installed
+- ✅ Oracle Cloud Always Free VM (ARM64-based Ampere Altra CPU, not x86_64)
+- ✅ Docker + docker-compose installed on VM
 - ✅ SSH access to VM (ubuntu user)
 - ✅ GitHub repository set up with this workflow
-- ✅ Images pushed to ghcr.io (happens automatically on push)
+- ✅ Images pushed to GHCR as multi-arch manifests (amd64 + arm64, automatic on push)
+
+**Note:** Docker images are built for both `linux/amd64` (GitHub Actions runner) and `linux/arm64` (Oracle Cloud Ampere) to support deployment on either architecture. Single-arch images would fail to pull on ARM64 with "no matching manifest" error.
 
 ---
 

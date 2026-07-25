@@ -131,6 +131,7 @@ jobs:
         with:
           context: .
           file: backend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/backend:latest
@@ -166,6 +167,7 @@ jobs:
         with:
           context: .
           file: frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/frontend:latest
@@ -201,6 +203,7 @@ jobs:
         with:
           context: .
           file: docker/whisper.Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/whisper:latest
@@ -236,6 +239,7 @@ jobs:
         with:
           context: .
           file: docker/piper.Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/piper:latest

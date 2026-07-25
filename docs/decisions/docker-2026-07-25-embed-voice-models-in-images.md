@@ -36,12 +36,15 @@ Embed voice models directly in Docker images during the CI build phase.
 **Local development:**
 - `docker compose up` now downloads models automatically on first build (~5–10 min)
 - Models are cached in Docker layers (subsequent builds are fast)
+- Builds for your local machine architecture (likely x86_64)
 
 **Production deployment:**
 - GitHub Actions CI builds complete images with models included
-- Oracle VM simply pulls pre-built images from GHCR
+- **Multi-architecture support:** Images built for both `linux/amd64` (CI runner) and `linux/arm64` (Oracle Cloud Ampere)
+- Oracle VM simply pulls pre-built ARM64 images from GHCR
 - No runtime model downloads on the VM
 - Deployment is faster (models already in image)
+- Same image tag works across both architectures (manifest list handles routing)
 
 ## Consequences
 
@@ -82,6 +85,19 @@ The benefit of reproducibility, consistency, and faster deployments outweighs th
 - ❌ Network failures during deployment are harder to debug
 - ❌ Different models on VM vs local dev if scripts drift
 - ❌ Slower overall deployment time
+
+## Constraint: Multi-Architecture Builds
+
+Docker images are built for both `linux/amd64` and `linux/arm64` architectures:
+- **amd64**: GitHub Actions CI runner (x86_64)
+- **arm64**: Oracle Cloud Always Free VM (Ampere Altra CPU)
+
+This increases CI build time (~40–90 min for multi-arch vs ~20–40 min for single-arch) but ensures the same image tag works on both architectures without pulling the wrong binary. Manifest lists in GHCR route requests to the correct architecture automatically.
+
+**Alternative considered:** Build only for the target architecture (arm64)
+- ❌ Would require detecting runner vs VM and conditional builds
+- ❌ Would break local dev on typical x86_64 laptops
+- ❌ More complex CI logic
 
 ## Related ADRs
 

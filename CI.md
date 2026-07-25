@@ -101,14 +101,15 @@ Push/PR to main
 
 ### Build · Backend image
 - **Job name:** `build-backend`
-- **Duration:** 10–20 min (GHA cache hits: 2–5 min)
+- **Duration:** 20–40 min (multi-arch compilation; GHA cache hits: 5–10 min)
 - **Runs only on:** Push to main (not on pull_request)
 - **Depends on:** test-backend AND test-frontend jobs pass (strict fail-fast)
 - **Timeout:** 45 minutes
-- **Image:** `ghcr.io/$repo/backend:latest` + `ghcr.io/$repo/backend:$SHA`
+- **Image:** `ghcr.io/$repo/backend:latest` + `ghcr.io/$repo/backend:$SHA` (multi-arch manifest)
+- **Platforms:** `linux/amd64` (GitHub Actions x86_64) + `linux/arm64` (Oracle Cloud Ampere)
 - **Cache:** GitHub Actions cache (type=gha) for efficient layer reuse
-  - First build: full compile (~20 min)
-  - Subsequent builds: reuse cached layers (~2–5 min)
+  - First build: full compile per platform (~20–40 min)
+  - Subsequent builds: reuse cached layers per platform (~5–10 min)
   - Cache persists across branch pushes within repo
 - **Pinning:** All Docker actions pinned to commit SHAs
 - **Runs in parallel with:** build-frontend (both images build simultaneously after tests pass)
@@ -116,14 +117,15 @@ Push/PR to main
 
 ### Build · Frontend image
 - **Job name:** `build-frontend`
-- **Duration:** 10–20 min (GHA cache hits: 2–5 min)
+- **Duration:** 20–40 min (multi-arch compilation; GHA cache hits: 5–10 min)
 - **Runs only on:** Push to main (not on pull_request)
 - **Depends on:** test-backend AND test-frontend jobs pass (strict fail-fast)
 - **Timeout:** 45 minutes
-- **Image:** `ghcr.io/$repo/frontend:latest` + `ghcr.io/$repo/frontend:$SHA`
+- **Image:** `ghcr.io/$repo/frontend:latest` + `ghcr.io/$repo/frontend:$SHA` (multi-arch manifest)
+- **Platforms:** `linux/amd64` (GitHub Actions x86_64) + `linux/arm64` (Oracle Cloud Ampere)
 - **Cache:** GitHub Actions cache (type=gha) for efficient layer reuse
-  - First build: full compile (~20 min)
-  - Subsequent builds: reuse cached layers (~2–5 min)
+  - First build: full compile per platform (~20–40 min)
+  - Subsequent builds: reuse cached layers per platform (~5–10 min)
   - Cache persists across branch pushes within repo
 - **Pinning:** All Docker actions pinned to commit SHAs
 - **Runs in parallel with:** build-backend (both images build simultaneously after tests pass)
@@ -131,33 +133,35 @@ Push/PR to main
 
 ### Build · Whisper image (with STT model)
 - **Job name:** `build-whisper`
-- **Duration:** 40–50 min (first run: model download ~47 sec; builder compile ~48 sec)
+- **Duration:** 60–90 min (multi-arch: ~40–50 min per platform + model download ~47 sec per platform)
 - **Runs only on:** Push to main (not on pull_request)
 - **Depends on:** test-backend AND test-frontend jobs pass (strict fail-fast)
 - **Timeout:** 45 minutes
-- **Image:** `ghcr.io/$repo/whisper:latest` + `ghcr.io/$repo/whisper:$SHA` (with embedded ggml-small.bin ~250 MB)
+- **Image:** `ghcr.io/$repo/whisper:latest` + `ghcr.io/$repo/whisper:$SHA` (multi-arch manifest, with embedded ggml-small.bin ~250 MB)
+- **Platforms:** `linux/amd64` (GitHub Actions x86_64) + `linux/arm64` (Oracle Cloud Ampere)
 - **What's inside:**
-  - whisper.cpp server binary (built from source in builder stage)
+  - whisper.cpp server binary (compiled from source in builder stage for target architecture)
   - Multilingual STT model (ggml-small.bin, ~250 MB, downloaded from Hugging Face)
-- **Cache:** GitHub Actions cache speeds up whisper.cpp compilation on subsequent builds
+- **Cache:** GitHub Actions cache speeds up whisper.cpp compilation; cached separately per platform
 - **Pinning:** All Docker actions pinned to commit SHAs
-- **Runs in parallel with:** build-backend + build-frontend
+- **Runs in parallel with:** build-backend + build-frontend + build-piper
 - **See:** [ADR-0042: Embed voice models in Docker images](./docs/decisions/docker-2026-07-25-embed-voice-models-in-images.md)
 
 ### Build · Piper image (with TTS model)
 - **Job name:** `build-piper`
-- **Duration:** 15–25 min (first run: model download ~60 MB; subsequent runs: cached)
+- **Duration:** 25–35 min (multi-arch: ~12–17 min per platform + model download ~60 MB per platform)
 - **Runs only on:** Push to main (not on pull_request)
 - **Depends on:** test-backend AND test-frontend jobs pass (strict fail-fast)
 - **Timeout:** 45 minutes
-- **Image:** `ghcr.io/$repo/piper:latest` + `ghcr.io/$repo/piper:$SHA` (with embedded fr_FR-upmc-medium model ~60 MB)
+- **Image:** `ghcr.io/$repo/piper:latest` + `ghcr.io/$repo/piper:$SHA` (multi-arch manifest, with embedded fr_FR-upmc-medium model ~60 MB)
+- **Platforms:** `linux/amd64` (GitHub Actions x86_64) + `linux/arm64` (Oracle Cloud Ampere)
 - **What's inside:**
-  - piper1-gpl HTTP server (installed from wheel)
+  - piper1-gpl HTTP server (architecture-appropriate wheel installed: arm64 or x86_64)
   - French TTS voice model (fr_FR-upmc-medium, ~60 MB, downloaded from Hugging Face)
   - Model config (fr_FR-upmc-medium.onnx.json)
-- **Cache:** GitHub Actions cache speeds up Python dependency installation
+- **Cache:** GitHub Actions cache speeds up Python dependency installation; cached separately per platform
 - **Pinning:** All Docker actions pinned to commit SHAs
-- **Runs in parallel with:** build-backend + build-frontend
+- **Runs in parallel with:** build-backend + build-frontend + build-whisper
 - **See:** [ADR-0042: Embed voice models in Docker images](./docs/decisions/docker-2026-07-25-embed-voice-models-in-images.md)
 
 ### Deploy · Backend to Oracle Cloud
