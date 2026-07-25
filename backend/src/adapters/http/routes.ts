@@ -11,6 +11,7 @@ import { createGetConversationHandler } from './handlers/get-conversation';
 import { createGetAllConversationsHandler } from './handlers/get-all-conversations';
 import { createExplainVocabularyHandler } from './handlers/explain-vocabulary';
 import { createGetVocabularyHandler } from './handlers/get-vocabulary';
+import { createHealthHandler } from './handlers/health';
 
 export function createRoutes(
   createConversationUseCase: CreateConversationUseCase,
@@ -21,6 +22,7 @@ export function createRoutes(
   getVocabularyUseCase: GetVocabularyUseCase,
 ): Router {
   const router = Router();
+  router.get('/health', createHealthHandler());
   router.get('/conversations', createGetAllConversationsHandler(getAllConversationsUseCase));
   router.post('/conversations', createCreateConversationHandler(createConversationUseCase));
   router.post('/conversations/:conversationId/messages', createSendMessageHandler(sendMessageUseCase));

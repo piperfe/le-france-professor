@@ -321,7 +321,8 @@ jobs:
           for service in whisper piper; do
             echo "Waiting for $service to be healthy..."
             for i in $(seq 1 12); do
-              status=$(docker inspect --format='{{.State.Health.Status}}' "le-france-$service" 2>/dev/null || echo "starting")
+              container_id=$(docker ps --filter "label=com.docker.compose.service=$service" --format "{{.ID}}" 2>/dev/null | head -1)
+              status=$([ -n "$container_id" ] && docker inspect --format='{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "starting")
               echo "  Attempt $i/12: $service = $status"
               [ "$status" = "healthy" ] && break
               [ "$i" = "12" ] && { echo "Warning: $service may not be fully healthy"; }
@@ -336,7 +337,8 @@ jobs:
         run: |
           echo "Waiting for backend to be healthy..."
           for i in $(seq 1 12); do
-            status=$(docker inspect --format='{{.State.Health.Status}}' "le-france-backend" 2>/dev/null || echo "starting")
+            container_id=$(docker ps --filter "label=com.docker.compose.service=backend" --format "{{.ID}}" 2>/dev/null | head -1)
+            status=$([ -n "$container_id" ] && docker inspect --format='{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "starting")
             echo "  Attempt $i/12: backend = $status"
             [ "$status" = "healthy" ] && break
             [ "$i" = "12" ] && { echo "ERROR: backend failed to become healthy"; exit 1; }
