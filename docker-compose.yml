@@ -5,7 +5,7 @@ networks:
 
 services:
   whisper:
-    image: ghcr.io/${{ github.repository_owner }}/le-france-professor/whisper:${IMAGE_TAG:-latest}
+    image: ghcr.io/${REGISTRY_OWNER}/le-france-professor/whisper:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: docker/whisper.Dockerfile
@@ -25,7 +25,7 @@ services:
       start_period: 40s
 
   piper:
-    image: ghcr.io/${{ github.repository_owner }}/le-france-professor/piper:${IMAGE_TAG:-latest}
+    image: ghcr.io/${REGISTRY_OWNER}/le-france-professor/piper:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: docker/piper.Dockerfile
@@ -45,7 +45,7 @@ services:
       start_period: 40s
 
   backend:
-    image: ghcr.io/${{ github.repository_owner }}/le-france-professor/backend:${IMAGE_TAG:-latest}
+    image: ghcr.io/${REGISTRY_OWNER}/le-france-professor/backend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -80,7 +80,7 @@ services:
       start_period: 40s
 
   frontend:
-    image: ghcr.io/${{ github.repository_owner }}/le-france-professor/frontend:${IMAGE_TAG:-latest}
+    image: ghcr.io/${REGISTRY_OWNER}/le-france-professor/frontend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: frontend/Dockerfile

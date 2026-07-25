@@ -187,6 +187,7 @@ jobs:
       IMAGE_TAG: ${{ github.sha }}
       PULL_POLICY: always
       NODE_ENV: production
+      REGISTRY_OWNER: ${{ github.repository_owner }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
