@@ -348,16 +348,13 @@ jobs:
       - name: Verify backend API endpoint
         run: |
           echo "Testing backend API endpoint..."
-          for i in $(seq 1 6); do
-            if curl -f http://localhost:3001/api/health >/dev/null 2>&1; then
-              echo "✓ Backend API is responding"
-              exit 0
-            fi
-            echo "  Attempt $i/6: Waiting for API response..."
-            sleep 5
-          done
-          echo "ERROR: Backend API not responding"
-          exit 1
+          container_id=$(docker ps --filter "label=com.docker.compose.service=backend" --format "{{.ID}}" 2>/dev/null | head -1)
+          if [ -n "$container_id" ] && docker exec "$container_id" wget -q -O- http://localhost:3001/api/health | grep -q "status"; then
+            echo "✓ Backend API is responding"
+          else
+            echo "ERROR: Backend API not responding"
+            exit 1
+          fi
 
       - name: Cleanup old images
         run: docker image prune -af --filter "until=168h"
